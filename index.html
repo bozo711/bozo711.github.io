@@ -3076,7 +3076,14 @@ async function backendChat(system, messages, onToken){
 }
 
 async function callAPI(agent, messages, onToken) {
-  if(cfg.apiUrl) return backendChat(sysPrompt(agent), messages, onToken);   // server vault → no local key needed
+  if(cfg.apiUrl){                                                          // server vault first…
+    try { return await backendChat(sysPrompt(agent), messages, onToken); }
+    catch(e){                                                              // …but if the backend is unreachable/down, don't just die
+      const canDirect = ((cfg.provider||'groq')==='ollama') ? !!cfg.url : !!cfg.apikey;
+      if(!canDirect) throw new Error('Your server-vault backend did not respond (asleep, wrong URL, or not deployed). Open ⚙ Settings → clear the "API URL" and add a direct API key, or fix/wake the backend.');
+      if(window.toast) toast('Server vault unreachable — using your API key instead');
+    }
+  }
   const p = cfg.provider || 'groq';
 
   if (p === 'ollama') {
