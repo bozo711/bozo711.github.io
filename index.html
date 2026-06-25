@@ -1455,6 +1455,7 @@ strong{color:#e8d4b0}
         <button class="qbtn" onclick="qpNiche('jarvis','What is the fastest way to make my first $100 online selling digital products in: ')">First $100</button>
         <button class="qbtn" onclick="qp('jarvis','What is the single most important thing I should do right now to move forward?')">What Now</button>
         <button class="qbtn" onclick="qp('jarvis','Motivate me. I need to push through right now.')">Motivate</button>
+        <button class="qbtn" onclick="shipLastProduct()" title="Turn Bam's last product into a PDF, copy the listing, and open Gumroad">🛒 Ship to Gumroad</button>
         <button class="qbtn" onclick="cmd('status')">Status</button>
         <button class="qbtn" onclick="cleanJarvis()" style="color:rgba(204,34,68,.6)">🧹 Clean</button>
       </div>
@@ -2728,6 +2729,52 @@ function iqCardHTML(){
 
 // ════════ COMMAND DECK — interactive: chat, scroll & tap in place ════════
 let deckBusy=false;
+// ════════ SHIP TO GUMROAD — turn Bam's product into a real PDF + copy listing + open Gumroad ════════
+function _pdfEsc(t){ return t.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)"); }
+function _pdfClean(s){ return String(s||"").replace(/\r/g,"").replace(/[*_`#>]/g,"").replace(/[^\x09\x0A\x20-\x7E]/g,""); }
+function _pdfWrap(text,max){ var out=[]; text.split(/\n/).forEach(function(p){ if(p.trim()===""){out.push("");return;} var words=p.split(/\s+/),line=""; words.forEach(function(w){ while(w.length>max){ if(line){out.push(line);line="";} out.push(w.slice(0,max)); w=w.slice(max); } if((line?line+" "+w:w).length>max){ if(line)out.push(line); line=w; } else { line=line?line+" "+w:w; } }); if(line)out.push(line); }); return out; }
+function makePDF(title, body){
+  var fs=11, lead=14.6, margin=58, top=748, bottom=58, pageW=612, pageH=792;
+  var maxChars=Math.floor((pageW-2*margin)/(fs*0.52));
+  title=_pdfClean(title).slice(0,90); var lines=_pdfWrap(_pdfClean(body),maxChars);
+  var perPage=Math.floor((top-bottom)/lead), p1cap=Math.max(1,perPage-3), pages=[], idx=0;
+  pages.push({title:title, lines:lines.slice(0,p1cap)}); idx=p1cap;
+  while(idx<lines.length){ pages.push({title:null, lines:lines.slice(idx,idx+perPage)}); idx+=perPage; }
+  if(pages.length===0) pages.push({title:title,lines:[""]});
+  function contentFor(pg){ var c="", yy=top; if(pg.title){ c+="BT /F2 18 Tf "+margin+" "+top+" Td ("+_pdfEsc(pg.title)+") Tj ET\n"; yy=top-30; } c+="BT /F1 "+fs+" Tf "+margin+" "+yy+" Td "+lead+" TL\n"; pg.lines.forEach(function(ln){ c+="("+_pdfEsc(ln)+") Tj T*\n"; }); c+="ET"; return c; }
+  var nP=pages.length, pageNums=[], contNums=[], nextN=5;
+  for(var i=0;i<nP;i++) pageNums.push(nextN++); for(var i=0;i<nP;i++) contNums.push(nextN++);
+  var pdf="%PDF-1.4\n", offsets=[];
+  function add(b){ offsets.push(pdf.length); pdf+=b; }
+  add("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+  add("2 0 obj\n<< /Type /Pages /Kids ["+pageNums.map(function(n){return n+" 0 R";}).join(" ")+"] /Count "+nP+" >>\nendobj\n");
+  add("3 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n");
+  add("4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>\nendobj\n");
+  for(var i=0;i<nP;i++) add(pageNums[i]+" 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+pageW+" "+pageH+"] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents "+contNums[i]+" 0 R >>\nendobj\n");
+  for(var i=0;i<nP;i++){ var cs=contentFor(pages[i]); add(contNums[i]+" 0 obj\n<< /Length "+cs.length+" >>\nstream\n"+cs+"\nendstream\nendobj\n"); }
+  var xrefPos=pdf.length, total=nextN;
+  var xref="xref\n0 "+total+"\n0000000000 65535 f \n";
+  offsets.forEach(function(o){ xref+=("0000000000"+o).slice(-10)+" 00000 n \n"; });
+  pdf+=xref+"trailer\n<< /Size "+total+" /Root 1 0 R >>\nstartxref\n"+xrefPos+"\n%%EOF";
+  return new Blob([pdf],{type:"application/pdf"});
+}
+function shipToGumroad(text){
+  text=(text||"").trim(); if(!text){ if(window.toast)toast("No product content — ask Bam to write the product first"); return; }
+  var title=((text.split("\n").find(function(l){return l.trim();}))||"Product").replace(/[*#>`]/g,"").trim().slice(0,70);
+  try{ var blob=makePDF(title,text); var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+    a.download=(title.replace(/[^a-z0-9 \-]/gi,"").trim().slice(0,50)||"product")+".pdf"; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },4000);
+  }catch(e){ if(window.toast)toast("PDF failed: "+e.message); }
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text); }catch(e){}
+  try{ window.open("https://gumroad.com/products/new","_blank"); }catch(e){}
+  if(window.toast) toast("PDF downloaded + listing copied. On Gumroad: upload the PDF, paste the text, set your price, publish.");
+}
+function shipLastProduct(){
+  var ms=(typeof convos!=="undefined"&&convos.jarvis)?convos.jarvis.filter(function(m){return m.role==="assistant"&&typeof m.content==="string"&&m.content.length>120;}):[];
+  if(!ms.length){ if(window.toast)toast("Ask Bam to create a product first, then tap Ship"); return; }
+  shipToGumroad(ms[ms.length-1].content);
+}
+
 function openDeck(){ document.getElementById("deck").classList.add("open"); deckRefresh(); deckBindParallax(); }
 var _deckPB=false;
 function deckBindParallax(){ if(_deckPB) return; _deckPB=true;
