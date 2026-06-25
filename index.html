@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000814">
 <!-- Security: restrict where the app can load from and (critically) send data to -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev; frame-src https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev; frame-src https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <link rel="manifest" href="manifest.json">
@@ -6496,10 +6496,11 @@ async function setupAvatar(THREE){
     avChar=g.scene; avScene.add(avChar);
     const box=new THREE.Box3().setFromObject(avChar), size=box.getSize(new THREE.Vector3()), ctr=box.getCenter(new THREE.Vector3());
     const h=size.y||1.6;
-    avChar.position.sub(ctr); avChar.position.y += h*0.30;             // centre, then bias up to frame the upper body/face
-    avCam.position.set(0,0,h*0.92); avCam.lookAt(0,0,0);
+    avChar.position.sub(ctr);                                          // centre on origin
+    const headY=h*0.33;                                               // aim just below the head for a head-and-shoulders portrait
+    avCam.position.set(0, headY, h*0.85); avCam.lookAt(0, headY, 0);
     if(g.animations && g.animations.length){ avMixer=new THREE.AnimationMixer(avChar); avMixer.clipAction(g.animations[0]).play(); }
-  }catch(e){ /* avatar is optional */ }
+  }catch(e){ console.error('avatar load failed', e); }
 }
 
 window.webglOK = function(){ try{ const c=document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl2')||c.getContext('webgl'))); }catch(e){ return false; } };
@@ -6580,12 +6581,18 @@ async function build(THREE, RGBELoader){
   dataField=buildDataField(THREE); scene.add(dataField); // deep web of data-nodes filling the space between members
   // ── your custom character — he IS the AI now: stands at the CORE centre AND lives in the chat box ──
   gl.loadAsync('./vendor/models/character.glb').then(g=>{
-    const ch=g.scene; ch.scale.setScalar(1.6); ch.position.set(0, -1.0, 1.2);   // centre of the CORE (tweak Y if he floats/sinks)
-    ch.lookAt(0, -0.4, 9);                                                        // face the camera's start position
-    enhanceMaterials(ch, THREE); scene.add(ch); window._b3dChar=ch;
+    const ch=g.scene;
+    // AUTO-FIT: whatever units he was exported in, normalise him to ~2.4 units tall,
+    // stand his feet on the platform, centre him, and face the camera. (No guessing on scale.)
+    const box=new THREE.Box3().setFromObject(ch), size=box.getSize(new THREE.Vector3()), ctr=box.getCenter(new THREE.Vector3());
+    const s=3.0/(size.y||1); ch.scale.setScalar(s);                  // ~3 units tall so he reads clearly
+    ch.position.set(-ctr.x*s, -box.min.y*s - 1.7, -ctr.z*s + 3.7);   // feet ≈ y -1.7, standing in front of the reactor
+    ch.rotation.y=Math.PI;                                            // face the camera (flip to 0 if he faces away)
+    scene.add(ch); window._b3dChar=ch;                               // NOTE: do NOT enhanceMaterials — keep his real PBR skin/clothes
+    const charKey=new THREE.PointLight(0xfff2f2, 3.2, 16); charKey.position.set(0.5, 1.2, 6.5); scene.add(charKey);  // dedicated light so he isn't lost in the reactor bloom
     if(g.animations && g.animations.length){ charMixer=new THREE.AnimationMixer(ch); charMixer.clipAction(g.animations[0]).play(); }
     setupAvatar(THREE);                                                           // mirror him into the chat-box avatar
-  }).catch(()=>{ /* no character file yet — scene runs fine without it */ });
+  }).catch(e=>{ console.error('character load failed', e); window.toast && toast('Bam model failed: '+e.message); });
   // HUD ring belongs to the CORE area
   frame.rotation.x=Math.PI/2; frame.position.set(0,0.5,-0.3); frame.scale.setScalar(1.05); scene.add(frame); window._b3dFrame=frame;
 
