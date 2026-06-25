@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000814">
 <!-- Security: restrict where the app can load from and (critically) send data to -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev; frame-src https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev https://nominatim.openstreetmap.org https://overpass-api.de https://places.googleapis.com; frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <link rel="manifest" href="manifest.json">
@@ -1028,6 +1028,30 @@ strong{color:#e8d4b0}
 #academy.open{display:flex}
 #iqtest{position:fixed;inset:0;z-index:430;background:radial-gradient(1200px 620px at 50% -12%, #081826, #050a14 58%, #03060c);display:none;flex-direction:column}
 #iqtest.open{display:flex}
+#biz{position:fixed;inset:0;z-index:435;background:radial-gradient(1000px 600px at 50% -10%,#0a1020,#06030c 60%,#03060c);display:none;flex-direction:column}
+#biz.open{display:flex}
+.biz-top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--red-b);background:rgba(8,2,12,.7);backdrop-filter:blur(10px)}
+.biz-title{font-family:'Cinzel',serif;letter-spacing:1px;color:#cfe8ff;font-size:15px}
+.biz-top button{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
+.biz-tabs{display:flex;gap:8px;padding:10px 16px;max-width:900px;margin:0 auto;width:100%}
+.biz-tab{flex:1;padding:9px;border-radius:9px;border:1px solid rgba(120,180,255,.25);background:rgba(255,255,255,.03);color:var(--text-d);font-family:inherit;font-size:12px;cursor:pointer}
+.biz-tab.on{background:rgba(106,209,255,.14);color:#cfe8ff;border-color:#6ad1ff}
+.biz-body{flex:1;overflow-y:auto;padding:8px 16px 40px;max-width:900px;margin:0 auto;width:100%;scrollbar-width:none}
+.biz-body::-webkit-scrollbar{display:none}
+.biz-search{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.biz-search input,.biz-search select{background:rgba(255,255,255,.06);border:1px solid rgba(120,180,255,.25);border-radius:8px;color:var(--text);padding:9px 11px;font-family:inherit;font-size:13px;outline:none}
+.biz-search input{flex:1;min-width:130px}
+.biz-search button{background:linear-gradient(90deg,#6ad1ff,#1f8fd6);border:none;border-radius:8px;color:#04121d;font-weight:700;padding:0 16px;cursor:pointer}
+#biz-status,#biz-build-status{color:#9fc7e6;font-size:12px;margin:6px 0 10px}
+.biz-card{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid rgba(120,180,255,.16);border-left:3px solid #6ad1ff;border-radius:11px;background:rgba(255,255,255,.03);margin-bottom:8px;flex-wrap:wrap}
+.biz-meta{font-size:11px;color:var(--text-d);margin-top:3px}
+.biz-card button{background:rgba(106,209,255,.14);border:1px solid rgba(106,209,255,.4);color:#cfe8ff;border-radius:7px;font-size:11px;padding:6px 10px;cursor:pointer;white-space:nowrap}
+.biz-out{white-space:pre-wrap;display:none;background:rgba(154,107,255,.1);border:1px solid rgba(154,107,255,.3);border-radius:10px;padding:12px;margin:0 0 10px;color:var(--text);font-size:12.5px;line-height:1.6}
+.biz-dl{background:linear-gradient(90deg,#6ad1ff,#1f8fd6);border:none;color:#04121d;border-radius:8px;font-weight:700;padding:8px 12px;cursor:pointer;margin:8px 6px 8px 0}
+.biz-preview-bar{color:#9fc7e6;font-size:11px;letter-spacing:1px;margin:10px 0 4px}
+.biz-iframe{width:100%;height:62vh;border:1px solid rgba(120,180,255,.3);border-radius:10px;background:#fff}
+#biz-csv{margin-top:10px;background:rgba(106,209,255,.14);border:1px solid rgba(106,209,255,.4);color:#cfe8ff;border-radius:8px;padding:9px 14px;cursor:pointer}
+
 #deck{position:fixed;inset:0;z-index:440;background:radial-gradient(1200px 700px at 50% -5%,#120217,#06010c 60%,#020106);display:none}
 #deck.open{display:block;animation:nx-pop .26s cubic-bezier(.2,.9,.3,1)}
 .dp-open{float:right;background:rgba(106,209,255,.15);border:1px solid rgba(106,209,255,.4);color:#cfe8ff;border-radius:6px;font-size:10px;letter-spacing:.5px;cursor:pointer;padding:2px 7px}
@@ -1247,6 +1271,9 @@ strong{color:#e8d4b0}
         <label>Gumroad Access Token</label>
         <input type="password" id="c-gum-key" placeholder="Your Gumroad access token…">
         <div class="hint">Gumroad → Settings → Advanced → Applications → Generate Access Token.</div>
+        <label style="margin-top:10px">Google Maps API Key (optional)</label>
+        <input type="password" id="c-gmaps-key" placeholder="For accurate lead-finder results…">
+        <div class="hint">Optional — the Lead Finder works free without it (OpenStreetMap). Add a Google Maps key (Places API) for the most accurate "no website" data.</div>
       </div>
       <div style="font-size:8px;letter-spacing:2px;color:var(--text-d);text-transform:uppercase;padding:6px 0 2px;border-top:1px solid var(--red-b);margin-top:4px">Messaging</div>
       <div class="field">
@@ -1385,6 +1412,31 @@ strong{color:#e8d4b0}
   <div class="deck-hint">3D OS — move to look into the room · hover a window to pull it forward · scroll / chat / tap</div>
 </div>
 
+<div id="biz">
+  <div class="biz-top"><span class="biz-title">🏢 LEAD FINDER &amp; SITE BUILDER</span><button onclick="closeBiz()">✕</button></div>
+  <div class="biz-tabs"><button id="biztab-find" class="biz-tab on" onclick="bizTab('find')">Find businesses (no website)</button><button id="biztab-build" class="biz-tab" onclick="bizTab('build')">Build a website</button></div>
+  <div class="biz-body" id="biz-find">
+    <div class="biz-search">
+      <input id="biz-loc" placeholder="Location — e.g. Miami FL, or a neighborhood">
+      <input id="biz-type" placeholder="(optional) type — e.g. restaurant, salon">
+      <select id="biz-radius"><option value="1500">1.5 km</option><option value="3000" selected>3 km</option><option value="6000">6 km</option><option value="12000">12 km</option></select>
+      <select id="biz-src"><option value="osm">OpenStreetMap (free)</option><option value="google">Google Maps (needs key)</option></select>
+      <button onclick="bizSearch()">Search</button>
+    </div>
+    <div id="biz-status">Enter a location and search — Bam finds local businesses with no website (your leads).</div>
+    <div id="biz-results"></div>
+    <button id="biz-csv" onclick="bizCSV()" style="display:none">⬇ Export leads as CSV</button>
+  </div>
+  <div class="biz-body" id="biz-build" style="display:none">
+    <div class="biz-search">
+      <input id="biz-bname" placeholder="Business name">
+      <input id="biz-bdesc" placeholder="What they do / details / vibe">
+      <button onclick="bizBuildSite()">Build site with Bam</button>
+    </div>
+    <div id="biz-build-status">Bam builds a complete, ready-to-download website. Use it as a service for a lead, or sell it as a template.</div>
+    <div id="biz-preview"></div>
+  </div>
+</div>
 <!-- App -->
 <div id="app">
 
@@ -1422,6 +1474,7 @@ strong{color:#e8d4b0}
       <button class="icon-btn" onclick="openNeuro()" title="NEUROLINK — Bam's cortex, tools & agents">🧠</button>
       <button class="icon-btn" onclick="openAcademy()" title="Teacher mode — structured lessons">🎓</button>
       <button class="icon-btn" onclick="openDoom()" title="Doomscroll — insights, games & more">🌀</button>
+      <button class="icon-btn" onclick="openBiz()" title="Lead Finder & Website Builder">🏢</button>
       <button class="icon-btn" onclick="openCfg()">⚙</button>
     </div>
   </div>
@@ -1493,7 +1546,7 @@ let activeNiche = '';
 let cfg = {
   provider:'groq', apikey:'', url:'', model:'llama-3.1-8b-instant',
   name:'Commander', goal:10000, income:0, date:'', tasks:[], done:[], ctx:'',
-  ytKey:'', ytChannel:'', gumKey:'', tgToken:'', tgChat:'', discordWh:'', identity:'', style:'', autoMem:true
+  ytKey:'', ytChannel:'', gumKey:'', gmapsKey:'', tgToken:'', tgChat:'', discordWh:'', identity:'', style:'', autoMem:true
 };
 let convos = {};          // {agent:[{role,content}]}
 let busy = false;
@@ -1640,7 +1693,7 @@ const delay = ms => new Promise(r => setTimeout(r, ms));
 // ═══════════════════════════════════════════════
 let cryptoKey = null, cryptoSalt = '', cryptoIters = 600000, lockMode = 'unlock', appStarted = false, autoLockTimer = null;
 const PBKDF2_ITERS = 600000;                                   // L2: heavy key stretching (OWASP 2023)
-const SECRET_FIELDS = ['apikey','ytKey','gumKey','discord','url','identity','style'];
+const SECRET_FIELDS = ['apikey','ytKey','gumKey','gmapsKey','discord','url','identity','style'];
 function bufToB64(buf){ let s=''; const b=new Uint8Array(buf); for(let i=0;i<b.length;i++) s+=String.fromCharCode(b[i]); return btoa(s); }
 function b64ToBuf(b64){ return Uint8Array.from(atob(b64), c=>c.charCodeAt(0)); }
 async function deriveKey(pin, saltB64, iters){
@@ -1954,6 +2007,7 @@ function fillCfgForm() {
   document.getElementById('c-yt-key').value     = cfg.ytKey||'';
   if (document.getElementById('c-yt-channel')) document.getElementById('c-yt-channel').value = cfg.ytChannel||'';
   document.getElementById('c-gum-key').value    = cfg.gumKey||'';
+  if(document.getElementById('c-gmaps-key')) document.getElementById('c-gmaps-key').value = cfg.gmapsKey||'';
   document.getElementById('c-tg-token').value   = cfg.tgToken||'';
   document.getElementById('c-tg-chat').value    = cfg.tgChat||'';
   document.getElementById('c-discord-wh').value = cfg.discordWh||'';
@@ -2000,6 +2054,7 @@ function saveCfg() {
   cfg.ytKey     = document.getElementById('c-yt-key').value.trim();
   cfg.ytChannel = (document.getElementById('c-yt-channel') ? document.getElementById('c-yt-channel').value : '').trim();
   cfg.gumKey    = document.getElementById('c-gum-key').value.trim();
+  cfg.gmapsKey  = (document.getElementById('c-gmaps-key')?document.getElementById('c-gmaps-key').value:'').trim();
   cfg.tgToken   = document.getElementById('c-tg-token').value.trim();
   cfg.tgChat    = document.getElementById('c-tg-chat').value.trim();
   cfg.discordWh = document.getElementById('c-discord-wh').value.trim();
@@ -2774,6 +2829,89 @@ function shipLastProduct(){
   if(!ms.length){ if(window.toast)toast("Ask Bam to create a product first, then tap Ship"); return; }
   shipToGumroad(ms[ms.length-1].content);
 }
+
+// ════════ LEAD FINDER (no-website businesses) + WEBSITE BUILDER ════════
+let bizResults=[];
+function openBiz(){ document.getElementById("biz").classList.add("open"); }
+function closeBiz(){ document.getElementById("biz").classList.remove("open"); }
+function bizTab(t){ document.getElementById("biz-find").style.display=t==="find"?"":"none"; document.getElementById("biz-build").style.display=t==="build"?"":"none"; document.getElementById("biztab-find").classList.toggle("on",t==="find"); document.getElementById("biztab-build").classList.toggle("on",t==="build"); }
+async function bizGeocode(q){ var r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+encodeURIComponent(q)); var d=await r.json(); if(!d||!d.length) throw new Error("Location not found — try 'City, State'"); return {lat:+d[0].lat, lon:+d[0].lon, name:d[0].display_name}; }
+async function bizSearchOSM(loc,type,radius){
+  var g=await bizGeocode(loc);
+  var dLat=radius/111320, dLon=radius/(111320*Math.cos(g.lat*Math.PI/180));
+  var S=(g.lat-dLat).toFixed(6), N=(g.lat+dLat).toFixed(6), W=(g.lon-dLon).toFixed(6), E=(g.lon+dLon).toFixed(6);
+  var bb="("+S+","+W+","+N+","+E+")";   // bounding box is far faster than around: on the public server
+  var amen="restaurant|cafe|bar|fast_food|pub|pharmacy|dentist|veterinary|car_repair|hairdresser|beauty|gym";
+  var q="[out:json][timeout:25];("
+    +"nwr[shop][name][!website][!\"contact:website\"]"+bb+";"
+    +"nwr[amenity~\"^("+amen+")$\"][name][!website][!\"contact:website\"]"+bb+";"
+    +"nwr[craft][name][!website][!\"contact:website\"]"+bb+";"
+    +");out center 150;";
+  var r=await fetch("https://overpass-api.de/api/interpreter",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"data="+encodeURIComponent(q)});
+  if(!r.ok) throw new Error("Overpass is busy (HTTP "+r.status+") — try again in a few seconds");
+  var d; try{ d=await r.json(); }catch(_){ throw new Error("Overpass is busy — try again in a few seconds"); }
+  if(d.remark && (!d.elements||!d.elements.length)) throw new Error("Overpass: "+d.remark);
+  var res=(d.elements||[]).map(function(e){ var t=e.tags||{}; var typ=t.shop||t.amenity||t.craft||t.office||"business";
+    var addr=[t["addr:housenumber"],t["addr:street"],t["addr:city"]].filter(Boolean).join(" ");
+    return {name:t.name, type:String(typ).replace(/_/g," "), addr:addr, phone:t.phone||t["contact:phone"]||"", lat:e.lat||(e.center&&e.center.lat), lon:e.lon||(e.center&&e.center.lon)}; });
+  if(type){ var k=type.toLowerCase(); res=res.filter(function(x){ return (x.type+" "+x.name).toLowerCase().indexOf(k)>=0; }); }
+  var seen={}; res=res.filter(function(x){ if(!x.name) return false; var key=(x.name+"|"+x.addr).toLowerCase(); if(seen[key]) return false; seen[key]=1; return true; });
+  return {area:g.name, list:res};
+}
+async function bizSearchGoogle(loc,type,radius){
+  if(!cfg.gmapsKey) throw new Error("Add your Google Maps API key in Settings (or switch source to OpenStreetMap)");
+  var g=await bizGeocode(loc);
+  var body={textQuery:(type||"businesses")+" in "+loc, maxResultCount:20, locationBias:{circle:{center:{latitude:g.lat,longitude:g.lon},radius:Math.min(radius,50000)}}};
+  var r=await fetch("https://places.googleapis.com/v1/places:searchText",{method:"POST",headers:{"Content-Type":"application/json","X-Goog-Api-Key":cfg.gmapsKey,"X-Goog-FieldMask":"places.displayName,places.formattedAddress,places.websiteUri,places.nationalPhoneNumber,places.primaryType,places.location"},body:JSON.stringify(body)});
+  var d=await r.json(); if(d.error) throw new Error(d.error.message||"Google Places error");
+  var res=(d.places||[]).filter(function(p){ return !p.websiteUri; }).map(function(p){ return {name:(p.displayName&&p.displayName.text)||"", type:String(p.primaryType||"business").replace(/_/g," "), addr:p.formattedAddress||"", phone:p.nationalPhoneNumber||"", lat:p.location&&p.location.latitude, lon:p.location&&p.location.longitude}; });
+  return {area:g.name, list:res};
+}
+async function bizSearch(){
+  var loc=document.getElementById("biz-loc").value.trim(); if(!loc){ if(window.toast)toast("Enter a location"); return; }
+  var type=document.getElementById("biz-type").value.trim(), radius=+document.getElementById("biz-radius").value, src=document.getElementById("biz-src").value;
+  var st=document.getElementById("biz-status"); st.textContent="Searching "+loc+" …"; document.getElementById("biz-results").innerHTML=""; document.getElementById("biz-csv").style.display="none";
+  try{ var out= src==="google"? await bizSearchGoogle(loc,type,radius) : await bizSearchOSM(loc,type,radius); bizResults=out.list; renderBizResults(out.area); }
+  catch(e){ st.textContent="⚠ "+(e&&e.message?e.message:e); }
+}
+function renderBizResults(area){
+  var st=document.getElementById("biz-status"); st.textContent=bizResults.length+" businesses with no website found near "+area;
+  var h=bizResults.map(function(b,i){ return '<div class="biz-card"><div style="flex:1;min-width:160px"><b>'+doomEsc(b.name)+'</b><div class="biz-meta">'+doomEsc(b.type)+(b.addr?" · "+doomEsc(b.addr):"")+(b.phone?" · "+doomEsc(b.phone):"")+'</div></div>'
+    +'<button onclick="bizOutreach('+i+')">✉ Pitch</button><button onclick="bizBuildFor('+i+')">🌐 Build site</button></div>'
+    +'<div id="biz-out-'+i+'" class="biz-out"></div>'; }).join("");
+  document.getElementById("biz-results").innerHTML = h || '<div style="color:var(--text-d);padding:14px">None found here — try a bigger radius, a different area, or the Google source for fuller data.</div>';
+  document.getElementById("biz-csv").style.display=bizResults.length?"":"none";
+}
+function bizCSV(){ var rows=[["Name","Type","Address","Phone"]].concat(bizResults.map(function(b){return [b.name,b.type,b.addr,b.phone];}));
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c||"").replace(/"/g,'""')+'"';}).join(",");}).join("\n");
+  var blob=new Blob([csv],{type:"text/csv"}); var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="leads.csv"; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},3000); }
+async function bizOutreach(i){ var b=bizResults[i]; var box=document.getElementById("biz-out-"+i); box.style.display="block";
+  if(!(cfg.apikey||cfg.apiUrl)){ box.textContent="Add your API key in Settings so Bam can write the pitch"; return; }
+  box.textContent="Bam is writing the pitch…";
+  try{ var full=await callAPI("jarvis",[{role:"user",content:"Write a cold outreach to "+b.name+", a "+b.type+(b.addr?(" at "+b.addr):"")+". They have NO website. I build professional websites. Give me: 1) a short DM/email under 90 words that leads with value and ends with a soft CTA, 2) a 4-line phone script. Direct, friendly, no fluff, no placeholders."}],function(t){box.textContent=t;}); box.textContent=full; }
+  catch(e){ box.textContent="⚠ "+(e&&e.message?e.message:e); } }
+function bizBuildFor(i){ var b=bizResults[i]; bizTab("build"); document.getElementById("biz-bname").value=b.name; document.getElementById("biz-bdesc").value=b.type+(b.addr?(" located at "+b.addr):"")+(b.phone?(", phone "+b.phone):""); bizBuildSite(); }
+function bizExtractHTML(t){ t=t||""; var m=t.match(/<!DOCTYPE[\s\S]*<\/html>/i)||t.match(/<html[\s\S]*<\/html>/i); var h=m?m[0]:t; return h.replace(/^\s*```html?/i,"").replace(/```\s*$/,"").trim(); }
+async function bizBuildSite(){
+  var name=document.getElementById("biz-bname").value.trim(), desc=document.getElementById("biz-bdesc").value.trim();
+  if(!name){ if(window.toast)toast("Enter a business name"); return; }
+  var st=document.getElementById("biz-build-status");
+  if(!(cfg.apikey||cfg.apiUrl)){ st.textContent="Add your API key in Settings so Bam can build the site"; return; }
+  st.textContent="Bam is building the website…"; document.getElementById("biz-preview").innerHTML="";
+  var prompt="Build a COMPLETE, modern, responsive ONE-FILE website for this business. Business name: \""+name+"\". Details: "+(desc||"a local business")+". "
+    +"Output a single self-contained HTML document with inline <style> (and inline <script> only if truly needed). Professional modern design, fully mobile-responsive. Include: sticky nav, hero with headline + call-to-action, services/offerings, about, testimonials, a contact section with phone/area and a simple form, and a footer. Tasteful colors fitting the business and tailored real placeholder copy (NO lorem ipsum). "
+    +"Output ONLY the HTML document starting with <!DOCTYPE html> and ending with </html>. No explanations, no markdown code fences.";
+  try{ var full=await callAPI("jarvis",[{role:"user",content:prompt}],function(t){ st.textContent="Bam is building… ("+t.length+" chars)"; });
+    var html=bizExtractHTML(full); window._bizSiteHTML=html; window._bizSiteName=name;
+    var blob=new Blob([html],{type:"text/html"}); var url=URL.createObjectURL(blob);
+    document.getElementById("biz-preview").innerHTML='<div class="biz-preview-bar">LIVE PREVIEW · '+doomEsc(name)+'</div>'
+      +'<button class="biz-dl" onclick="bizDownloadSite()">⬇ Download site (.html)</button>'
+      +'<button class="biz-dl" onclick="bizOpenSite()" style="background:rgba(255,255,255,.1);color:#fff">↗ Open full</button>'
+      +'<iframe class="biz-iframe" src="'+url+'"></iframe>';
+    st.textContent="✓ Site built — preview below. Download it, send it to the business, or sell it.";
+  }catch(e){ st.textContent="⚠ "+(e&&e.message?e.message:e); } }
+function bizDownloadSite(){ var blob=new Blob([window._bizSiteHTML||""],{type:"text/html"}); var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=((window._bizSiteName||"website").replace(/[^a-z0-9]+/gi,"-").toLowerCase().replace(/^-|-$/g,"")||"website")+".html"; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},3000); }
+function bizOpenSite(){ try{ var w=window.open(); w.document.open(); w.document.write(window._bizSiteHTML||""); w.document.close(); }catch(e){ if(window.toast)toast("Allow pop-ups to open the preview"); } }
 
 function openDeck(){ document.getElementById("deck").classList.add("open"); deckRefresh(); deckBindParallax(); }
 var _deckPB=false;
