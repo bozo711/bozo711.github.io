@@ -2729,6 +2729,17 @@ function deckFocus(which){ closeDeck(); setTimeout(function(){
     else if(which==="settings") openCfg();
     else if(which==="chat"){ var i=document.getElementById("i-jarvis"); if(i){ try{i.scrollIntoView({behavior:"smooth",block:"center"});}catch(e){} i.focus(); } }
   },190); }
+window.deckScreenData = function(){
+  var out={academy:[],doom:[],chat:[],settings:[]};
+  try{ var p=acProgress(),done=0,all=0; ACADEMY.forEach(function(c){done+=(p[c.key]||[]).length;all+=c.lessons.length;});
+    var ptd=0; PORTAL_TRACK.forEach(function(k){var c=ACADEMY.find(function(x){return x.key===k;}); if(c&&(p[k]||[]).length>=c.lessons.length)ptd++;});
+    out.academy=[acPct(done,all)+'% overall', done+' / '+all+' lessons', ACADEMY.length+' courses', 'Portal track '+ptd+' / '+PORTAL_TRACK.length]; }catch(e){}
+  out.doom=['Infinite feed of', 'bite-size lessons,', 'insights & drills.', 'Tap to scroll.'];
+  try{ var m=(typeof convos!=='undefined'&&convos.jarvis)?convos.jarvis.slice(-2):[];
+    out.chat=m.length? m.map(function(x){var t=typeof x.content==='string'?x.content:'[...]'; return (x.role==='user'?'You: ':'Bam: ')+t.slice(0,40);}) : ['No messages yet.','Tap to talk to Bam.']; }catch(e){ out.chat=['Tap to talk to Bam.']; }
+  try{ var c=cfg; out.settings=['Name: '+(c.name||'-'),'Niche: '+((typeof getNiche==='function'?getNiche():c.niche)||'-'),'Goal: $'+((c.goal||0).toLocaleString()),'Keys: '+(c.apiUrl?'Server vault':(c.apikey?'Local':'None'))]; }catch(e){}
+  return out;
+};
 function deckRefresh(){
   try{ var p=acProgress(), done=0, all=0; ACADEMY.forEach(function(c){ done+=(p[c.key]||[]).length; all+=c.lessons.length; });
     var h='<div class="dp-row"><b>Overall</b><span>'+acPct(done,all)+'%</span></div><div class="dp-row"><span>'+done+' / '+all+' lessons · '+ACADEMY.length+' courses</span></div>';
@@ -6659,6 +6670,7 @@ bootSecure();
 <script type="module">
 let inited=false, running=false, renderer, scene, camera, raf, clock, busy=false, sectionModels={}, sectionAreas={}, sectionHolders=[], current='chat', connGroup=null, dataField=null, charMixer=null, composer=null, T=null, raycaster=null, lastT=0;
 let avRenderer=null, avScene=null, avCam=null, avMixer=null, avChar=null;   // live character avatar inside the chat box
+let deckWall=null, deckLastRefresh=0;   // 3D-OS floating screen wall
 // ── free-roam controller state (look around + move toward floating members) ──
 let yaw=0, pitch=-0.06, keyState={}, joyVec={x:0,y:0}, lookId=null, lookLast=null, downInfo=null, autoPos=null, autoYaw=null, autoPitch=null, touchMode=false, freeLook=true;
 function lerpAngle(a,b,t){ let d=((b-a+Math.PI)%(2*Math.PI))-Math.PI; if(d<-Math.PI) d+=2*Math.PI; return a+d*t; }
@@ -6677,6 +6689,7 @@ function tapSelect(e){
   const r=renderer.domElement.getBoundingClientRect();
   const ndc=new T.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
   raycaster.setFromCamera(ndc, camera);
+  if(deckWall){ const dh=raycaster.intersectObjects(deckWall.children, true); if(dh.length){ let o=dh[0].object; while(o){ if(o.userData&&o.userData.deckKey){ deckOpen3D(o.userData.deckKey); return; } o=o.parent; } } }
   const hits=raycaster.intersectObjects(sectionHolders, true);
   if(hits.length){ let o=hits[0].object; while(o){ if(o.userData&&o.userData.sectionKey){ goSection(o.userData.sectionKey); break; } o=o.parent; } }
 }
@@ -6891,6 +6904,47 @@ async function setupAvatar(THREE){
   }catch(e){ console.error('avatar load failed', e); }
 }
 
+function _roundRect(x,a,b,w,h,r){ x.beginPath(); x.moveTo(a+r,b); x.arcTo(a+w,b,a+w,b+h,r); x.arcTo(a+w,b+h,a,b+h,r); x.arcTo(a,b+h,a,b,r); x.arcTo(a,b,a+w,b,r); x.closePath(); }
+function makeScreen(THREE, title, accent){
+  const c=document.createElement('canvas'); c.width=512; c.height=320; const x=c.getContext('2d');
+  const tex=new THREE.CanvasTexture(c); tex.anisotropy=4;
+  function draw(lines){
+    x.clearRect(0,0,512,320);
+    x.fillStyle='rgba(8,12,26,0.92)'; _roundRect(x,6,6,500,308,18); x.fill();
+    x.lineWidth=3; x.strokeStyle=accent; x.stroke();
+    x.globalAlpha=0.16; x.fillStyle=accent; _roundRect(x,6,6,500,54,18); x.fill(); x.globalAlpha=1;
+    x.fillStyle='#eaf4ff'; x.font='bold 28px "Courier New",monospace'; x.textBaseline='middle'; x.fillText(title,26,36);
+    x.font='22px "Courier New",monospace'; x.fillStyle='#bcd6f0';
+    (lines||[]).forEach(function(ln,i){ x.fillText(String(ln).slice(0,34),26,98+i*40); });
+    x.fillStyle=accent; x.font='18px "Courier New",monospace'; x.fillText('\u25B6 tap to open',26,292);
+    tex.needsUpdate=true;
+  }
+  return {tex:tex, draw:draw};
+}
+function buildDeckWall(THREE){
+  const g=new THREE.Group();
+  const data=(window.deckScreenData?window.deckScreenData():{});
+  const defs=[
+    {k:'academy',title:'ACADEMY',accent:'#9a6bff',lines:data.academy},
+    {k:'doom',title:'DOOMSCROLL',accent:'#35d0c0',lines:data.doom},
+    {k:'chat',title:'BAM',accent:'#ff3358',lines:data.chat},
+    {k:'settings',title:'SETTINGS',accent:'#e8c24a',lines:data.settings},
+  ];
+  const xs=[-5.2,-1.85,1.85,5.2], ys=[2.6,3.05,3.05,2.6], zs=[1.7,2.5,2.5,1.7];
+  defs.forEach(function(d,i){
+    const sc=makeScreen(THREE,d.title,d.accent); sc.draw(d.lines||[]);
+    const mat=new THREE.MeshBasicMaterial({map:sc.tex, transparent:true, depthWrite:false, side:THREE.DoubleSide});
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(2.9,1.81), mat);
+    m.position.set(xs[i],ys[i],zs[i]); m.lookAt(0,1.7,9.5);
+    m.userData={deckKey:d.k, draw:sc.draw, baseY:ys[i]};
+    g.add(m);
+  });
+  return g;
+}
+function refreshDeckWall(){ if(!deckWall||!window.deckScreenData) return; const data=window.deckScreenData();
+  deckWall.children.forEach(function(m){ const k=m.userData.deckKey; if(k&&m.userData.draw) m.userData.draw(data[k]||[]); }); }
+function deckOpen3D(k){ const fn = k==='academy'?window.openAcademy : k==='doom'?window.openDoom : k==='settings'?window.openCfg : window.openDeck; if(window.nav3D) window.nav3D(fn); else if(fn) fn(); }
+
 window.webglOK = function(){ try{ const c=document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl2')||c.getContext('webgl'))); }catch(e){ return false; } };
 
 window.enter3D = async function(){
@@ -6966,7 +7020,8 @@ async function build(THREE, RGBELoader){
     const lab=makeLabel(THREE, SECTION_TITLE[k]||k); lab.position.set(0,2.0,0); lab.scale.set(3,0.75,1); holder.add(lab);   // floating name so you can tell members apart
   }
   connGroup=connectAreas(THREE); scene.add(connGroup);   // glowing conduits linking the core to each area
-  dataField=buildDataField(THREE); scene.add(dataField); // deep web of data-nodes filling the space between members
+  dataField=buildDataField(THREE); scene.add(dataField);
+  deckWall=buildDeckWall(THREE); scene.add(deckWall);   // 3D-OS: live floating screens around Bam // deep web of data-nodes filling the space between members
   // ── your custom character — he IS the AI now: stands at the CORE centre AND lives in the chat box ──
   gl.loadAsync('./vendor/models/character.glb').then(g=>{
     const ch=g.scene;
@@ -7011,6 +7066,7 @@ function loop(){
   const bn=sectionModels.brain;   // animate the brain's synapse pulses
   if(bn && bn.userData.pulses){ bn.userData.pulses.forEach(p=>{ p.t+=0.02; if(p.t>=1){ p.t=0; p.c=bn.userData.conns[(Math.random()*bn.userData.conns.length)|0]; } if(p.c) p.m.position.lerpVectors(p.c[0],p.c[1],p.t); }); }
   if(connGroup){ connGroup.userData.pulses.forEach(p=>{ p.t+=0.006; if(p.t>1) p.t=0; p.curve.getPoint(p.t, p.m.position); }); }   // energy flowing between areas
+  if(deckWall){ deckWall.children.forEach((m,i)=>{ if(m.userData.deckKey) m.position.y=m.userData.baseY+Math.sin(t*0.8+i)*0.06; }); if(t-deckLastRefresh>1.2){ deckLastRefresh=t; refreshDeckWall(); } }
   if(dataField){ dataField.userData.pulses.forEach(p=>{ p.t+=0.008; if(p.t>=1){ p.t=0; p.c=dataField.userData.conns[(Math.random()*dataField.userData.conns.length)|0]; } if(p.c) p.m.position.lerpVectors(p.c[0],p.c[1],p.t); }); }   // data flowing across the web
   if(charMixer) charMixer.update(dt);                // animate the custom character (if loaded)
   // live chat-box avatar — only render when the chat panel is showing (CORE mode)
