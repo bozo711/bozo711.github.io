@@ -2454,7 +2454,7 @@ function acSaveDone(key, idx){ const p=acProgress(); p[key]=p[key]||[]; if(!p[ke
 function acMd(s){ return doomEsc(s).replace(/^#{2,3}\s*(.*)$/gm,'<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>'); }
 
 
-// ════════ INTELLIGENCE PROFILE — rigorous, difficulty-weighted, timed assessment (baseline at start, retake at end) ════════
+// ════════ INTELLIGENCE PROFILE — randomized, never-repeating, timed, difficulty-weighted (baseline at start, retake at end) ════════
 const IQ_FACETS = [
   {k:"logic",icon:"🧩",label:"Logical Reasoning"},
   {k:"numerical",icon:"🔢",label:"Numerical"},
@@ -2469,55 +2469,100 @@ const IQ_FACETS = [
 ];
 const IQ_QFACETS=["logic","numerical","verbal","spatial","memory","emotional","social","self","creative"];
 const IQ_COG=["logic","numerical","verbal","spatial","memory"];
-const IQ_BANK = [
-  {f:"logic",q:"All roses are flowers. Some flowers fade quickly. Which MUST be true?",o:["Some roses fade quickly", "All flowers are roses", "Some flowers are roses", "Roses never fade"],a:2,d:1,t:35},
-  {f:"logic",q:"If it rains, the ground gets wet. The ground is NOT wet. Therefore:",o:["It rained", "It did not rain", "It might have rained", "The sun dried it"],a:1,d:2,t:45},
-  {f:"logic",q:"Which one does NOT belong: 2, 3, 5, 9, 11?",o:["3", "5", "9", "11"],a:2,d:1,t:35},
-  {f:"logic",q:"Tom is taller than Sam. Sam is taller than Joe. Who is shortest?",o:["Tom", "Sam", "Joe", "Cannot tell"],a:2,d:1,t:35},
-  {f:"logic",q:"Some cats are black. All black things absorb heat. Which MUST be true?",o:["All cats absorb heat", "Some cats absorb heat", "No cats absorb heat", "Only black things are cats"],a:1,d:2,t:45},
-  {f:"logic",q:"If all Bloops are Razzies and all Razzies are Lazzies, then all Bloops are definitely:",o:["Lazzies", "not Lazzies", "only Razzies", "none of these"],a:0,d:3,t:60},
-  {f:"numerical",q:"What comes next: 2, 6, 12, 20, 30, ?",o:["36", "42", "40", "45"],a:1,d:2,t:45},
-  {f:"numerical",q:"What comes next: 1, 1, 2, 3, 5, 8, ?",o:["11", "12", "13", "15"],a:2,d:2,t:45},
-  {f:"numerical",q:"If 3 machines make 3 widgets in 3 minutes, how long for 100 machines to make 100 widgets?",o:["100 minutes", "3 minutes", "33 minutes", "1 minute"],a:1,d:2,t:45},
-  {f:"numerical",q:"A shirt costs $20 after a 20% discount. What was the original price?",o:["$24", "$25", "$22", "$26"],a:1,d:2,t:45},
-  {f:"numerical",q:"What is 15% of 200?",o:["30", "25", "35", "20"],a:0,d:1,t:35},
-  {f:"numerical",q:"What comes next: 3, 9, 27, 81, ?",o:["162", "243", "108", "324"],a:1,d:2,t:45},
-  {f:"verbal",q:"Bird is to sky as fish is to ___",o:["water", "scales", "fin", "boat"],a:0,d:1,t:35},
-  {f:"verbal",q:"Which word is most OPPOSITE to benevolent?",o:["kind", "cruel", "generous", "gentle"],a:1,d:1,t:35},
-  {f:"verbal",q:"Ephemeral most nearly means:",o:["lasting forever", "short-lived", "colorful", "enormous"],a:1,d:2,t:45},
-  {f:"verbal",q:"Choose the best fit: Her argument was so ___ that no one could refute it.",o:["weak", "cogent", "vague", "trivial"],a:1,d:2,t:45},
-  {f:"verbal",q:"Ubiquitous most nearly means:",o:["rare", "present everywhere", "ancient", "fragile"],a:1,d:2,t:45},
-  {f:"verbal",q:"Pen is to writer as ___ is to painter.",o:["brush", "canvas", "color", "wall"],a:0,d:1,t:35},
-  {f:"spatial",q:"A cube is painted on all sides, then cut into 27 equal small cubes (3x3x3). How many small cubes have exactly 3 painted faces?",o:["6", "8", "12", "0"],a:1,d:2,t:45},
-  {f:"spatial",q:"A flat plus-shaped (+) net of 6 squares folds into which solid?",o:["sphere", "cube", "pyramid", "cylinder"],a:1,d:1,t:35},
-  {f:"spatial",q:"Rotate the lowercase letter b by 180 degrees. Which letter do you get?",o:["d", "p", "q", "b"],a:2,d:2,t:45},
-  {f:"spatial",q:"On a clock at exactly 3:00, what is the angle between the hour and minute hands?",o:["90 degrees", "120 degrees", "60 degrees", "45 degrees"],a:0,d:1,t:35},
-  {f:"spatial",q:"That 3x3x3 painted cube cut into 27 pieces: how many small cubes have NO painted face?",o:["1", "0", "2", "8"],a:0,d:3,t:60},
-  {f:"spatial",q:"How many edges does a cube have?",o:["12", "8", "6", "10"],a:0,d:1,t:35},
-  {f:"memory",q:"Study this code: 7-K-4-M. Which option reproduces it exactly?",o:["7K4M", "K7M4", "7K4N", "4K7M"],a:0,d:1,t:35},
-  {f:"memory",q:"Pattern: red, blue, green, blue, red, blue, green, blue, ... What comes next?",o:["red", "blue", "green", "yellow"],a:0,d:2,t:45},
-  {f:"memory",q:"Memorize these: APPLE, RIVER, CHAIR. Which word was NOT in the list?",o:["APPLE", "RIVER", "TABLE", "CHAIR"],a:2,d:1,t:35},
-  {f:"memory",q:"Sequence: 4, 9, 1, 6, 3. Which number was 4th?",o:["1", "6", "3", "9"],a:1,d:2,t:45},
-  {f:"memory",q:"Reverse this sequence: 2, 5, 8. Reversed, it is:",o:["8, 5, 2", "2, 5, 8", "5, 8, 2", "8, 2, 5"],a:0,d:1,t:35},
-  {f:"memory",q:"Sequence: 6, 1, 9, 4, 7, 2. Which two numbers sit at the ends?",o:["6 and 2", "6 and 7", "1 and 2", "9 and 4"],a:0,d:2,t:45},
-  {f:"emotional",q:"A friend suddenly snaps at you. The most emotionally intelligent first response is to:",o:["snap back at them", "assume they hate you", "ask if something is wrong", "ignore them for good"],a:2,d:1,t:0},
-  {f:"emotional",q:"You feel a surge of anger during a meeting. The best move is to:",o:["express it loudly", "pause and breathe before responding", "bottle it up and pretend", "walk out and quit"],a:1,d:1,t:0},
-  {f:"emotional",q:"Which response best shows empathy?",o:["You should not feel that way.", "That sounds really hard - tell me more.", "Just get over it.", "At least it is not worse."],a:1,d:1,t:0},
-  {f:"emotional",q:"Noticing an emotion in yourself the moment it arises is called:",o:["repression", "self-awareness", "projection", "denial"],a:1,d:1,t:0},
-  {f:"social",q:"In a disagreement, the most persuasive approach is to:",o:["talk the loudest", "understand their view first, then respond", "insult the opposing idea", "refuse to listen"],a:1,d:1,t:0},
-  {f:"social",q:"A teammate takes credit for your work. The best approach is to:",o:["sabotage them quietly", "calmly address it in private with facts", "complain to everyone else", "say nothing and resent it"],a:1,d:1,t:0},
-  {f:"social",q:"Rapport is built mostly through:",o:["talking about yourself", "active listening and genuine interest", "constant flattery", "agreeing with everything"],a:1,d:1,t:0},
-  {f:"social",q:"Someone gives you tough but fair feedback. The mature response is to:",o:["get defensive", "consider it and thank them", "attack their credibility", "cut them off"],a:1,d:1,t:0},
-  {f:"self",q:"The best way to learn your real strengths is to:",o:["assume you are good at everything", "reflect honestly and seek feedback", "only compare yourself to others", "ignore your weaknesses"],a:1,d:1,t:0},
-  {f:"self",q:"After a failure, people with a growth mindset:",o:["blame other people", "ask what they can learn", "give up", "pretend it did not happen"],a:1,d:1,t:0},
-  {f:"self",q:"Understanding WHY you react the way you do reflects:",o:["low intelligence", "high self-awareness", "arrogance", "pure luck"],a:1,d:1,t:0},
-  {f:"self",q:"A healthy way to handle a personal weakness is to:",o:["hide it forever", "acknowledge it and work on or manage it", "deny it exists", "let it define you"],a:1,d:1,t:0},
-  {f:"creative",q:"Which approach is MOST creative for an everyday problem?",o:["copy exactly what everyone else does", "combine two unrelated ideas in a new way", "do nothing and wait", "follow only the existing rules"],a:1,d:1,t:0},
-  {f:"creative",q:"Listing many possible uses for a brick mainly measures:",o:["memory", "creative flexibility", "physical strength", "vocabulary"],a:1,d:1,t:0},
-  {f:"creative",q:"Creativity grows most when you:",o:["avoid all new experiences", "expose yourself to diverse ideas and play", "memorize one fixed method", "fear making mistakes"],a:1,d:1,t:0},
-  {f:"creative",q:"When brainstorming, the best first step is to:",o:["judge each idea immediately", "generate many ideas without judging", "pick the very first idea", "stop after one idea"],a:1,d:1,t:0}
+const IQ_WORDS=["APPLE","RIVER","CHAIR","TIGER","CLOUD","STONE","BREAD","HORSE","LEMON","TRAIN","GLASS","PLANT","NORTH","MUSIC","SHELL","FLAME","OCEAN","MAPLE","COMET","BRICK"];
+const IQ_NAMES=["Sam","Joe","Max","Tom","Ana","Eli","Kai","Mia","Leo","Zoe"];
+const IQ_LET=[["b","q"],["q","b"],["p","d"],["d","p"],["n","u"],["u","n"],["6","9"],["9","6"],["M","W"],["W","M"]];
+const IQ_VERBAL=[
+ {q:"Bird is to sky as fish is to ___",c:"water",d:["scales","fin","boat"]},
+ {q:"Pen is to writer as ___ is to painter.",c:"brush",d:["canvas","color","wall"]},
+ {q:"Hot is to cold as up is to ___",c:"down",d:["high","over","tall"]},
+ {q:"Which word is most OPPOSITE to benevolent?",c:"cruel",d:["kind","generous","gentle"]},
+ {q:"Which word is most OPPOSITE to expand?",c:"contract",d:["grow","stretch","widen"]},
+ {q:"Ephemeral most nearly means:",c:"short-lived",d:["lasting forever","colorful","enormous"]},
+ {q:"Ubiquitous most nearly means:",c:"present everywhere",d:["rare","ancient","fragile"]},
+ {q:"Meticulous most nearly means:",c:"extremely careful",d:["careless","quick","loud"]},
+ {q:"Candid most nearly means:",c:"honest and direct",d:["shy","dishonest","confused"]},
+ {q:"Choose the best fit: Her argument was so ___ that no one could refute it.",c:"cogent",d:["weak","vague","trivial"]},
+ {q:"Doctor is to hospital as teacher is to ___",c:"school",d:["book","student","desk"]},
+ {q:"Which word does NOT fit: happy, joyful, cheerful, gloomy?",c:"gloomy",d:["happy","joyful","cheerful"]},
+ {q:"Abundant most nearly means:",c:"plentiful",d:["scarce","empty","heavy"]},
+ {q:"Fragile is most OPPOSITE to:",c:"sturdy",d:["delicate","thin","brittle"]},
 ];
+const IQ_SOFT={
+ emotional:[
+  {q:"A friend suddenly snaps at you. The most emotionally intelligent first response is to:",c:"ask if something is wrong",d:["snap back at them","assume they hate you","ignore them for good"]},
+  {q:"You feel a surge of anger during a meeting. The best move is to:",c:"pause and breathe before responding",d:["express it loudly","bottle it up and pretend","walk out and quit"]},
+  {q:"Which response best shows empathy?",c:"That sounds really hard - tell me more.",d:["You should not feel that way.","Just get over it.","At least it is not worse."]},
+  {q:"Noticing an emotion in yourself the moment it arises is called:",c:"self-awareness",d:["repression","projection","denial"]},
+  {q:"The healthiest way to handle stress is to:",c:"acknowledge it and use a coping strategy",d:["pretend it is not there","take it out on others","never rest"]},
+  {q:"When someone is crying, the most caring move is to:",c:"stay present and listen",d:["tell them to stop","change the subject","leave immediately"]},
+ ],
+ social:[
+  {q:"In a disagreement, the most persuasive approach is to:",c:"understand their view first, then respond",d:["talk the loudest","insult the opposing idea","refuse to listen"]},
+  {q:"A teammate takes credit for your work. The best approach is to:",c:"calmly address it in private with facts",d:["sabotage them quietly","complain to everyone else","say nothing and resent it"]},
+  {q:"Rapport is built mostly through:",c:"active listening and genuine interest",d:["talking about yourself","constant flattery","agreeing with everything"]},
+  {q:"Someone gives you tough but fair feedback. The mature response is to:",c:"consider it and thank them",d:["get defensive","attack their credibility","cut them off"]},
+  {q:"To make a strong first impression, focus on:",c:"being genuinely interested in them",d:["bragging","talking nonstop","checking your phone"]},
+  {q:"The best way to resolve a conflict is to:",c:"find the shared goal and compromise",d:["always win","avoid it forever","threaten them"]},
+ ],
+ self:[
+  {q:"The best way to learn your real strengths is to:",c:"reflect honestly and seek feedback",d:["assume you are good at everything","only compare yourself to others","ignore your weaknesses"]},
+  {q:"After a failure, people with a growth mindset:",c:"ask what they can learn",d:["blame other people","give up","pretend it did not happen"]},
+  {q:"Understanding WHY you react the way you do reflects:",c:"high self-awareness",d:["low intelligence","arrogance","pure luck"]},
+  {q:"A healthy way to handle a personal weakness is to:",c:"acknowledge it and work on or manage it",d:["hide it forever","deny it exists","let it define you"]},
+  {q:"Real self-confidence comes mostly from:",c:"competence built through effort",d:["other people's praise","ignoring all flaws","comparing down to others"]},
+  {q:"The most useful question after a hard day is:",c:"What can I learn from this?",d:["Whose fault is it?","Why me?","How do I hide it?"]},
+ ],
+ creative:[
+  {q:"Which approach is MOST creative for an everyday problem?",c:"combine two unrelated ideas in a new way",d:["copy exactly what everyone else does","do nothing and wait","follow only the existing rules"]},
+  {q:"Listing many possible uses for a brick mainly measures:",c:"creative flexibility",d:["memory","physical strength","vocabulary"]},
+  {q:"Creativity grows most when you:",c:"expose yourself to diverse ideas and play",d:["avoid all new experiences","memorize one fixed method","fear making mistakes"]},
+  {q:"When brainstorming, the best first step is to:",c:"generate many ideas without judging",d:["judge each idea immediately","pick the very first idea","stop after one idea"]},
+  {q:"Innovation often comes from:",c:"asking what if and challenging assumptions",d:["doing what is comfortable","following the crowd","avoiding risk entirely"]},
+  {q:"A good way to spark new ideas is to:",c:"connect ideas from a different field",d:["repeat past solutions","wait for inspiration only","never take breaks"]},
+ ],
+};
 let iqQs=[], iqIdx=0, iqAns=[], iqTime=[], iqT0=0, iqTimer=null;
+function iqRand(n){ return Math.floor(Math.random()*n); }
+function iqShuffle(a){ for(var i=a.length-1;i>0;i--){ var j=iqRand(i+1); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function iqPickN(a,n){ return iqShuffle(a.slice()).slice(0,n); }
+function iqMC(f,q,correct,distractors,d,t,stim){
+  var opts=[correct];
+  for(var i=0;i<distractors.length && opts.length<4;i++){ if(opts.indexOf(distractors[i])<0) opts.push(distractors[i]); }
+  var guard=0;
+  while(opts.length<4){ var fill; if(/^-?\d+$/.test(String(correct))){ fill=String(parseInt(correct)+(guard+1)*(iqRand(2)?1:-1)*(1+iqRand(6))); } else { fill="None of these"; } if(opts.indexOf(fill)<0) opts.push(fill); guard++; if(guard>30) break; }
+  iqShuffle(opts);
+  return {f:f,q:q,o:opts,a:opts.indexOf(correct),d:d,t:t,stim:stim||null};
+}
+// ---- generators (fresh values every run) ----
+function gNumArith(){ var a=1+iqRand(8),s=2+iqRand(7),seq=[]; for(var i=0;i<5;i++)seq.push(a+s*i); var ans=a+s*5; return iqMC("numerical","What comes next: "+seq.join(", ")+", ?",String(ans),[String(ans+s),String(ans-s),String(ans+1)],2,45); }
+function gNumGeo(){ var a=2+iqRand(3),r=2+iqRand(2),seq=[],v=a; for(var i=0;i<4;i++){seq.push(v);v*=r;} var ans=v; return iqMC("numerical","What comes next: "+seq.join(", ")+", ?",String(ans),[String(ans*r),String(ans+seq[3]),String(ans-seq[2])],2,45); }
+function gNumPct(){ var ps=[10,15,20,25,50],p=ps[iqRand(ps.length)],n=(2+iqRand(9))*20,ans=p*n/100; return iqMC("numerical","What is "+p+"% of "+n+"?",String(ans),[String(ans+n/10),String(Math.round(ans*1.5)),String(Math.max(0,ans-5))],1,35); }
+function gNumDisc(){ var ps=[10,20,25],p=ps[iqRand(3)],orig=(2+iqRand(8))*10,price=Math.round(orig*(1-p/100)); return iqMC("numerical","An item costs $"+price+" after a "+p+"% discount. What was the original price?",String(orig),[String(price+p),String(orig+10),String(orig-10)],2,45); }
+function gNumFib(){ var a=1+iqRand(4),b=a+iqRand(4),seq=[a,b]; for(var i=0;i<3;i++)seq.push(seq[seq.length-1]+seq[seq.length-2]); var ans=seq[4]+seq[3]; return iqMC("numerical","What comes next: "+seq.join(", ")+", ?",String(ans),[String(ans+1),String(ans-2),String(ans+seq[3])],2,45); }
+function gLogSyll(){ var n=iqShuffle(["Bloops","Razzies","Lazzies","Snicks","Wuggs","Trell"]); return iqMC("logic","If all "+n[0]+" are "+n[1]+" and all "+n[1]+" are "+n[2]+", then all "+n[0]+" are definitely:",n[2],["not "+n[2],"only "+n[1],"none of these"],2,45); }
+function gLogTrans(){ var n=iqPickN(IQ_NAMES,3),r=iqRand(2)?["taller","shortest"]:["older","youngest"]; return iqMC("logic",n[0]+" is "+r[0]+" than "+n[1]+". "+n[1]+" is "+r[0]+" than "+n[2]+". Who is "+r[1]+"?",n[2],[n[0],n[1],"Cannot tell"],1,35); }
+function gLogOdd(){ var primes=[2,3,5,7,11,13,17],comps=[4,6,8,9,10,12,15],ps=iqPickN(primes,3),comp=comps[iqRand(comps.length)]; var all=iqShuffle(ps.concat(comp)); return iqMC("logic","Which number does NOT belong: "+all.join(", ")+"?",String(comp),ps.map(String),2,45); }
+function gLogModus(){ var t=[["it rains","the ground gets wet","the ground is NOT wet","It did not rain"],["the alarm rings","I wake up","I did NOT wake up","The alarm did not ring"],["the switch is on","the light glows","the light does NOT glow","The switch is off"]][iqRand(3)]; return iqMC("logic","If "+t[0]+", then "+t[1]+". But "+t[2]+". Therefore:",t[3],["The opposite happened","We cannot tell","Both are true"],2,45); }
+function gSpClock(){ var h=1+iqRand(11),ang=Math.min(h*30,360-h*30); return iqMC("spatial","On a clock at exactly "+h+":00, what is the smaller angle between the hands?",ang+" degrees",[(ang+30)+" degrees",Math.abs(ang-30)+" degrees",(ang+15)+" degrees"],2,45); }
+function gSpRot(){ var p=IQ_LET[iqRand(IQ_LET.length)],dd=["b","p","d","q","n","u","6","9"].filter(function(x){return x!==p[1];}); return iqMC("spatial","Rotate the character "+p[0]+" by 180 degrees. What do you get?",p[1],iqPickN(dd,3),2,45); }
+function gSpCube(){ var n=3+iqRand(1); if(iqRand(2)===0){ return iqMC("spatial","A cube is painted on all faces then cut into "+(n*n*n)+" equal cubes ("+n+"x"+n+"x"+n+"). How many small cubes have exactly 3 painted faces?","8",["6","12",String(n*n)],2,45); } var none=Math.pow(n-2,3); return iqMC("spatial","A cube painted on all faces is cut into "+(n*n*n)+" equal cubes ("+n+"x"+n+"x"+n+"). How many have NO paint at all?",String(none),[String(none+1),String(none+6),"0"],3,60); }
+function gSpSolid(){ var s=[["a cube","edges","12"],["a cube","faces","6"],["a cube","vertices","8"],["a square pyramid","faces","5"],["a tetrahedron","faces","4"],["a tetrahedron","edges","6"]][iqRand(6)]; return iqMC("spatial","How many "+s[1]+" does "+s[0]+" have?",s[2],[String(+s[2]+2),String(Math.max(0,+s[2]-2)),String(+s[2]+1)],1,35); }
+function gSpNet(){ return iqMC("spatial","A flat plus-shaped (+) net of 6 squares folds into which solid?","cube",["sphere","pyramid","cylinder"],1,35); }
+function gMemDigit(){ var len=5+iqRand(2),ds=[]; for(var i=0;i<len;i++)ds.push(iqRand(10)); var k=1+iqRand(len),ans=String(ds[k-1]); var dd=[]; ds.forEach(function(x,i){ if(i!==k-1) dd.push(String(x)); }); return iqMC("memory","What was digit number "+k+" in the sequence?",ans,dd,1,0,"Memorize this sequence:\n\n"+ds.join("    ")); }
+function gMemWords(){ var p=iqShuffle(IQ_WORDS.slice()),shown=p.slice(0,3),not=p[3]; return iqMC("memory","Which of these words was NOT in the list you saw?",not,shown.slice(),1,0,"Memorize these words:\n\n"+shown.join("     ")); }
+function gMemRev(){ var len=4+iqRand(2),ds=[]; for(var i=0;i<len;i++)ds.push(iqRand(9)+1); var rev=ds.slice().reverse().join(", "),fwd=ds.join(", "),rot=ds.slice(1).concat(ds[0]).join(", "),sw=ds.slice(); var t=sw[0]; sw[0]=sw[len-1]; sw[len-1]=t; return iqMC("memory","What was that sequence REVERSED?",rev,[fwd,rot,sw.join(", ")],1,0,"Memorize this sequence:\n\n"+ds.join("    ")); }
+function gMemEnds(){ var len=6,ds=[]; for(var i=0;i<len;i++)ds.push(iqRand(9)+1); return iqMC("memory","Which two numbers were at the ENDS (first and last)?",ds[0]+" and "+ds[len-1],[ds[1]+" and "+ds[len-2],ds[0]+" and "+ds[len-2],ds[2]+" and "+ds[3]],2,0,"Memorize this sequence:\n\n"+ds.join("    ")); }
+function iqGenQuiz(){
+  var qs=[];
+  qs.push(gLogSyll(),gLogTrans(),gLogOdd(),gLogModus(),[gLogSyll,gLogTrans,gLogOdd][iqRand(3)]());
+  qs.push(gNumArith(),gNumGeo(),gNumPct(),gNumDisc(),gNumFib(),[gNumArith,gNumGeo,gNumPct][iqRand(3)]());
+  iqPickN(IQ_VERBAL,5).forEach(function(v){ qs.push(iqMC("verbal",v.q,v.c,v.d.slice(),2,40)); });
+  qs.push(gSpClock(),gSpRot(),gSpCube(),gSpSolid(),gSpNet());
+  qs.push(gMemDigit(),gMemWords(),gMemRev(),gMemEnds(),gMemDigit());
+  ["emotional","social","self","creative"].forEach(function(fk){ iqPickN(IQ_SOFT[fk],4).forEach(function(v){ qs.push(iqMC(fk,v.q,v.c,v.d.slice(),1,0)); }); });
+  return qs;
+}
 function iqGet(){ try{return JSON.parse(localStorage.getItem("jv-iq")||"{}");}catch(e){return {};} }
 function iqSave(d){ try{localStorage.setItem("jv-iq",JSON.stringify(d));}catch(e){} }
 function iqErf(x){ var t=1/(1+0.3275911*Math.abs(x)); var y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return x>=0?y:-y; }
@@ -2533,38 +2578,41 @@ function iqIntro(){
     status='<div class="ac-takeaways">Baseline '+d.baseline.date+' — index '+d.baseline.index+' ('+d.baseline.overall+'% overall)'
       +(cmp?('<br>Latest '+d.latest.date+' — index '+d.latest.index+' ('+(d.latest.index-d.baseline.index>=0?'+':'')+(d.latest.index-d.baseline.index)+' index, '+(d.latest.overall-d.baseline.overall>=0?'+':'')+(d.latest.overall-d.baseline.overall)+' pts)'):'')+'</div>'; }
   b.innerHTML='<div class="ac-wrap" style="max-width:680px"><div class="ac-hero"><h1>Intelligence Profile</h1>'
-    +'<p>A rigorous, full-spectrum measurement across 10 dimensions — logical, numerical, verbal, spatial, working memory, processing speed, emotional (EQ), social, self-awareness and creative. Set your <b>baseline</b> now, then retake it at the end to see exactly how much you grew.</p>'
-    +'<div style="color:var(--text-d);font-size:11px">46 questions · cognitive items are timed · difficulty-weighted scoring → a 100/SD-15 index + percentile. As accurate as a self-test gets; a proctored test (WAIS) is the only official clinical score.</div></div>'
+    +'<p>A rigorous, full-spectrum measurement across 10 dimensions — logical, numerical, verbal, spatial, working memory, processing speed, emotional (EQ), social, self-awareness and creative. Every attempt uses <b>freshly generated questions</b>, so it is never the same twice. Set your <b>baseline</b> now, then retake at the end to see how much you grew.</p>'
+    +'<div style="color:var(--text-d);font-size:11px">42 questions · cognitive items are timed · memory items flash then hide · difficulty-weighted → 100/SD-15 index + percentile. As accurate as a self-test gets; a proctored WAIS is the only official clinical score.</div></div>'
     +status
     +'<button class="pt-btn" onclick="iqBegin()">'+(d.baseline?"Retake assessment ▸":"Begin baseline ▸")+'</button>'
     +(d.latest&&d.latest.facets?'<button class="pt-btn" style="margin-left:8px;background:rgba(255,255,255,.1);color:#fff" onclick="iqResultsView()">See last results</button>':'')
     +'</div>';
 }
-function iqBegin(){ iqQs=IQ_BANK.slice(); iqIdx=0; iqAns=[]; iqTime=[]; document.getElementById("iq-back").style.display=""; iqRenderQ(); }
-function iqRenderQ(){
+function iqBegin(){ iqQs=iqGenQuiz(); iqIdx=0; iqAns=[]; iqTime=[]; document.getElementById("iq-back").style.display=""; iqRenderQ(); }
+function iqRenderQ(){ var q=iqQs[iqIdx]; if(q.stim){ iqShowStim(q); } else { iqShowQuestion(q); } }
+function iqShowStim(q){
   if(iqTimer){clearInterval(iqTimer);iqTimer=null;}
-  var b=document.getElementById("iq-body"); b.scrollTop=0;
-  var q=iqQs[iqIdx], n=iqQs.length;
+  var b=document.getElementById("iq-body"); b.scrollTop=0; var secs=6;
+  b.innerHTML='<div class="ac-wrap" style="max-width:680px;text-align:center"><div style="color:#ffd27a;font-size:13px;letter-spacing:1px;margin-bottom:8px;font-weight:700">🧠 MEMORIZE — hides in <span id="iq-stim-t">'+secs+'</span>s</div>'
+    +'<div style="font-size:28px;color:#fff;font-weight:700;letter-spacing:3px;line-height:1.9;white-space:pre-wrap;margin:34px 0;padding:24px;border:1px solid rgba(106,209,255,.3);border-radius:14px;background:rgba(106,209,255,.06)">'+doomEsc(q.stim)+'</div>'
+    +'<div style="color:var(--text-d);font-size:12px">Study it — the question appears once it disappears.</div></div>';
+  iqTimer=setInterval(function(){ secs--; var e=document.getElementById("iq-stim-t"); if(e) e.textContent=secs; if(secs<=0){ clearInterval(iqTimer); iqTimer=null; iqShowQuestion(q); } },1000);
+}
+function iqShowQuestion(q){
+  if(iqTimer){clearInterval(iqTimer);iqTimer=null;}
+  var b=document.getElementById("iq-body"); b.scrollTop=0; var n=iqQs.length;
   var timer=q.t?('<div id="iq-timer" style="float:right;font-size:13px;color:#ffd27a;font-weight:700">'+q.t+'s</div>'):'';
   var h='<div class="ac-wrap" style="max-width:680px"><div class="ac-pb" style="margin-bottom:16px;--a1:#6ad1ff;--a2:#1f8fd6"><i style="width:'+Math.round(iqIdx/n*100)+'%"></i></div>';
   h+='<div style="color:#9fc7e6;font-size:12px;letter-spacing:1px;margin-bottom:6px">QUESTION '+(iqIdx+1)+' / '+n+(q.t?' · timed':'')+timer+'</div>';
   h+='<div style="font-size:17px;color:#fff;margin-bottom:16px;line-height:1.5">'+doomEsc(q.q)+'</div>';
   q.o.forEach(function(opt,i){ h+='<button class="iq-opt" onclick="iqPick('+i+')">'+doomEsc(opt)+'</button>'; });
-  h+='</div>'; b.innerHTML=h;
-  iqT0=performance.now();
+  h+='</div>'; b.innerHTML=h; iqT0=performance.now();
   if(q.t){ var left=q.t; iqTimer=setInterval(function(){ left--; var e=document.getElementById("iq-timer"); if(e){ e.textContent=left+"s"; if(left<=5) e.style.color="#ff7a7a"; } if(left<=0){ clearInterval(iqTimer); iqTimer=null; iqTimeout(); } },1000); }
 }
 function iqTimeout(){ var q=iqQs[iqIdx]; iqTime[iqIdx]=(q.t||0)*1000; iqAns[iqIdx]=-1; iqIdx++; if(iqIdx>=iqQs.length) iqFinish(); else iqRenderQ(); }
 function iqPick(i){ if(iqTimer){clearInterval(iqTimer);iqTimer=null;} iqTime[iqIdx]=performance.now()-iqT0; iqAns[iqIdx]=i; iqIdx++; if(iqIdx>=iqQs.length) iqFinish(); else iqRenderQ(); }
 function iqScore(){
   var wtot={}, wcor={}, spd=[];
-  iqQs.forEach(function(q,i){
-    var w=q.d||1; wtot[q.f]=(wtot[q.f]||0)+w;
-    if(iqAns[i]===q.a) wcor[q.f]=(wcor[q.f]||0)+w;
-    if(q.t){ var tt=iqTime[i]; var frac=(tt==null)?0:Math.max(0,Math.min(1,1-(tt/1000)/q.t)); spd.push(frac); }
-  });
-  var facets={};
-  IQ_QFACETS.forEach(function(k){ facets[k]=wtot[k]?Math.round((wcor[k]||0)/wtot[k]*100):0; });
+  iqQs.forEach(function(q,i){ var w=q.d||1; wtot[q.f]=(wtot[q.f]||0)+w; if(iqAns[i]===q.a) wcor[q.f]=(wcor[q.f]||0)+w;
+    if(q.t){ var tt=iqTime[i]; var frac=(tt==null)?0:Math.max(0,Math.min(1,1-(tt/1000)/q.t)); spd.push(frac); } });
+  var facets={}; IQ_QFACETS.forEach(function(k){ facets[k]=wtot[k]?Math.round((wcor[k]||0)/wtot[k]*100):0; });
   facets.speed = spd.length?Math.round(spd.reduce(function(a,b){return a+b;},0)/spd.length*100):0;
   var cog=Math.round(IQ_COG.reduce(function(a,k){return a+facets[k];},0)/IQ_COG.length);
   var index=Math.max(55,Math.min(150,Math.round(100+(cog-50)*0.9)));
@@ -2577,8 +2625,7 @@ function iqFinish(){
   var r=iqScore(), today=new Date().toISOString().slice(0,10), d=iqGet();
   var rec={date:today,facets:r.facets,overall:r.overall,index:r.index,pct:r.pct};
   if(!d.baseline) d.baseline=rec;
-  d.latest=rec; d.history=(d.history||[]); d.history.push(rec); iqSave(d);
-  iqResultsView();
+  d.latest=rec; d.history=(d.history||[]); d.history.push(rec); iqSave(d); iqResultsView();
 }
 function iqResultsView(){
   var d=iqGet(); if(!d.latest){ iqIntro(); return; }
@@ -2588,11 +2635,9 @@ function iqResultsView(){
     +'<p>'+(cmp?('Baseline '+base.date+'  →  Latest '+cur.date):('Baseline set '+cur.date+' — retake at the end of your journey to measure growth.'))+'</p>'
     +'<div class="big">'+cur.index+'</div><div style="color:var(--text-d);font-size:12px;margin-top:3px">cognitive index (mean 100, SD 15) · ~'+cur.pct+'th percentile · '+cur.overall+'% across all 10'
     +(cmp?(' <span style="color:'+(cur.index-base.index>=0?"#5fe08a":"#ff7a7a")+'">('+(cur.index-base.index>=0?"+":"")+(cur.index-base.index)+' index since baseline)</span>'):'')+'</div></div>';
-  IQ_FACETS.forEach(function(f){
-    var v=cur.facets[f.k], bv=base?base.facets[f.k]:null, delta=(cmp&&bv!=null)?(v-bv):null;
+  IQ_FACETS.forEach(function(f){ var v=cur.facets[f.k], bv=base?base.facets[f.k]:null, delta=(cmp&&bv!=null)?(v-bv):null;
     h+='<div class="iq-facet"><div class="lbl">'+f.icon+' '+f.label+'</div><div class="bar"><i style="width:'+v+'%"></i></div>'
-      +'<div class="val">'+v+'%'+(delta!=null?(' <span style="color:'+(delta>=0?"#5fe08a":"#ff7a7a")+'">'+(delta>=0?"▲+":"▼")+delta+'</span>'):'')+'</div></div>';
-  });
+      +'<div class="val">'+v+'%'+(delta!=null?(' <span style="color:'+(delta>=0?"#5fe08a":"#ff7a7a")+'">'+(delta>=0?"▲+":"▼")+delta+'</span>'):'')+'</div></div>'; });
   h+='<button class="pt-btn" style="margin-top:16px" onclick="iqAskBam()">💬 Have Bam read my results</button>';
   h+='<div id="iq-bam" style="display:none;white-space:pre-wrap;margin-top:14px;background:linear-gradient(135deg,rgba(154,107,255,.14),rgba(0,0,0,.2));border:1px solid rgba(154,107,255,.3);border-radius:14px;padding:16px 18px;color:var(--text);line-height:1.7;font-size:14px"></div>';
   h+='<button class="pt-btn" style="margin-top:14px;background:rgba(255,255,255,.1);color:#fff" onclick="iqIntro()">Done</button></div>';
@@ -2600,13 +2645,14 @@ function iqResultsView(){
 }
 async function iqAskBam(){
   var d=iqGet(); if(!d.latest) return;
-  if(!(typeof cfg!=="undefined" && (cfg.apikey||cfg.apiUrl))){ if(window.toast) toast("Add your API key in ⚙ Settings so Bam can read your results"); return; }
-  var box=document.getElementById("iq-bam"); box.style.display="block"; box.textContent="Bam is reading your profile…";
+  var box=document.getElementById("iq-bam"); box.style.display="block";
+  if(!(typeof cfg!=="undefined" && (cfg.apikey||cfg.apiUrl))){ box.textContent="Add your API key in ⚙ Settings so Bam can read your results (the main chat must work first)."; return; }
+  box.textContent="Bam is reading your profile…";
   var cur=d.latest, base=d.baseline, cmp=(base&&cur.date!==base.date);
   var facetStr=IQ_FACETS.map(function(f){ return f.label+" "+cur.facets[f.k]+"%"+(cmp?(" (was "+base.facets[f.k]+"%)"):""); }).join("; ");
-  var msg="These are my just-measured Intelligence Profile results. Cognitive index "+cur.index+" (~"+cur.pct+"th percentile), overall "+cur.overall+"%. Per dimension: "+facetStr+". React to ME personally as Bam, my AI: name my single STRONGEST and WEAKEST dimension and what each means about how my mind works, then give me 2 concrete actions (tie them to specific Academy courses) to raise my weakest. "+(cmp?"Also acknowledge how I changed since baseline. ":"")+"Be direct, motivating, under 150 words.";
+  var msg="These are my just-measured Intelligence Profile results. Cognitive index "+cur.index+" (~"+cur.pct+"th percentile), overall "+cur.overall+"%. Per dimension: "+facetStr+". React to ME personally as Bam, my AI: name my single STRONGEST and WEAKEST dimension and what each says about how my mind works, then give me 2 concrete actions (tie them to specific Academy courses) to raise my weakest. "+(cmp?"Also acknowledge how I changed since baseline. ":"")+"Be direct, motivating, under 150 words.";
   try{ var full=await callAPI("jarvis",[{role:"user",content:msg}], function(t){ box.textContent=t; }); box.textContent=full; if(window.JV&&JV.voiceOut&&window.speak) speak(full); }
-  catch(e){ box.textContent="⚠ "+e.message; }
+  catch(e){ box.textContent="⚠ Bam could not reach the AI ("+(e&&e.message?e.message:e)+"). Make sure your API key / model works in the normal chat first (⚙ Settings)."; }
 }
 // ── Portal Engineering study track (shown atop the Academy) ──
 const PORTAL_TRACK=["amath","quantum2","genrel","unification","aphysics","chemistry","biology","portal"];
