@@ -2454,142 +2454,180 @@ function acSaveDone(key, idx){ const p=acProgress(); p[key]=p[key]||[]; if(!p[ke
 function acMd(s){ return doomEsc(s).replace(/^#{2,3}\s*(.*)$/gm,'<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>'); }
 
 
-// ════════ INTELLIGENCE PROFILE — full-spectrum self-assessment (baseline at start, retake at end) ════════
+// ════════ INTELLIGENCE PROFILE — rigorous, difficulty-weighted, timed assessment (baseline at start, retake at end) ════════
 const IQ_FACETS = [
   {k:"logic",icon:"🧩",label:"Logical Reasoning"},
   {k:"numerical",icon:"🔢",label:"Numerical"},
   {k:"verbal",icon:"📖",label:"Verbal"},
   {k:"spatial",icon:"🧊",label:"Spatial"},
   {k:"memory",icon:"🧠",label:"Working Memory"},
+  {k:"speed",icon:"⚡",label:"Processing Speed"},
   {k:"emotional",icon:"❤️",label:"Emotional (EQ)"},
   {k:"social",icon:"🤝",label:"Social"},
   {k:"self",icon:"🪞",label:"Self-Awareness"},
   {k:"creative",icon:"💡",label:"Creative"},
 ];
+const IQ_QFACETS=["logic","numerical","verbal","spatial","memory","emotional","social","self","creative"];
+const IQ_COG=["logic","numerical","verbal","spatial","memory"];
 const IQ_BANK = [
-  {f:"logic", q:"All roses are flowers. Some flowers fade quickly. Which MUST be true?", o:["Some roses fade quickly", "All flowers are roses", "Some flowers are roses", "Roses never fade"], a:2},
-  {f:"logic", q:"If it rains, the ground gets wet. The ground is NOT wet. Therefore:", o:["It rained", "It did not rain", "It might have rained", "The sun dried it"], a:1},
-  {f:"logic", q:"Which one does NOT belong: 2, 3, 5, 9, 11?", o:["3", "5", "9", "11"], a:2},
-  {f:"logic", q:"Tom is taller than Sam. Sam is taller than Joe. Who is shortest?", o:["Tom", "Sam", "Joe", "Cannot tell"], a:2},
-  {f:"numerical", q:"What comes next: 2, 6, 12, 20, 30, ?", o:["36", "42", "40", "45"], a:1},
-  {f:"numerical", q:"What comes next: 1, 1, 2, 3, 5, 8, ?", o:["11", "12", "13", "15"], a:2},
-  {f:"numerical", q:"If 3 machines make 3 widgets in 3 minutes, how long for 100 machines to make 100 widgets?", o:["100 minutes", "3 minutes", "33 minutes", "1 minute"], a:1},
-  {f:"numerical", q:"A shirt costs $20 after a 20% discount. What was the original price?", o:["$24", "$25", "$22", "$26"], a:1},
-  {f:"verbal", q:"Bird is to sky as fish is to ___", o:["water", "scales", "fin", "boat"], a:0},
-  {f:"verbal", q:"Which word is most OPPOSITE to benevolent?", o:["kind", "cruel", "generous", "gentle"], a:1},
-  {f:"verbal", q:"Ephemeral most nearly means:", o:["lasting forever", "short-lived", "colorful", "enormous"], a:1},
-  {f:"verbal", q:"Choose the best fit: Her argument was so ___ that no one could refute it.", o:["weak", "cogent", "vague", "trivial"], a:1},
-  {f:"spatial", q:"A cube is painted on all sides, then cut into 27 equal small cubes (3x3x3). How many small cubes have exactly 3 painted faces?", o:["6", "8", "12", "0"], a:1},
-  {f:"spatial", q:"A flat plus-shaped (+) net of 6 squares folds into which solid?", o:["sphere", "cube", "pyramid", "cylinder"], a:1},
-  {f:"spatial", q:"Rotate the lowercase letter b by 180 degrees. Which letter do you get?", o:["d", "p", "q", "b"], a:2},
-  {f:"spatial", q:"On a clock at exactly 3:00, what is the angle between the hour and minute hands?", o:["90 degrees", "120 degrees", "60 degrees", "45 degrees"], a:0},
-  {f:"memory", q:"Study this code: 7-K-4-M. Which option reproduces it exactly?", o:["7K4M", "K7M4", "7K4N", "4K7M"], a:0},
-  {f:"memory", q:"Pattern: red, blue, green, blue, red, blue, green, blue, ... What comes next?", o:["red", "blue", "green", "yellow"], a:0},
-  {f:"memory", q:"Memorize these: APPLE, RIVER, CHAIR. Which word was NOT in the list?", o:["APPLE", "RIVER", "TABLE", "CHAIR"], a:2},
-  {f:"memory", q:"Sequence: 4, 9, 1, 6, 3. Which number was 4th?", o:["1", "6", "3", "9"], a:1},
-  {f:"emotional", q:"A friend suddenly snaps at you. The most emotionally intelligent first response is to:", o:["snap back at them", "assume they hate you", "ask if something is wrong", "ignore them for good"], a:2},
-  {f:"emotional", q:"You feel a surge of anger during a meeting. The best move is to:", o:["express it loudly", "pause and breathe before responding", "bottle it up and pretend", "walk out and quit"], a:1},
-  {f:"emotional", q:"Which response best shows empathy?", o:["You should not feel that way.", "That sounds really hard - tell me more.", "Just get over it.", "At least it is not worse."], a:1},
-  {f:"emotional", q:"Noticing an emotion in yourself the moment it arises is called:", o:["repression", "self-awareness", "projection", "denial"], a:1},
-  {f:"social", q:"In a disagreement, the most persuasive approach is to:", o:["talk the loudest", "understand their view first, then respond", "insult the opposing idea", "refuse to listen"], a:1},
-  {f:"social", q:"A teammate takes credit for your work. The best approach is to:", o:["sabotage them quietly", "calmly address it in private with facts", "complain to everyone else", "say nothing and resent it"], a:1},
-  {f:"social", q:"Rapport is built mostly through:", o:["talking about yourself", "active listening and genuine interest", "constant flattery", "agreeing with everything"], a:1},
-  {f:"social", q:"Someone gives you tough but fair feedback. The mature response is to:", o:["get defensive", "consider it and thank them", "attack their credibility", "cut them off"], a:1},
-  {f:"self", q:"The best way to learn your real strengths is to:", o:["assume you are good at everything", "reflect honestly and seek feedback", "only compare yourself to others", "ignore your weaknesses"], a:1},
-  {f:"self", q:"After a failure, people with a growth mindset:", o:["blame other people", "ask what they can learn", "give up", "pretend it did not happen"], a:1},
-  {f:"self", q:"Understanding WHY you react the way you do reflects:", o:["low intelligence", "high self-awareness", "arrogance", "pure luck"], a:1},
-  {f:"self", q:"A healthy way to handle a personal weakness is to:", o:["hide it forever", "acknowledge it and work on or manage it", "deny it exists", "let it define you"], a:1},
-  {f:"creative", q:"Which approach is MOST creative for an everyday problem?", o:["copy exactly what everyone else does", "combine two unrelated ideas in a new way", "do nothing and wait", "follow only the existing rules"], a:1},
-  {f:"creative", q:"Listing many possible uses for a brick mainly measures:", o:["memory", "creative flexibility", "physical strength", "vocabulary"], a:1},
-  {f:"creative", q:"Creativity grows most when you:", o:["avoid all new experiences", "expose yourself to diverse ideas and play", "memorize one fixed method", "fear making mistakes"], a:1},
-  {f:"creative", q:"When brainstorming, the best first step is to:", o:["judge each idea immediately", "generate many ideas without judging", "pick the very first idea", "stop after one idea"], a:1}
+  {f:"logic",q:"All roses are flowers. Some flowers fade quickly. Which MUST be true?",o:["Some roses fade quickly", "All flowers are roses", "Some flowers are roses", "Roses never fade"],a:2,d:1,t:35},
+  {f:"logic",q:"If it rains, the ground gets wet. The ground is NOT wet. Therefore:",o:["It rained", "It did not rain", "It might have rained", "The sun dried it"],a:1,d:2,t:45},
+  {f:"logic",q:"Which one does NOT belong: 2, 3, 5, 9, 11?",o:["3", "5", "9", "11"],a:2,d:1,t:35},
+  {f:"logic",q:"Tom is taller than Sam. Sam is taller than Joe. Who is shortest?",o:["Tom", "Sam", "Joe", "Cannot tell"],a:2,d:1,t:35},
+  {f:"logic",q:"Some cats are black. All black things absorb heat. Which MUST be true?",o:["All cats absorb heat", "Some cats absorb heat", "No cats absorb heat", "Only black things are cats"],a:1,d:2,t:45},
+  {f:"logic",q:"If all Bloops are Razzies and all Razzies are Lazzies, then all Bloops are definitely:",o:["Lazzies", "not Lazzies", "only Razzies", "none of these"],a:0,d:3,t:60},
+  {f:"numerical",q:"What comes next: 2, 6, 12, 20, 30, ?",o:["36", "42", "40", "45"],a:1,d:2,t:45},
+  {f:"numerical",q:"What comes next: 1, 1, 2, 3, 5, 8, ?",o:["11", "12", "13", "15"],a:2,d:2,t:45},
+  {f:"numerical",q:"If 3 machines make 3 widgets in 3 minutes, how long for 100 machines to make 100 widgets?",o:["100 minutes", "3 minutes", "33 minutes", "1 minute"],a:1,d:2,t:45},
+  {f:"numerical",q:"A shirt costs $20 after a 20% discount. What was the original price?",o:["$24", "$25", "$22", "$26"],a:1,d:2,t:45},
+  {f:"numerical",q:"What is 15% of 200?",o:["30", "25", "35", "20"],a:0,d:1,t:35},
+  {f:"numerical",q:"What comes next: 3, 9, 27, 81, ?",o:["162", "243", "108", "324"],a:1,d:2,t:45},
+  {f:"verbal",q:"Bird is to sky as fish is to ___",o:["water", "scales", "fin", "boat"],a:0,d:1,t:35},
+  {f:"verbal",q:"Which word is most OPPOSITE to benevolent?",o:["kind", "cruel", "generous", "gentle"],a:1,d:1,t:35},
+  {f:"verbal",q:"Ephemeral most nearly means:",o:["lasting forever", "short-lived", "colorful", "enormous"],a:1,d:2,t:45},
+  {f:"verbal",q:"Choose the best fit: Her argument was so ___ that no one could refute it.",o:["weak", "cogent", "vague", "trivial"],a:1,d:2,t:45},
+  {f:"verbal",q:"Ubiquitous most nearly means:",o:["rare", "present everywhere", "ancient", "fragile"],a:1,d:2,t:45},
+  {f:"verbal",q:"Pen is to writer as ___ is to painter.",o:["brush", "canvas", "color", "wall"],a:0,d:1,t:35},
+  {f:"spatial",q:"A cube is painted on all sides, then cut into 27 equal small cubes (3x3x3). How many small cubes have exactly 3 painted faces?",o:["6", "8", "12", "0"],a:1,d:2,t:45},
+  {f:"spatial",q:"A flat plus-shaped (+) net of 6 squares folds into which solid?",o:["sphere", "cube", "pyramid", "cylinder"],a:1,d:1,t:35},
+  {f:"spatial",q:"Rotate the lowercase letter b by 180 degrees. Which letter do you get?",o:["d", "p", "q", "b"],a:2,d:2,t:45},
+  {f:"spatial",q:"On a clock at exactly 3:00, what is the angle between the hour and minute hands?",o:["90 degrees", "120 degrees", "60 degrees", "45 degrees"],a:0,d:1,t:35},
+  {f:"spatial",q:"That 3x3x3 painted cube cut into 27 pieces: how many small cubes have NO painted face?",o:["1", "0", "2", "8"],a:0,d:3,t:60},
+  {f:"spatial",q:"How many edges does a cube have?",o:["12", "8", "6", "10"],a:0,d:1,t:35},
+  {f:"memory",q:"Study this code: 7-K-4-M. Which option reproduces it exactly?",o:["7K4M", "K7M4", "7K4N", "4K7M"],a:0,d:1,t:35},
+  {f:"memory",q:"Pattern: red, blue, green, blue, red, blue, green, blue, ... What comes next?",o:["red", "blue", "green", "yellow"],a:0,d:2,t:45},
+  {f:"memory",q:"Memorize these: APPLE, RIVER, CHAIR. Which word was NOT in the list?",o:["APPLE", "RIVER", "TABLE", "CHAIR"],a:2,d:1,t:35},
+  {f:"memory",q:"Sequence: 4, 9, 1, 6, 3. Which number was 4th?",o:["1", "6", "3", "9"],a:1,d:2,t:45},
+  {f:"memory",q:"Reverse this sequence: 2, 5, 8. Reversed, it is:",o:["8, 5, 2", "2, 5, 8", "5, 8, 2", "8, 2, 5"],a:0,d:1,t:35},
+  {f:"memory",q:"Sequence: 6, 1, 9, 4, 7, 2. Which two numbers sit at the ends?",o:["6 and 2", "6 and 7", "1 and 2", "9 and 4"],a:0,d:2,t:45},
+  {f:"emotional",q:"A friend suddenly snaps at you. The most emotionally intelligent first response is to:",o:["snap back at them", "assume they hate you", "ask if something is wrong", "ignore them for good"],a:2,d:1,t:0},
+  {f:"emotional",q:"You feel a surge of anger during a meeting. The best move is to:",o:["express it loudly", "pause and breathe before responding", "bottle it up and pretend", "walk out and quit"],a:1,d:1,t:0},
+  {f:"emotional",q:"Which response best shows empathy?",o:["You should not feel that way.", "That sounds really hard - tell me more.", "Just get over it.", "At least it is not worse."],a:1,d:1,t:0},
+  {f:"emotional",q:"Noticing an emotion in yourself the moment it arises is called:",o:["repression", "self-awareness", "projection", "denial"],a:1,d:1,t:0},
+  {f:"social",q:"In a disagreement, the most persuasive approach is to:",o:["talk the loudest", "understand their view first, then respond", "insult the opposing idea", "refuse to listen"],a:1,d:1,t:0},
+  {f:"social",q:"A teammate takes credit for your work. The best approach is to:",o:["sabotage them quietly", "calmly address it in private with facts", "complain to everyone else", "say nothing and resent it"],a:1,d:1,t:0},
+  {f:"social",q:"Rapport is built mostly through:",o:["talking about yourself", "active listening and genuine interest", "constant flattery", "agreeing with everything"],a:1,d:1,t:0},
+  {f:"social",q:"Someone gives you tough but fair feedback. The mature response is to:",o:["get defensive", "consider it and thank them", "attack their credibility", "cut them off"],a:1,d:1,t:0},
+  {f:"self",q:"The best way to learn your real strengths is to:",o:["assume you are good at everything", "reflect honestly and seek feedback", "only compare yourself to others", "ignore your weaknesses"],a:1,d:1,t:0},
+  {f:"self",q:"After a failure, people with a growth mindset:",o:["blame other people", "ask what they can learn", "give up", "pretend it did not happen"],a:1,d:1,t:0},
+  {f:"self",q:"Understanding WHY you react the way you do reflects:",o:["low intelligence", "high self-awareness", "arrogance", "pure luck"],a:1,d:1,t:0},
+  {f:"self",q:"A healthy way to handle a personal weakness is to:",o:["hide it forever", "acknowledge it and work on or manage it", "deny it exists", "let it define you"],a:1,d:1,t:0},
+  {f:"creative",q:"Which approach is MOST creative for an everyday problem?",o:["copy exactly what everyone else does", "combine two unrelated ideas in a new way", "do nothing and wait", "follow only the existing rules"],a:1,d:1,t:0},
+  {f:"creative",q:"Listing many possible uses for a brick mainly measures:",o:["memory", "creative flexibility", "physical strength", "vocabulary"],a:1,d:1,t:0},
+  {f:"creative",q:"Creativity grows most when you:",o:["avoid all new experiences", "expose yourself to diverse ideas and play", "memorize one fixed method", "fear making mistakes"],a:1,d:1,t:0},
+  {f:"creative",q:"When brainstorming, the best first step is to:",o:["judge each idea immediately", "generate many ideas without judging", "pick the very first idea", "stop after one idea"],a:1,d:1,t:0}
 ];
-let iqQs=[], iqIdx=0, iqAns=[];
+let iqQs=[], iqIdx=0, iqAns=[], iqTime=[], iqT0=0, iqTimer=null;
 function iqGet(){ try{return JSON.parse(localStorage.getItem("jv-iq")||"{}");}catch(e){return {};} }
 function iqSave(d){ try{localStorage.setItem("jv-iq",JSON.stringify(d));}catch(e){} }
+function iqErf(x){ var t=1/(1+0.3275911*Math.abs(x)); var y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return x>=0?y:-y; }
+function iqCdf(z){ return 0.5*(1+iqErf(z/Math.SQRT2)); }
 function openIQ(){ document.getElementById("iqtest").classList.add("open"); iqIntro(); }
-function closeIQ(){ document.getElementById("iqtest").classList.remove("open"); }
-function iqBack(){ iqIntro(); }
+function closeIQ(){ if(iqTimer){clearInterval(iqTimer);iqTimer=null;} document.getElementById("iqtest").classList.remove("open"); }
+function iqBack(){ if(iqTimer){clearInterval(iqTimer);iqTimer=null;} iqIntro(); }
 function iqIntro(){
   document.getElementById("iq-back").style.display="none";
-  const d=iqGet(), b=document.getElementById("iq-body"); b.scrollTop=0;
-  let status="";
-  if(d.baseline){
-    const cmp=d.latest&&d.latest.date!==d.baseline.date;
-    status='<div class="ac-takeaways">Baseline captured '+d.baseline.date+' — overall '+d.baseline.overall+'%'
-      +(cmp?('<br>Latest '+d.latest.date+' — overall '+d.latest.overall+'% ('+(d.latest.overall-d.baseline.overall>=0?'+':'')+(d.latest.overall-d.baseline.overall)+' pts)'):'')+'</div>';
-  }
+  var d=iqGet(), b=document.getElementById("iq-body"); b.scrollTop=0;
+  var status="";
+  if(d.baseline){ var cmp=d.latest&&d.latest.date!==d.baseline.date;
+    status='<div class="ac-takeaways">Baseline '+d.baseline.date+' — index '+d.baseline.index+' ('+d.baseline.overall+'% overall)'
+      +(cmp?('<br>Latest '+d.latest.date+' — index '+d.latest.index+' ('+(d.latest.index-d.baseline.index>=0?'+':'')+(d.latest.index-d.baseline.index)+' index, '+(d.latest.overall-d.baseline.overall>=0?'+':'')+(d.latest.overall-d.baseline.overall)+' pts)'):'')+'</div>'; }
   b.innerHTML='<div class="ac-wrap" style="max-width:680px"><div class="ac-hero"><h1>Intelligence Profile</h1>'
-    +'<p>A full-spectrum check across 9 kinds of intelligence — logical, numerical, verbal, spatial, memory, emotional, social, self-awareness and creative. Take it now to set your <b>baseline</b>, then again at the end of your journey to see exactly how far you have grown.</p>'
-    +'<div style="color:var(--text-d);font-size:11px">36 questions · about 8 minutes · an estimate for tracking your growth, not a clinical test.</div></div>'
+    +'<p>A rigorous, full-spectrum measurement across 10 dimensions — logical, numerical, verbal, spatial, working memory, processing speed, emotional (EQ), social, self-awareness and creative. Set your <b>baseline</b> now, then retake it at the end to see exactly how much you grew.</p>'
+    +'<div style="color:var(--text-d);font-size:11px">46 questions · cognitive items are timed · difficulty-weighted scoring → a 100/SD-15 index + percentile. As accurate as a self-test gets; a proctored test (WAIS) is the only official clinical score.</div></div>'
     +status
-    +'<button class="pt-btn" onclick="iqBegin()">'+(d.baseline?'Retake assessment ▸':'Begin baseline ▸')+'</button>'
+    +'<button class="pt-btn" onclick="iqBegin()">'+(d.baseline?"Retake assessment ▸":"Begin baseline ▸")+'</button>'
     +(d.latest&&d.latest.facets?'<button class="pt-btn" style="margin-left:8px;background:rgba(255,255,255,.1);color:#fff" onclick="iqResultsView()">See last results</button>':'')
     +'</div>';
 }
-function iqBegin(){ iqQs=IQ_BANK.slice(); iqIdx=0; iqAns=[]; document.getElementById("iq-back").style.display=""; iqRenderQ(); }
+function iqBegin(){ iqQs=IQ_BANK.slice(); iqIdx=0; iqAns=[]; iqTime=[]; document.getElementById("iq-back").style.display=""; iqRenderQ(); }
 function iqRenderQ(){
-  const b=document.getElementById("iq-body"); b.scrollTop=0;
-  const q=iqQs[iqIdx], n=iqQs.length;
-  let h='<div class="ac-wrap" style="max-width:680px"><div class="ac-pb" style="margin-bottom:16px;--a1:#6ad1ff;--a2:#1f8fd6"><i style="width:'+Math.round(iqIdx/n*100)+'%"></i></div>';
-  h+='<div style="color:#9fc7e6;font-size:12px;letter-spacing:1px;margin-bottom:6px">QUESTION '+(iqIdx+1)+' / '+n+'</div>';
+  if(iqTimer){clearInterval(iqTimer);iqTimer=null;}
+  var b=document.getElementById("iq-body"); b.scrollTop=0;
+  var q=iqQs[iqIdx], n=iqQs.length;
+  var timer=q.t?('<div id="iq-timer" style="float:right;font-size:13px;color:#ffd27a;font-weight:700">'+q.t+'s</div>'):'';
+  var h='<div class="ac-wrap" style="max-width:680px"><div class="ac-pb" style="margin-bottom:16px;--a1:#6ad1ff;--a2:#1f8fd6"><i style="width:'+Math.round(iqIdx/n*100)+'%"></i></div>';
+  h+='<div style="color:#9fc7e6;font-size:12px;letter-spacing:1px;margin-bottom:6px">QUESTION '+(iqIdx+1)+' / '+n+(q.t?' · timed':'')+timer+'</div>';
   h+='<div style="font-size:17px;color:#fff;margin-bottom:16px;line-height:1.5">'+doomEsc(q.q)+'</div>';
   q.o.forEach(function(opt,i){ h+='<button class="iq-opt" onclick="iqPick('+i+')">'+doomEsc(opt)+'</button>'; });
   h+='</div>'; b.innerHTML=h;
+  iqT0=performance.now();
+  if(q.t){ var left=q.t; iqTimer=setInterval(function(){ left--; var e=document.getElementById("iq-timer"); if(e){ e.textContent=left+"s"; if(left<=5) e.style.color="#ff7a7a"; } if(left<=0){ clearInterval(iqTimer); iqTimer=null; iqTimeout(); } },1000); }
 }
-function iqPick(i){ iqAns[iqIdx]=i; iqIdx++; if(iqIdx>=iqQs.length) iqFinish(); else iqRenderQ(); }
+function iqTimeout(){ var q=iqQs[iqIdx]; iqTime[iqIdx]=(q.t||0)*1000; iqAns[iqIdx]=-1; iqIdx++; if(iqIdx>=iqQs.length) iqFinish(); else iqRenderQ(); }
+function iqPick(i){ if(iqTimer){clearInterval(iqTimer);iqTimer=null;} iqTime[iqIdx]=performance.now()-iqT0; iqAns[iqIdx]=i; iqIdx++; if(iqIdx>=iqQs.length) iqFinish(); else iqRenderQ(); }
 function iqScore(){
-  const tot={}, cor={};
-  iqQs.forEach(function(q,i){ tot[q.f]=(tot[q.f]||0)+1; if(iqAns[i]===q.a) cor[q.f]=(cor[q.f]||0)+1; });
-  const facets={}; IQ_FACETS.forEach(function(f){ facets[f.k]=Math.round((cor[f.k]||0)/(tot[f.k]||1)*100); });
-  const vals=IQ_FACETS.map(function(f){return facets[f.k];});
-  const overall=Math.round(vals.reduce(function(a,b){return a+b;},0)/vals.length);
-  const index=Math.max(55,Math.min(145,Math.round(100+(overall-50)*0.9)));
-  return {facets:facets,overall:overall,index:index};
+  var wtot={}, wcor={}, spd=[];
+  iqQs.forEach(function(q,i){
+    var w=q.d||1; wtot[q.f]=(wtot[q.f]||0)+w;
+    if(iqAns[i]===q.a) wcor[q.f]=(wcor[q.f]||0)+w;
+    if(q.t){ var tt=iqTime[i]; var frac=(tt==null)?0:Math.max(0,Math.min(1,1-(tt/1000)/q.t)); spd.push(frac); }
+  });
+  var facets={};
+  IQ_QFACETS.forEach(function(k){ facets[k]=wtot[k]?Math.round((wcor[k]||0)/wtot[k]*100):0; });
+  facets.speed = spd.length?Math.round(spd.reduce(function(a,b){return a+b;},0)/spd.length*100):0;
+  var cog=Math.round(IQ_COG.reduce(function(a,k){return a+facets[k];},0)/IQ_COG.length);
+  var index=Math.max(55,Math.min(150,Math.round(100+(cog-50)*0.9)));
+  var pct=Math.max(1,Math.min(99,Math.round(iqCdf((index-100)/15)*100)));
+  var vals=IQ_FACETS.map(function(f){return facets[f.k];});
+  var overall=Math.round(vals.reduce(function(a,b){return a+b;},0)/vals.length);
+  return {facets:facets,overall:overall,index:index,cog:cog,pct:pct};
 }
 function iqFinish(){
-  const r=iqScore(), today=new Date().toISOString().slice(0,10), d=iqGet();
-  const rec={date:today,facets:r.facets,overall:r.overall,index:r.index};
+  var r=iqScore(), today=new Date().toISOString().slice(0,10), d=iqGet();
+  var rec={date:today,facets:r.facets,overall:r.overall,index:r.index,pct:r.pct};
   if(!d.baseline) d.baseline=rec;
   d.latest=rec; d.history=(d.history||[]); d.history.push(rec); iqSave(d);
   iqResultsView();
 }
 function iqResultsView(){
-  const d=iqGet(); if(!d.latest){ iqIntro(); return; }
-  const b=document.getElementById("iq-body"); b.scrollTop=0; document.getElementById("iq-back").style.display="";
-  const base=d.baseline, cur=d.latest, cmp=(base&&cur.date!==base.date);
-  let h='<div class="ac-wrap" style="max-width:680px"><div class="ac-hero"><h1>Your Intelligence Profile</h1>'
-    +'<p>'+(cmp?('Baseline '+base.date+'  →  Latest '+cur.date):('Baseline set '+cur.date+' — retake at the end of your journey to measure your growth.'))+'</p>'
-    +'<div class="big">'+cur.index+'</div><div style="color:var(--text-d);font-size:12px;margin-top:3px">estimated overall index · '+cur.overall+'%'
-    +(cmp?(' ('+(cur.overall-base.overall>=0?'+':'')+(cur.overall-base.overall)+' pts since baseline)'):'')+'</div></div>';
+  var d=iqGet(); if(!d.latest){ iqIntro(); return; }
+  var b=document.getElementById("iq-body"); b.scrollTop=0; document.getElementById("iq-back").style.display="";
+  var base=d.baseline, cur=d.latest, cmp=(base&&cur.date!==base.date);
+  var h='<div class="ac-wrap" style="max-width:680px"><div class="ac-hero"><h1>Your Intelligence Profile</h1>'
+    +'<p>'+(cmp?('Baseline '+base.date+'  →  Latest '+cur.date):('Baseline set '+cur.date+' — retake at the end of your journey to measure growth.'))+'</p>'
+    +'<div class="big">'+cur.index+'</div><div style="color:var(--text-d);font-size:12px;margin-top:3px">cognitive index (mean 100, SD 15) · ~'+cur.pct+'th percentile · '+cur.overall+'% across all 10'
+    +(cmp?(' <span style="color:'+(cur.index-base.index>=0?"#5fe08a":"#ff7a7a")+'">('+(cur.index-base.index>=0?"+":"")+(cur.index-base.index)+' index since baseline)</span>'):'')+'</div></div>';
   IQ_FACETS.forEach(function(f){
-    const v=cur.facets[f.k], bv=base?base.facets[f.k]:null, delta=(cmp&&bv!=null)?(v-bv):null;
+    var v=cur.facets[f.k], bv=base?base.facets[f.k]:null, delta=(cmp&&bv!=null)?(v-bv):null;
     h+='<div class="iq-facet"><div class="lbl">'+f.icon+' '+f.label+'</div><div class="bar"><i style="width:'+v+'%"></i></div>'
-      +'<div class="val">'+v+'%'+(delta!=null?(' <span style="color:'+(delta>=0?'#5fe08a':'#ff7a7a')+'">'+(delta>=0?'▲+':'▼')+delta+'</span>'):'')+'</div></div>';
+      +'<div class="val">'+v+'%'+(delta!=null?(' <span style="color:'+(delta>=0?"#5fe08a":"#ff7a7a")+'">'+(delta>=0?"▲+":"▼")+delta+'</span>'):'')+'</div></div>';
   });
-  h+='<div class="ac-takeaways" style="margin-top:18px"><b>How to read this</b><br>Each bar is a different kind of intelligence. The tall ones are your natural edges; the short ones are your biggest growth opportunities. Work through the Academy, then retake this to watch the bars rise.</div>';
-  h+='<button class="pt-btn" onclick="iqIntro()">Done</button></div>'; b.innerHTML=h;
+  h+='<button class="pt-btn" style="margin-top:16px" onclick="iqAskBam()">💬 Have Bam read my results</button>';
+  h+='<div id="iq-bam" style="display:none;white-space:pre-wrap;margin-top:14px;background:linear-gradient(135deg,rgba(154,107,255,.14),rgba(0,0,0,.2));border:1px solid rgba(154,107,255,.3);border-radius:14px;padding:16px 18px;color:var(--text);line-height:1.7;font-size:14px"></div>';
+  h+='<button class="pt-btn" style="margin-top:14px;background:rgba(255,255,255,.1);color:#fff" onclick="iqIntro()">Done</button></div>';
+  b.innerHTML=h;
+}
+async function iqAskBam(){
+  var d=iqGet(); if(!d.latest) return;
+  if(!(typeof cfg!=="undefined" && (cfg.apikey||cfg.apiUrl))){ if(window.toast) toast("Add your API key in ⚙ Settings so Bam can read your results"); return; }
+  var box=document.getElementById("iq-bam"); box.style.display="block"; box.textContent="Bam is reading your profile…";
+  var cur=d.latest, base=d.baseline, cmp=(base&&cur.date!==base.date);
+  var facetStr=IQ_FACETS.map(function(f){ return f.label+" "+cur.facets[f.k]+"%"+(cmp?(" (was "+base.facets[f.k]+"%)"):""); }).join("; ");
+  var msg="These are my just-measured Intelligence Profile results. Cognitive index "+cur.index+" (~"+cur.pct+"th percentile), overall "+cur.overall+"%. Per dimension: "+facetStr+". React to ME personally as Bam, my AI: name my single STRONGEST and WEAKEST dimension and what each means about how my mind works, then give me 2 concrete actions (tie them to specific Academy courses) to raise my weakest. "+(cmp?"Also acknowledge how I changed since baseline. ":"")+"Be direct, motivating, under 150 words.";
+  try{ var full=await callAPI("jarvis",[{role:"user",content:msg}], function(t){ box.textContent=t; }); box.textContent=full; if(window.JV&&JV.voiceOut&&window.speak) speak(full); }
+  catch(e){ box.textContent="⚠ "+e.message; }
 }
 // ── Portal Engineering study track (shown atop the Academy) ──
 const PORTAL_TRACK=["amath","quantum2","genrel","unification","aphysics","chemistry","biology","portal"];
 function portalTrackHTML(p){
-  let steps="";
-  PORTAL_TRACK.forEach(function(k,i){ const c=ACADEMY.find(function(x){return x.key===k;}); if(!c) return;
-    const done=(p[k]||[]).length, total=c.lessons.length, pct=acPct(done,total);
-    steps+='<div class="pt-step'+(pct>=100?' done':'')+'" onclick="acRenderCourse(\''+k+'\')"><div class="n">'+(pct>=100?'✓':(i+1))+'</div><div class="ti">'+doomEsc(c.title)+'</div><div class="pc">'+pct+'%</div></div>';
+  var steps="";
+  PORTAL_TRACK.forEach(function(k,i){ var c=ACADEMY.find(function(x){return x.key===k;}); if(!c) return;
+    var done=(p[k]||[]).length, total=c.lessons.length, pct=acPct(done,total);
+    steps+='<div class="pt-step'+(pct>=100?" done":"")+'" onclick="acRenderCourse(\''+k+'\')"><div class="n">'+(pct>=100?"✓":(i+1))+'</div><div class="ti">'+doomEsc(c.title)+'</div><div class="pc">'+pct+'%</div></div>';
   });
   return '<div class="pt-wrap"><h3>🕳️ Portal Engineering — Study Track</h3><p>Follow this order: the math and physics lay the foundation, then chemistry and biology, then the full portal build.</p>'+steps+'<button class="pt-btn" onclick="acPortalContinue()">▶ Continue the path</button></div>';
 }
 function acPortalContinue(){
-  const p=acProgress();
-  for(var i=0;i<PORTAL_TRACK.length;i++){ const k=PORTAL_TRACK[i], c=ACADEMY.find(function(x){return x.key===k;}); if(!c) continue;
+  var p=acProgress();
+  for(var i=0;i<PORTAL_TRACK.length;i++){ var k=PORTAL_TRACK[i], c=ACADEMY.find(function(x){return x.key===k;}); if(!c) continue;
     if((p[k]||[]).length < c.lessons.length){ acRenderCourse(k); return; } }
   acRenderCourse(PORTAL_TRACK[0]);
 }
 function iqCardHTML(){
-  const d=iqGet();
-  const sub=d.baseline?('Baseline '+d.baseline.overall+'% · '+((d.latest&&d.latest.date!==d.baseline.date)?('now '+d.latest.overall+'%'):'retake at the end to measure growth')):'Take it now to set your baseline';
-  return '<div class="iq-card" onclick="openIQ()"><div class="ic">🧠</div><div style="flex:1"><b style="color:#fff">Intelligence Profile</b><div style="color:var(--text-d);font-size:12px;margin-top:2px">Measure your full intelligence — logic, emotion, memory, creativity & more. '+sub+'</div></div><div style="color:#9a6bff;font-size:22px">›</div></div>';
+  var d=iqGet();
+  var sub=d.baseline?("Baseline index "+d.baseline.index+" · "+((d.latest&&d.latest.date!==d.baseline.date)?("now "+d.latest.index):"retake at the end to measure growth")):"Take it now to set your baseline";
+  return '<div class="iq-card" onclick="openIQ()"><div class="ic">🧠</div><div style="flex:1"><b style="color:#fff">Intelligence Profile</b><div style="color:var(--text-d);font-size:12px;margin-top:2px">Measure your full intelligence — logic, emotion, memory, speed, creativity & more. '+sub+'</div></div><div style="color:#9a6bff;font-size:22px">›</div></div>';
 }
 
 function openAcademy(){ document.getElementById('academy').classList.add('open'); acRenderGrid(); }
