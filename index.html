@@ -2352,6 +2352,17 @@ const AC_LENS = {
     'When to call a real lawyer about {t}','{t} for AI-powered products','Updating {t} as you grow',
     'Myths about {t}','{t}: going deeper',
   ],
+  sci: [
+    '{t} — the core concept','{t}, explained simply','The math behind {t}',
+    'A worked example of {t}','The history and discovery of {t}','Key equations for {t}',
+    'Common misconceptions about {t}','How {t} was experimentally proven','{t} in the real world',
+    'Visualizing {t}','{t}: step by step','The deeper theory of {t}',
+    'Famous scientists and {t}','How {t} connects to other fields','{t} and the dimensional/portal question',
+    'Open problems in {t}','A thought experiment on {t}','Practice problems: {t}',
+    'The cutting edge of {t}','How {t} could enable advanced technology','Units, scales and limits of {t}',
+    'Deriving {t} from first principles','Simulating {t}','Mistakes students make with {t}',
+    '{t}: going deeper',
+  ],
 };
 
 const ACADEMY = [
@@ -2370,6 +2381,20 @@ const ACADEMY = [
   {key:'datatools', icon:'🛠️', title:'Databases and Dev Tools', arch:'tech', modules:['SQL vs NoSQL','database indexing','query performance tuning','embedded databases (SQLite)','ORMs and when to skip them','PyCharm and dev tools','version control with Git','TensorFlow and ML basics','data pipelines','Redis and caching stores','vector databases','backups and migrations','testing and CI','how it all fits together']},
   {key:'psych', icon:'🧩', title:'Psychology & Mental Models', arch:'psych', modules:['the base rate fallacy','confirmation bias','the anchoring effect','loss aversion','the availability heuristic','the halo effect','social proof','the sunk cost fallacy','the Dunning-Kruger effect','reciprocity','the framing effect','cognitive dissonance','the Zeigarnik effect','the spotlight effect']},
   {key:'legal', icon:'⚖️', title:'Don’t Get Sued (App Law)', arch:'law', modules:['terms of service','a privacy policy','protecting user data','GDPR and CCPA basics','the FTC Act and honest advertising','avoiding AI-washing','disclosing AI to users','disclaimers and limiting liability','arbitration clauses','intellectual property in your content','trademarks and your brand','an LLC and liability protection','refunds and chargebacks','DMCA and copyright']},
+  {key:'amath', icon:'🧮', title:'Advanced Mathematics', arch:'sci', modules:['linear algebra and vector spaces','multivariable calculus','differential equations','tensor calculus','differential geometry','topology','group theory and symmetry','complex analysis','Fourier analysis','probability and statistics','number theory','abstract algebra','real analysis','manifolds and curved space','non-Euclidean geometry','chaos theory and dynamical systems','information theory','graph theory','mathematical logic and set theory','higher-dimensional geometry']},
+  {key:'aphysics', icon:'🔭', title:'Advanced Physics', arch:'sci', modules:['classical mechanics','special relativity','general relativity and spacetime','quantum mechanics','quantum field theory','electromagnetism','thermodynamics and entropy','statistical mechanics','particle physics and the Standard Model','cosmology and the Big Bang','black holes and event horizons','wormholes and Einstein-Rosen bridges','the multiverse and many-worlds','string theory and extra dimensions','vacuum energy and the Casimir effect','quantum entanglement and nonlocality','spacetime curvature and gravity','the arrow of time','dark matter and dark energy','the physics of hypothetical portals']},
+  {key:'biology', icon:'🧬', title:'Biology', arch:'sci', modules:['the cell and its machinery','DNA, genes and the genome','molecular biology and gene expression','evolution and natural selection','genetics and heredity','CRISPR and genetic engineering','neuroscience and the brain','the nervous system','cellular respiration and energy','photosynthesis','the immune system','microbiology and viruses','anatomy and physiology','ecology and ecosystems','developmental biology','the biochemistry of life','synthetic biology','the origin of life','astrobiology and life beyond Earth','how organisms could survive dimensional travel']},
+  {key:'chemistry', icon:'⚗️', title:'Chemistry', arch:'sci', modules:['atomic structure','the periodic table','chemical bonding','molecular geometry','the mole and stoichiometry','chemical reactions and equations','thermochemistry and energy','acids, bases and pH','redox reactions','organic chemistry','polymers and materials','electrochemistry','reaction kinetics','chemical equilibrium','quantum chemistry','nuclear chemistry and radioactivity','spectroscopy','states of matter and phase transitions','exotic matter and plasmas','the chemistry of high-energy systems']},
+  {key:'dreams', icon:'🌙', title:'Dreams & Lucid Dreaming', arch:'mind', modules:['what dreams are','why we dream','the stages of sleep','REM and the dreaming brain','remembering your dreams','keeping a dream journal','reality checks','the MILD technique','the WILD technique','wake-back-to-bed','controlling a lucid dream','facing nightmares','dream incubation','what lucid dreaming can teach you']},
+  {key:'meditation', icon:'🧘', title:'Meditation & Altered States', arch:'mind', modules:['what meditation actually does','the science of meditation','focused-attention meditation','open-monitoring meditation','breathwork basics','the body scan','mantra meditation','the relaxation response','flow states','the theta brainwave state','the default mode network','mindfulness in daily life','building a daily practice','advanced altered states']},
+  {key:'darkpsych', icon:'🕶️', title:'Dark Psychology & Manipulation Defense', arch:'psych', modules:['what dark psychology is','the dark triad','manipulation tactics','gaslighting and how to spot it','love bombing','guilt-tripping and obligation','emotional blackmail','coercive control','cult and high-control group tactics','propaganda techniques','defending your mind','setting strong boundaries','recognizing a manipulator','recovering from manipulation']},
+  {key:'persuasion', icon:'🗣️', title:'Persuasion & Influence', arch:'psych', modules:['the 6 principles of influence (Cialdini)','reciprocity','commitment and consistency','social proof','authority','liking','scarcity','ethical persuasion vs manipulation','framing an offer','storytelling that persuades','building rapport','negotiation tactics','the psychology of yes','persuasion in marketing']},
+  {key:'investing', icon:'📈', title:'Investing & The Markets', arch:'wealth', modules:['how the stock market works','stocks vs bonds','index funds and ETFs','dollar-cost averaging','risk and diversification','compound growth','reading company fundamentals','market cycles and bubbles','the psychology of investing','dividends and income investing','real estate investing','retirement accounts','common investing mistakes','building a portfolio']},
+  {key:'crypto', icon:'₿', title:'Crypto & Web3', arch:'wealth', modules:['what blockchain actually is','how Bitcoin works','Ethereum and smart contracts','wallets and private keys','what a token is','DeFi (decentralized finance)','NFTs explained','stablecoins','staking and yield','the risks and scams','security and self-custody','layer-2 scaling','DAOs','the future of Web3']},
+  {key:'ai', icon:'🤖', title:'Artificial Intelligence & ML', arch:'tech', modules:['what machine learning is','supervised vs unsupervised learning','neural networks','deep learning','how LLMs work','training vs inference','transformers and attention','embeddings and vectors','prompt engineering','fine-tuning models','computer vision','reinforcement learning','AI safety and alignment','building with AI APIs']},
+  {key:'cyber', icon:'🛡️', title:'Cybersecurity & Ethical Hacking', arch:'tech', modules:['the CIA triad','common attack types','phishing and social engineering','passwords and authentication','encryption basics','network security','the OWASP top 10','SQL injection','cross-site scripting (XSS)','malware and ransomware','penetration testing basics','incident response','staying anonymous and safe','defending a web app']},
+  {key:'contracts', icon:'📑', title:'Contracts & Business Law', arch:'law', modules:['what makes a contract valid','offer and acceptance','reading a contract','key clauses to watch','NDAs','service agreements','freelance and client contracts','intellectual property assignment','non-compete clauses','breach and remedies','e-signatures and validity','forming an LLC','business structures compared','when to hire a lawyer']},
+  {key:'privacy', icon:'🔏', title:'Privacy & Digital Rights', arch:'law', modules:['why privacy matters','GDPR explained','CCPA and US privacy law','cookies and tracking','data minimization','writing a privacy policy','user consent','data breaches and your duties','encryption and user data','the right to be forgotten','children and privacy (COPPA)','surveillance and your rights','privacy-by-design','protecting your own privacy']},
 ];
 // Expand modules × lenses into each course's stable lesson list (~100+ each)
 ACADEMY.forEach(c => {
@@ -2380,12 +2405,13 @@ ACADEMY.forEach(c => {
 let acCourse = null, acView = 'grid', acCollapsed = {};
 const AC_ARCH = {
   mind:  {label:'Mind & Reality',   c1:'#9a6bff', c2:'#5a2bd6'},
-  psych: {label:'Psychology',       c1:'#35d0c0', c2:'#1b8f86'},
+  psych: {label:'Psychology & Dark Psychology', c1:'#35d0c0', c2:'#1b8f86'},
   wealth:{label:'Wealth',           c1:'#e8c24a', c2:'#b8860b'},
   tech:  {label:'Tech & Systems',   c1:'#4fb8ff', c2:'#1f6bd6'},
   law:   {label:'Law & Protection', c1:'#ff8f5a', c2:'#c0502a'},
+  sci:   {label:'Advanced Sciences', c1:'#6ad1ff', c2:'#1f8fd6'},
 };
-const AC_ARCH_ORDER = ['mind','psych','wealth','tech','law'];
+const AC_ARCH_ORDER = ['mind','psych','wealth','tech','law','sci'];
 function acPct(done,total){ return total? Math.round(done/total*100):0; }
 
 function acProgress(){ try{ return JSON.parse(localStorage.getItem('jv-academy')||'{}'); }catch(e){ return {}; } }
