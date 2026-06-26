@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000814">
 <!-- Security: restrict where the app can load from and (critically) send data to -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev https://nominatim.openstreetmap.org https://overpass-api.de https://places.googleapis.com; frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev https://nominatim.openstreetmap.org https://overpass-api.de https://places.googleapis.com; frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <link rel="manifest" href="manifest.json">
@@ -1548,6 +1548,7 @@ strong{color:#e8d4b0}
   <div class="biz-tabs">
     <button id="labtab-mix" class="biz-tab on" onclick="labTab('mix')">Matter Lab</button>
     <button id="labtab-forge" class="biz-tab" onclick="labTab('forge')">Portal Forge</button>
+    <button id="labtab-ar" class="biz-tab" onclick="labTab('ar')">AR · Camera ✋</button>
   </div>
   <div class="biz-body" id="lab-mix">
     <div id="lab-charge"></div>
@@ -1562,6 +1563,12 @@ strong{color:#e8d4b0}
     <div class="yt-actions" style="justify-content:center"><button onclick="forgeSegment()">🔧 Forge frame segment</button><button onclick="forgeOpen()">🌀 Attempt portal</button></div>
     <div id="forge-out" style="margin-top:10px"></div>
     <div style="color:var(--text-d);font-size:11px;margin-top:10px;text-align:center">100% simulation — nothing here can explode or harm anything. Experiment freely.</div>
+  </div>
+  <div class="biz-body" id="lab-ar" style="display:none">
+    <div id="ar-status" style="color:#9fc7e6;font-size:12px;margin-bottom:8px">Use your camera + hands to grab matter in the air. Pinch thumb + index to hold an orb, drag it into the ring, then pinch the glowing MIX.</div>
+    <div class="yt-actions"><button onclick="arStart()">📷 Start camera</button><button onclick="arStop()">⏹ Stop</button></div>
+    <video id="ar-vid" playsinline muted style="display:none"></video>
+    <canvas id="ar-canvas" width="640" height="480" style="width:100%;max-width:560px;border-radius:12px;border:1px solid rgba(154,77,255,.3);margin-top:10px;background:#000;display:block"></canvas>
   </div>
 </div>
 <!-- App -->
@@ -3219,8 +3226,8 @@ let labSel={};
 function labGet(){ try{return JSON.parse(localStorage.getItem("jv-lab")||"{}");}catch(e){return {};} }
 function labSave(d){ try{localStorage.setItem("jv-lab",JSON.stringify(d));}catch(e){} }
 function openLab(){ document.getElementById("lab").classList.add("open"); labRenderIng(); labRenderCharge(); forgeRender(); }
-function closeLab(){ document.getElementById("lab").classList.remove("open"); }
-function labTab(t){ ["mix","forge"].forEach(function(k){ document.getElementById("lab-"+k).style.display=(k===t)?"":"none"; document.getElementById("labtab-"+k).classList.toggle("on",k===t); }); if(t==="forge") forgeRender(); }
+function closeLab(){ if(typeof arStop==="function") arStop(); document.getElementById("lab").classList.remove("open"); }
+function labTab(t){ if(typeof arRunning!=="undefined"&&arRunning&&t!=="ar") arStop(); ["mix","forge","ar"].forEach(function(k){ document.getElementById("lab-"+k).style.display=(k===t)?"":"none"; document.getElementById("labtab-"+k).classList.toggle("on",k===t); }); if(t==="forge") forgeRender(); }
 function labRenderCharge(){ var d=labGet(), ch=d.charge||0; document.getElementById("lab-charge").innerHTML='<div class="lab-charge">⚡ Portal Charge: <b>'+Math.round(ch)+'</b> / 1000</div><div class="ac-pb" style="--a1:#9a4dff;--a2:#6ad1ff"><i style="width:'+Math.min(100,ch/10)+'%"></i></div>'; }
 function labRenderIng(){ document.getElementById("lab-ingredients").innerHTML=LAB_ING.map(function(g,idx){ return '<button class="lab-ing'+(g.ex?" ex":"")+'" onclick="labAdd('+idx+')">'+g.i+'<span>'+g.n+'</span></button>'; }).join(""); }
 function labAdd(idx){ var g=LAB_ING[idx]; labSel[g.k]=(labSel[g.k]||0)+1; labRenderBeaker(); }
@@ -3264,6 +3271,63 @@ function forgeOpen(){ var d=labGet(), out=document.getElementById("forge-out");
   d.charge-=1000; labSave(d); forgeRender(); labRenderCharge();
   out.innerHTML='<div class="lab-res good">🌀 <b>PORTAL STABILIZED.</b> A traversable throat holds open in the simulation.'+(rs?(' Required exotic energy density: '+rs.toExponential(2)+' J/m³ (computed by the Go-WASM engine).'):'')+' Fully contained — zero real-world risk.</div>';
 }
+
+// ════════ AR HAND LAB — pinch to grab & mix matter with your camera (MediaPipe) ════════
+let arRunning=false, arHL=null, arStream=null, arOrbs=[], arGrab=null, arRaf=null, arMixCD=0;
+const arReactor={x:0.5,y:0.52};
+function labReaction(ings){ var e=0,s=0,x=0,n=ings.length||1; ings.forEach(function(g){ e+=g.e; s+=g.s; x+=g.x; }); var stab=Math.max(0.15,Math.min(1.6,1+s/Math.max(1,n*3))); return {e:e,s:s,x:x,yld:Math.round(x*stab)}; }
+function arInitOrbs(){ arOrbs=[]; LAB_ING.forEach(function(g,idx){ var a=idx/LAB_ING.length*Math.PI*2; arOrbs.push({g:g, hx:0.5+Math.cos(a)*0.42, hy:0.5+Math.sin(a)*0.42, x:0.5+Math.cos(a)*0.42, y:0.5+Math.sin(a)*0.42, held:false}); }); arReactor.items=[]; }
+async function arStart(){
+  var st=document.getElementById("ar-status");
+  if(arRunning) return;
+  try{
+    st.textContent="Loading hand tracking (first time downloads ~17MB)…";
+    if(!arHL){
+      var vision=await import("./vendor/mediapipe/vision_bundle.mjs");
+      var fs=await vision.FilesetResolver.forVisionTasks("./vendor/mediapipe/wasm");
+      arHL=await vision.HandLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:"./vendor/mediapipe/hand_landmarker.task"},numHands:1,runningMode:"VIDEO"});
+    }
+    st.textContent="Starting camera…";
+    arStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:640,height:480},audio:false});
+    var v=document.getElementById("ar-vid"); v.srcObject=arStream; await v.play();
+    var c=document.getElementById("ar-canvas"); c.width=v.videoWidth||640; c.height=v.videoHeight||480;
+    arInitOrbs(); arRunning=true; arRaf=requestAnimationFrame(arLoop);
+    st.textContent="✋ Pinch (thumb + index) to grab an orb → drag it into the ring → pinch the glowing MIX.";
+  }catch(e){ st.textContent="⚠ "+(e&&e.message?e.message:e); }
+}
+function arStop(){ arRunning=false; if(arRaf) cancelAnimationFrame(arRaf); if(arStream){ arStream.getTracks().forEach(function(t){t.stop();}); arStream=null; } }
+function arOrb(ctx,W,H,o){ var px=o.x*W, py=o.y*H, r=o.held?34:28;
+  var g=ctx.createRadialGradient(px,py,2,px,py,r); g.addColorStop(0,o.g.ex?"#cda0ff":"#9fd0ff"); g.addColorStop(1,o.g.ex?"rgba(154,77,255,.15)":"rgba(80,140,255,.12)");
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,r,0,7); ctx.fill();
+  ctx.font="22px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(o.g.i,px,py);
+  ctx.font="bold 9px Arial"; ctx.fillStyle="#fff"; ctx.fillText(o.g.n.toUpperCase(),px,py+r+8); }
+function arLoop(){
+  if(!arRunning) return;
+  var v=document.getElementById("ar-vid"), c=document.getElementById("ar-canvas"), x=c.getContext("2d"), W=c.width, H=c.height;
+  x.save(); x.scale(-1,1); x.drawImage(v,-W,0,W,H); x.restore();
+  x.fillStyle="rgba(6,3,14,.35)"; x.fillRect(0,0,W,H);
+  var hand=null; try{ var res=arHL.detectForVideo(v, performance.now()); if(res&&res.landmarks&&res.landmarks.length) hand=res.landmarks[0]; }catch(e){}
+  var tip=null, pinch=false;
+  if(hand){ var it=hand[8], th=hand[4]; tip={x:1-it.x,y:it.y}; var thumb={x:1-th.x,y:th.y}; pinch=Math.hypot(tip.x-thumb.x,tip.y-thumb.y)<0.07;
+    if(pinch){ if(!arGrab){ var bd=0.11,best=null; arOrbs.forEach(function(o){ var dd=Math.hypot(o.x-tip.x,o.y-tip.y); if(dd<bd){bd=dd;best=o;} }); if(best){ arGrab=best; best.held=true; } }
+      if(arGrab){ arGrab.x=tip.x; arGrab.y=tip.y; } }
+    else if(arGrab){ var dr=Math.hypot(arGrab.x-arReactor.x,arGrab.y-arReactor.y); if(dr<0.14){ arReactor.items.push(arGrab.g); } arGrab.x=arGrab.hx; arGrab.y=arGrab.hy; arGrab.held=false; arGrab=null; }
+  } else if(arGrab){ arGrab.x=arGrab.hx; arGrab.y=arGrab.hy; arGrab.held=false; arGrab=null; }
+  // reactor ring
+  var rx=arReactor.x*W, ry=arReactor.y*H, rr=Math.min(W,H)*0.16;
+  x.lineWidth=3; x.strokeStyle="rgba(154,77,255,.7)"; x.setLineDash([8,8]); x.beginPath(); x.arc(rx,ry,rr,0,7); x.stroke(); x.setLineDash([]);
+  x.fillStyle="#cda0ff"; x.font="bold 12px Arial"; x.textAlign="center"; x.fillText("REACTOR ("+ (arReactor.items?arReactor.items.length:0) +")", rx, ry);
+  arOrbs.forEach(function(o){ arOrb(x,W,H,o); });
+  // MIX button
+  if(arReactor.items && arReactor.items.length>=2){ var mx=0.5,my=0.14, mpx=mx*W,mpy=my*H;
+    x.fillStyle="rgba(95,224,138,.9)"; x.beginPath(); x.arc(mpx,mpy,30,0,7); x.fill(); x.fillStyle="#04121d"; x.font="bold 14px Arial"; x.fillText("MIX",mpx,mpy);
+    if(tip&&pinch&&Math.hypot(tip.x-mx,tip.y-my)<0.09 && performance.now()-arMixCD>1200){ arMixCD=performance.now(); arDoMix(); }
+  }
+  if(tip){ x.beginPath(); x.arc(tip.x*W,tip.y*H,pinch?15:10,0,7); x.fillStyle=pinch?"#5fe08a":"#fff"; x.fill(); }
+  var d=labGet(); x.fillStyle="#cda0ff"; x.font="bold 18px Arial"; x.textAlign="left"; x.fillText("⚡ "+Math.round(d.charge||0)+"/1000", 14, 26);
+  arRaf=requestAnimationFrame(arLoop);
+}
+function arDoMix(){ if(!arReactor.items||arReactor.items.length<2) return; var r=labReaction(arReactor.items); var d=labGet(); d.charge=(d.charge||0)+r.yld; labSave(d); arReactor.items=[]; if(window.toast) toast("⚛ Reaction! +"+r.yld+" portal charge"); }
 
 function openDeck(){ document.getElementById("deck").classList.add("open"); deckRefresh(); deckBindParallax(); }
 var _deckPB=false;
