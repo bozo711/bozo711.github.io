@@ -1030,6 +1030,12 @@ strong{color:#e8d4b0}
 #iqtest.open{display:flex}
 #biz{position:fixed;inset:0;z-index:435;background:radial-gradient(1000px 600px at 50% -10%,#0a1020,#06030c 60%,#03060c);display:none;flex-direction:column}
 #biz.open{display:flex}
+#yt{position:fixed;inset:0;z-index:436;background:radial-gradient(1000px 600px at 50% -10%,#180206,#0a0307 60%,#03060c);display:none;flex-direction:column}
+#yt.open{display:flex}
+.yt-pre{white-space:pre-wrap;background:rgba(255,255,255,.03);border:1px solid rgba(255,90,90,.18);border-radius:12px;padding:16px;color:var(--text);font-size:12.5px;line-height:1.7;margin-top:10px}
+.yt-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.yt-actions button{background:rgba(255,90,90,.14);border:1px solid rgba(255,90,90,.4);color:#ffd0d0;border-radius:8px;font-size:11px;padding:8px 12px;cursor:pointer}
+
 .biz-top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--red-b);background:rgba(8,2,12,.7);backdrop-filter:blur(10px)}
 .biz-title{font-family:'Cinzel',serif;letter-spacing:1px;color:#cfe8ff;font-size:15px}
 .biz-top button{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
@@ -1437,6 +1443,41 @@ strong{color:#e8d4b0}
     <div id="biz-preview"></div>
   </div>
 </div>
+<div id="yt">
+  <div class="biz-top"><span class="biz-title">📹 FACELESS YOUTUBE STUDIO</span><button onclick="closeYT()">✕</button></div>
+  <div class="biz-tabs">
+    <button id="yttab-plan" class="biz-tab on" onclick="ytTab('plan')">Plan a video</button>
+    <button id="yttab-thumb" class="biz-tab" onclick="ytTab('thumb')">Thumbnail</button>
+    <button id="yttab-cal" class="biz-tab" onclick="ytTab('cal')">Content calendar</button>
+  </div>
+  <div class="biz-body" id="yt-plan">
+    <div class="biz-search">
+      <input id="yt-topic" placeholder="Video topic — or leave blank to use your niche">
+      <select id="yt-style"><option>Top 10 / listicle</option><option>Explainer / educational</option><option>Story / documentary</option><option>Motivation</option><option>Reddit story</option><option>Facts / did-you-know</option></select>
+      <select id="yt-len"><option value="60">Short (60s)</option><option value="300" selected>Mid (~5 min)</option><option value="600">Long (~10 min)</option></select>
+      <button onclick="ytPlan()">Generate video package</button>
+    </div>
+    <div id="yt-status">Bam writes the whole package: 5 titles, thumbnail text, hook, full word-for-word narration with [B-ROLL]/[ON-SCREEN] cues, SEO description, tags & chapters.</div>
+    <div id="yt-out"></div>
+  </div>
+  <div class="biz-body" id="yt-thumb" style="display:none">
+    <div class="biz-search">
+      <input id="yt-tt" placeholder="Thumbnail text (big, punchy)" oninput="ytDrawThumb()">
+      <select id="yt-tstyle" onchange="ytDrawThumb()"><option value="fire">Fire (red/orange)</option><option value="gold">Black &amp; Gold</option><option value="blue">Cyber Blue</option><option value="purple">Purple Haze</option><option value="green">Money Green</option></select>
+      <button onclick="ytDownloadThumb()">⬇ Download PNG 1280×720</button>
+    </div>
+    <canvas id="yt-canvas" width="1280" height="720" style="width:100%;max-width:680px;border-radius:10px;border:1px solid rgba(255,255,255,.15);display:block"></canvas>
+  </div>
+  <div class="biz-body" id="yt-cal" style="display:none">
+    <div class="biz-search">
+      <input id="yt-cal-niche" placeholder="Niche — or blank for your niche">
+      <select id="yt-cal-n"><option value="7">1 week (7 videos)</option><option value="14">2 weeks (14)</option><option value="30" selected>30 days</option></select>
+      <button onclick="ytCalendar()">Generate calendar</button>
+    </div>
+    <div id="yt-cal-status">A batch of video ideas + clickable titles + hooks you can knock out one by one.</div>
+    <div id="yt-cal-out"></div>
+  </div>
+</div>
 <!-- App -->
 <div id="app">
 
@@ -1475,6 +1516,7 @@ strong{color:#e8d4b0}
       <button class="icon-btn" onclick="openAcademy()" title="Teacher mode — structured lessons">🎓</button>
       <button class="icon-btn" onclick="openDoom()" title="Doomscroll — insights, games & more">🌀</button>
       <button class="icon-btn" onclick="openBiz()" title="Lead Finder & Website Builder">🏢</button>
+      <button class="icon-btn" onclick="openYT()" title="Faceless YouTube Studio">📹</button>
       <button class="icon-btn" onclick="openCfg()">⚙</button>
     </div>
   </div>
@@ -2913,6 +2955,69 @@ async function bizBuildSite(){
   }catch(e){ st.textContent="⚠ "+(e&&e.message?e.message:e); } }
 function bizDownloadSite(){ var blob=new Blob([window._bizSiteHTML||""],{type:"text/html"}); var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=((window._bizSiteName||"website").replace(/[^a-z0-9]+/gi,"-").toLowerCase().replace(/^-|-$/g,"")||"website")+".html"; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},3000); }
 function bizOpenSite(){ try{ var w=window.open(); w.document.open(); w.document.write(window._bizSiteHTML||""); w.document.close(); }catch(e){ if(window.toast)toast("Allow pop-ups to open the preview"); } }
+
+// ════════ FACELESS YOUTUBE STUDIO — packages, thumbnails, content calendar ════════
+function openYT(){ document.getElementById("yt").classList.add("open"); ytDrawThumb(); }
+function closeYT(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); document.getElementById("yt").classList.remove("open"); }
+function ytTab(t){ ["plan","thumb","cal"].forEach(function(k){ document.getElementById("yt-"+k).style.display=(k===t)?"":"none"; document.getElementById("yttab-"+k).classList.toggle("on",k===t); }); if(t==="thumb") ytDrawThumb(); }
+function ytNiche(v){ v=(v||"").trim(); if(v) return v; try{ return (typeof getNiche==="function"?getNiche():cfg.niche)||"my niche"; }catch(e){ return "my niche"; } }
+async function ytPlan(){
+  var topic=ytNiche(document.getElementById("yt-topic").value), style=document.getElementById("yt-style").value, len=+document.getElementById("yt-len").value;
+  var st=document.getElementById("yt-status");
+  if(!(cfg.apikey||cfg.apiUrl)){ st.textContent="Add your API key in ⚙ Settings so Bam can write the video"; return; }
+  st.textContent="Bam is writing the full video package…"; document.getElementById("yt-out").innerHTML="";
+  var prompt="You are a faceless YouTube producer. Create a COMPLETE, ready-to-produce package for ONE "+style+' video about: "'+topic+'". Target length about '+Math.round(len/60)+" minute(s). Output these labelled sections:\n"
+    +"1) FIVE CLICKABLE TITLES (numbered, high-CTR, no clickbait lies)\n"
+    +"2) THUMBNAIL TEXT (3-5 punchy words, ALL CAPS)\n"
+    +"3) HOOK (first 10 seconds, word-for-word)\n"
+    +"4) FULL NARRATION SCRIPT — the ACTUAL word-for-word voiceover for the whole video (not an outline), with inline [B-ROLL: ...] and [ON-SCREEN: ...] cues so an editor can follow it\n"
+    +"5) DESCRIPTION (SEO-friendly, 2 short paragraphs, with a call to action)\n"
+    +"6) TAGS (about 15, comma-separated)\n"
+    +"7) CHAPTERS (timestamps + titles)\n"
+    +"No placeholders. Make it ready to record with a TTS voice + stock footage.";
+  try{ var full=await callAPI("jarvis",[{role:"user",content:prompt}],function(t){ st.textContent="Bam is writing… ("+t.length+" chars)"; });
+    window._ytScript=full;
+    var acts='<div class="yt-actions"><button onclick="ytCopyScript()">📋 Copy all</button><button onclick="ytDownloadScript()">⬇ Download .txt</button><button onclick="ytReadScript()">▶ Read aloud</button><button onclick="ytStopSpeak()">⏹ Stop</button><button onclick="ytTab(&#39;thumb&#39;)">🖼 Make thumbnail</button></div>';
+    document.getElementById("yt-out").innerHTML=acts+'<div class="yt-pre">'+doomEsc(full)+'</div>';
+    st.textContent="✓ Package ready. Read-aloud uses your device voice (free); for a pro voiceover paste the script into a TTS tool.";
+  }catch(e){ st.textContent="⚠ "+(e&&e.message?e.message:e); } }
+function ytCopyScript(){ try{ navigator.clipboard.writeText(window._ytScript||""); if(window.toast)toast("Copied"); }catch(e){} }
+function ytDownloadScript(){ var blob=new Blob([window._ytScript||""],{type:"text/plain"}); var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="video-script.txt"; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},3000); }
+function ytReadScript(){ if(!window.speechSynthesis){ if(window.toast)toast("No speech support on this browser"); return; } window.speechSynthesis.cancel();
+  var t=(window._ytScript||"").replace(/\[(B-ROLL|ON-SCREEN)[^\]]*\]/gi,"").replace(/[#*`>]/g,"");
+  var parts=t.match(/[^.!?\n]+[.!?\n]?/g)||[t];
+  parts.forEach(function(p){ p=p.trim(); if(!p) return; var u=new SpeechSynthesisUtterance(p); u.rate=1; u.pitch=0.95; window.speechSynthesis.speak(u); });
+  if(window.toast)toast("Reading the script aloud — tap Stop to end"); }
+function ytStopSpeak(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); }
+var YT_THEMES={ fire:{bg:["#1a0500","#ff3b00","#ffb300"],txt:"#ffffff",accent:"#ffd166"}, gold:{bg:["#000000","#241803","#000000"],txt:"#ffd25a",accent:"#ffd25a"}, blue:{bg:["#02060f","#0a2a5e","#13a9ff"],txt:"#ffffff",accent:"#6ad1ff"}, purple:{bg:["#0a021a","#3b0a6e","#9a4dff"],txt:"#ffffff",accent:"#cda0ff"}, green:{bg:["#001a08","#065f2e","#22e07a"],txt:"#ffffff",accent:"#9bffc4"} };
+function ytDrawThumb(){
+  var c=document.getElementById("yt-canvas"); if(!c) return; var x=c.getContext("2d"); var W=1280,H=720;
+  var th=YT_THEMES[(document.getElementById("yt-tstyle")||{}).value||"fire"]||YT_THEMES.fire;
+  var g=x.createLinearGradient(0,0,W,H); g.addColorStop(0,th.bg[0]); g.addColorStop(.55,th.bg[1]); g.addColorStop(1,th.bg[2]); x.fillStyle=g; x.fillRect(0,0,W,H);
+  var rg=x.createRadialGradient(W/2,H*0.42,180,W/2,H/2,820); rg.addColorStop(0,"rgba(0,0,0,0)"); rg.addColorStop(1,"rgba(0,0,0,.6)"); x.fillStyle=rg; x.fillRect(0,0,W,H);
+  var txt=((document.getElementById("yt-tt")||{}).value||"YOUR TITLE HERE").toUpperCase();
+  var margin=72, maxW=W-margin*2, fs=160;
+  function wrap(size){ x.font="900 "+size+"px Arial, sans-serif"; var lines=[],line=""; txt.split(/\s+/).forEach(function(w){ if(x.measureText((line?line+" ":"")+w).width>maxW){ if(line)lines.push(line); line=w; } else line=(line?line+" ":"")+w; }); if(line)lines.push(line); return lines; }
+  var lines=wrap(fs);
+  while(fs>44 && (lines.length>3 || lines.some(function(l){ x.font="900 "+fs+"px Arial, sans-serif"; return x.measureText(l).width>maxW; }))){ fs-=6; lines=wrap(fs); }
+  x.font="900 "+fs+"px Arial, sans-serif"; x.textAlign="left"; x.textBaseline="top";
+  var lh=fs*1.05, totalH=lines.length*lh, sy=H-margin-totalH;
+  x.fillStyle=th.accent; x.fillRect(margin, sy-28, 110, 14);
+  lines.forEach(function(l,i){ var yy=sy+i*lh; x.lineJoin="round"; x.lineWidth=Math.max(8,fs*0.1); x.strokeStyle="rgba(0,0,0,.88)"; x.strokeText(l,margin,yy); x.fillStyle=th.txt; x.fillText(l,margin,yy); });
+}
+function ytDownloadThumb(){ var c=document.getElementById("yt-canvas"); c.toBlob(function(blob){ var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="thumbnail.png"; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},3000); },"image/png"); }
+async function ytCalendar(){
+  var niche=ytNiche(document.getElementById("yt-cal-niche").value), n=+document.getElementById("yt-cal-n").value;
+  var st=document.getElementById("yt-cal-status");
+  if(!(cfg.apikey||cfg.apiUrl)){ st.textContent="Add your API key in ⚙ Settings so Bam can build the calendar"; return; }
+  st.textContent="Bam is planning "+n+" videos…"; document.getElementById("yt-cal-out").innerHTML="";
+  var prompt="Plan "+n+' faceless YouTube videos for the niche "'+niche+'". For each, give: a high-CTR TITLE and a one-line HOOK. Number them 1 to '+n+". Vary the angles (listicles, stories, explainers, facts). Make titles specific and clickable. No fluff.";
+  try{ var full=await callAPI("jarvis",[{role:"user",content:prompt}],function(t){ st.textContent="Bam is planning… ("+t.length+" chars)"; });
+    window._ytCal=full;
+    document.getElementById("yt-cal-out").innerHTML='<div class="yt-actions"><button onclick="ytDownloadCal()">⬇ Download calendar</button></div><div class="yt-pre">'+doomEsc(full)+'</div>';
+    st.textContent="✓ "+n+"-video plan ready. Knock them out one at a time in the Plan tab.";
+  }catch(e){ st.textContent="⚠ "+(e&&e.message?e.message:e); } }
+function ytDownloadCal(){ var blob=new Blob([window._ytCal||""],{type:"text/plain"}); var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="youtube-calendar.txt"; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},3000); }
 
 function openDeck(){ document.getElementById("deck").classList.add("open"); deckRefresh(); deckBindParallax(); }
 var _deckPB=false;
