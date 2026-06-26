@@ -3171,12 +3171,25 @@ async function renderPoly(){
   var rows=[];
   if(window.goPhysics) rows.push(["Go → WASM","time-dilation γ at 0.5c", window.goPhysics.lorentz(0.5*299792458).toFixed(4)]);
   if(window.cEngine){ rows.push(["C → WASM","fib(30)", window.cEngine.fib(30)]); rows.push(["C → WASM","isPrime(7919)", window.cEngine.isPrime(7919)?"true":"false"]); }
-  if(window.cppEngine){ rows.push(["C++ → WASM","mandelbrot iters(-0.5,0)", window.cppEngine.mandel(-0.5,0.0,1000)]); }
-  if(window.rustEngine){ rows.push(["Rust → WASM","collatz(27) steps", window.rustEngine.collatz(27)]); rows.push(["Rust → WASM","100th prime", window.rustEngine.nth_prime(100)]); }
+  if(window.cppEngine) rows.push(["C++ → WASM","mandelbrot(-0.5,0)", window.cppEngine.mandel(-0.5,0.0,1000)]);
+  if(window.rustEngine){ rows.push(["Rust → WASM","collatz(27)", window.rustEngine.collatz(27)]); rows.push(["Rust → WASM","100th prime", window.rustEngine.nth_prime(100)]); }
   if(window.TSForecast) rows.push(["TypeScript","net per $27 sale", "$"+window.TSForecast.netPerSale(27)]);
   var el=document.getElementById("poly-out"); if(!el) return;
-  el.innerHTML='<div style="color:#9fc7e6;font-size:11px;letter-spacing:1px;margin-bottom:6px">⚙ POLYGLOT ENGINES — each running live in your browser</div>'
+  var api=(localStorage.getItem("poly-api")||"").replace(/\/+$/,"");
+  var html='<div style="color:#9fc7e6;font-size:11px;letter-spacing:1px;margin-bottom:6px">⚙ POLYGLOT ENGINES — running in your browser</div>'
     +rows.map(function(r){ return '<div class="dp-row"><b>'+r[0]+'</b><span>'+r[1]+' = '+r[2]+'</span></div>'; }).join("");
+  html+='<div style="color:#9fc7e6;font-size:11px;letter-spacing:1px;margin:12px 0 6px">🖥 BACKEND ENGINES — PHP · Python · Java</div><div id="poly-be" style="color:var(--text-d);font-size:12px">'+(api?"loading…":"Not connected. Deploy the backend/ folder (one Docker container) and paste its URL below.")+'</div>';
+  html+='<div style="margin-top:8px;display:flex;gap:6px"><input id="poly-url" placeholder="https://your-backend.onrender.com" value="'+api+'" style="flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(120,180,255,.3);border-radius:8px;color:var(--text);padding:7px 9px;font-family:inherit;font-size:12px;outline:none"><button class="pt-btn" onclick="polySaveUrl()">Save</button></div>';
+  el.innerHTML=html;
+  if(api) polyFetchBackend(api);
+}
+function polySaveUrl(){ var u=(document.getElementById("poly-url").value||"").trim(); localStorage.setItem("poly-api",u); renderPoly(); }
+async function polyFetchBackend(base){
+  var be=document.getElementById("poly-be"); var out=[]; var langs=["python","php","java"];
+  for(var i=0;i<langs.length;i++){ var lang=langs[i];
+    try{ var r=await fetch(base+"/api/"+lang+"?n=20"); var d=await r.json(); if(d.error) throw new Error(d.error); out.push([d.lang||lang, d.what||"", d.result]); }
+    catch(e){ out.push([lang, "—", "unreachable"]); } }
+  if(be) be.innerHTML=out.map(function(r){ return '<div class="dp-row"><b>'+doomEsc(String(r[0]))+'</b><span>'+doomEsc(String(r[1]))+' = '+doomEsc(String(r[2]))+'</span></div>'; }).join("");
 }
 
 function openDeck(){ document.getElementById("deck").classList.add("open"); deckRefresh(); deckBindParallax(); }
