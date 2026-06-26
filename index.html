@@ -1034,33 +1034,6 @@ strong{color:#e8d4b0}
 #yt.open{display:flex}
 #phys{position:fixed;inset:0;z-index:437;background:radial-gradient(900px 600px at 50% -10%,#0a1226,#05030c 60%,#03060c);display:none;flex-direction:column}
 #phys.open{display:flex}
-#lab{position:fixed;inset:0;z-index:438;background:radial-gradient(900px 600px at 50% -10%,#10031e,#06030c 60%,#03060c);display:none;flex-direction:column}
-#lab.open{display:flex}
-.lab-charge{color:#cda0ff;font-size:13px;margin-bottom:4px}
-.lab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px;margin:10px 0}
-.lab-ing{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px;border:1px solid rgba(120,180,255,.2);border-radius:10px;background:rgba(255,255,255,.03);color:var(--text);font-size:18px;cursor:pointer;transition:.12s}
-.lab-ing span{font-size:9px;color:var(--text-d);letter-spacing:.3px;text-align:center}
-.lab-ing:hover{border-color:#6ad1ff;background:rgba(106,209,255,.1)}
-.lab-ing.ex{border-color:rgba(154,77,255,.45);background:linear-gradient(150deg,rgba(154,77,255,.14),rgba(0,0,0,.2))}
-.lab-ing.ex span{color:#cda0ff}
-.lab-reactor{margin-top:8px;border:1px solid rgba(154,77,255,.3);border-radius:14px;padding:14px;background:rgba(154,77,255,.06)}
-#lab-beaker{min-height:30px;color:var(--text-d);font-size:12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.lab-chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--text)}
-.lab-res{margin-top:12px;border-radius:12px;padding:13px 15px;font-size:12.5px;line-height:1.6;color:var(--text);border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04)}
-.lab-res.good{border-color:rgba(95,224,138,.5);background:rgba(95,224,138,.08)}
-.lab-res.warn{border-color:rgba(255,170,80,.5);background:rgba(255,170,80,.08)}
-.lab-bars{display:flex;flex-direction:column;gap:5px;margin-top:8px}
-.lab-b{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-d)}
-.lab-b span{width:64px}
-.lab-bt{flex:1;height:8px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden}
-.lab-bt>i{display:block;height:100%;border-radius:5px}
-.lab-ask{margin-top:10px;background:rgba(154,107,255,.16);border:1px solid rgba(154,107,255,.4);color:#cda0ff;border-radius:8px;font-size:11px;padding:6px 11px;cursor:pointer}
-.lab-explain{margin-top:10px;white-space:pre-wrap;background:rgba(154,107,255,.1);border:1px solid rgba(154,107,255,.3);border-radius:10px;padding:11px;font-size:12px;line-height:1.6}
-.forge-ring{position:relative;width:240px;height:240px;margin:18px auto}
-.forge-seg{position:absolute;left:50%;top:50%;width:16px;height:42px;margin:-21px 0 0 -8px;border-radius:6px;background:rgba(255,255,255,.1)}
-.forge-seg.on{background:linear-gradient(180deg,#9a4dff,#6ad1ff);box-shadow:0 0 18px #6ad1ff}
-.forge-core{position:absolute;left:50%;top:50%;width:130px;height:130px;margin:-65px 0 0 -65px;border-radius:50%;background:radial-gradient(circle,#fff,#9a4dff 42%,transparent 72%);transition:opacity .6s}
-
 .ph-l{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#9fc7e6}
 .ph-l input{background:rgba(255,255,255,.06);border:1px solid rgba(120,180,255,.3);border-radius:8px;color:var(--text);padding:9px 11px;font-family:inherit;font-size:14px;outline:none}
 
@@ -1543,34 +1516,6 @@ strong{color:#e8d4b0}
     <div style="margin-top:16px;color:var(--text-d);font-size:11px">Every number here is computed by a physics engine written in <b>Go</b>, compiled to <b>WebAssembly</b>, running right inside your browser — no server.</div>
   </div>
 </div>
-<div id="lab">
-  <div class="biz-top"><span class="biz-title">🧪 THE LAB — Matter &amp; Portal Forge</span><button onclick="closeLab()">✕</button></div>
-  <div class="biz-tabs">
-    <button id="labtab-mix" class="biz-tab on" onclick="labTab('mix')">Matter Lab</button>
-    <button id="labtab-forge" class="biz-tab" onclick="labTab('forge')">Portal Forge</button>
-    <button id="labtab-ar" class="biz-tab" onclick="labTab('ar')">AR · Camera ✋</button>
-  </div>
-  <div class="biz-body" id="lab-mix">
-    <div id="lab-charge"></div>
-    <div class="lab-grid" id="lab-ingredients"></div>
-    <div class="lab-reactor"><div id="lab-beaker">Tap ingredients to add them to the reactor, then Mix.</div>
-      <div class="yt-actions"><button onclick="labMix()">⚗️ Mix</button><button onclick="labClear()">Clear</button></div>
-      <div id="lab-result"></div></div>
-  </div>
-  <div class="biz-body" id="lab-forge" style="display:none">
-    <div id="forge-portal"></div>
-    <div id="forge-status" style="text-align:center;color:#9fc7e6;font-size:12px;margin:6px 0"></div>
-    <div class="yt-actions" style="justify-content:center"><button onclick="forgeSegment()">🔧 Forge frame segment</button><button onclick="forgeOpen()">🌀 Attempt portal</button></div>
-    <div id="forge-out" style="margin-top:10px"></div>
-    <div style="color:var(--text-d);font-size:11px;margin-top:10px;text-align:center">100% simulation — nothing here can explode or harm anything. Experiment freely.</div>
-  </div>
-  <div class="biz-body" id="lab-ar" style="display:none">
-    <div id="ar-status" style="color:#9fc7e6;font-size:12px;margin-bottom:8px">Use your camera + hands to grab matter in the air. Pinch thumb + index to hold an orb, drag it into the ring, then pinch the glowing MIX.</div>
-    <div class="yt-actions"><button onclick="arStart()">📷 Start camera</button><button onclick="arStop()">⏹ Stop</button></div>
-    <video id="ar-vid" playsinline muted style="display:none"></video>
-    <canvas id="ar-canvas" width="640" height="480" style="width:100%;max-width:560px;border-radius:12px;border:1px solid rgba(154,77,255,.3);margin-top:10px;background:#000;display:block"></canvas>
-  </div>
-</div>
 <!-- App -->
 <div id="app">
 
@@ -1611,7 +1556,6 @@ strong{color:#e8d4b0}
       <button class="icon-btn" onclick="openBiz()" title="Lead Finder & Website Builder">🏢</button>
       <button class="icon-btn" onclick="openYT()" title="Faceless YouTube Studio">📹</button>
       <button class="icon-btn" onclick="openPhys()" title="Portal Physics Lab (Go · WASM)">⚛</button>
-      <button class="icon-btn" onclick="openLab()" title="The Lab — mix matter & forge a portal">🧪</button>
       <button class="icon-btn" onclick="openCfg()">⚙</button>
     </div>
   </div>
@@ -3213,121 +3157,6 @@ function physCalc(){
    +'<div class="dp-row"><b>1 hr at this speed feels like</b><span>'+(isFinite(gamma)?(1/gamma*60).toFixed(1)+" min to you":"frozen")+'</span></div>'
    +'<div class="dp-row"><b>Exotic energy to hold the throat</b><span>'+physFmt(exo)+' J/m³</span></div>';
 }
-
-// ════════ THE LAB — matter mixing + portal forge (safe simulation) ════════
-const LAB_ING=[
- {k:"H",n:"Hydrogen",i:"💨",e:3,s:1,x:0},{k:"O",n:"Oxygen",i:"🅾️",e:2,s:1,x:0},{k:"C",n:"Carbon",i:"⚫",e:1,s:3,x:0},
- {k:"Na",n:"Sodium",i:"🧂",e:4,s:-2,x:0},{k:"Fe",n:"Iron",i:"🔩",e:1,s:4,x:0},{k:"He",n:"Helium",i:"🎈",e:1,s:5,x:0},{k:"H2O",n:"Water",i:"💧",e:1,s:4,x:0},
- {k:"DM",n:"Dark Matter",i:"🌑",e:6,s:3,x:8,ex:1},{k:"DE",n:"Dark Energy",i:"🕳️",e:9,s:-2,x:10,ex:1},{k:"AM",n:"Antimatter",i:"💥",e:10,s:-5,x:6,ex:1},
- {k:"EX",n:"Exotic Matter",i:"🟣",e:5,s:2,x:9,ex:1},{k:"PL",n:"Plasma",i:"⚡",e:7,s:0,x:3,ex:1},{k:"QG",n:"Quark-Gluon",i:"🔆",e:8,s:1,x:5,ex:1},
- {k:"CV",n:"Casimir Vacuum",i:"🫧",e:2,s:6,x:7,ex:1},{k:"HG",n:"Higgs Field",i:"✨",e:4,s:4,x:6,ex:1}
-];
-let labSel={};
-function labGet(){ try{return JSON.parse(localStorage.getItem("jv-lab")||"{}");}catch(e){return {};} }
-function labSave(d){ try{localStorage.setItem("jv-lab",JSON.stringify(d));}catch(e){} }
-function openLab(){ document.getElementById("lab").classList.add("open"); labRenderIng(); labRenderCharge(); forgeRender(); }
-function closeLab(){ if(typeof arStop==="function") arStop(); document.getElementById("lab").classList.remove("open"); }
-function labTab(t){ if(typeof arRunning!=="undefined"&&arRunning&&t!=="ar") arStop(); ["mix","forge","ar"].forEach(function(k){ document.getElementById("lab-"+k).style.display=(k===t)?"":"none"; document.getElementById("labtab-"+k).classList.toggle("on",k===t); }); if(t==="forge") forgeRender(); }
-function labRenderCharge(){ var d=labGet(), ch=d.charge||0; document.getElementById("lab-charge").innerHTML='<div class="lab-charge">⚡ Portal Charge: <b>'+Math.round(ch)+'</b> / 1000</div><div class="ac-pb" style="--a1:#9a4dff;--a2:#6ad1ff"><i style="width:'+Math.min(100,ch/10)+'%"></i></div>'; }
-function labRenderIng(){ document.getElementById("lab-ingredients").innerHTML=LAB_ING.map(function(g,idx){ return '<button class="lab-ing'+(g.ex?" ex":"")+'" onclick="labAdd('+idx+')">'+g.i+'<span>'+g.n+'</span></button>'; }).join(""); }
-function labAdd(idx){ var g=LAB_ING[idx]; labSel[g.k]=(labSel[g.k]||0)+1; labRenderBeaker(); }
-function labClear(){ labSel={}; labRenderBeaker(); document.getElementById("lab-result").innerHTML=""; }
-function labRenderBeaker(){ var keys=Object.keys(labSel), b=document.getElementById("lab-beaker"); if(!keys.length){ b.textContent="Tap ingredients to add them to the reactor, then Mix."; return; } b.innerHTML=keys.map(function(k){ var g=LAB_ING.find(function(y){return y.k===k;}); return '<span class="lab-chip">'+g.i+" "+g.n+" ×"+labSel[k]+'</span>'; }).join(""); }
-function labBar(lbl,v,max,col){ var p=Math.max(0,Math.min(100,v/max*100)); return '<div class="lab-b"><span>'+lbl+'</span><div class="lab-bt"><i style="width:'+p+'%;background:'+col+'"></i></div></div>'; }
-function labName(keys){ var exk=keys.filter(function(k){ return (LAB_ING.find(function(y){return y.k===k;})||{}).ex; }); var base=(LAB_ING.find(function(y){return y.k===(exk[0]||keys[0]);})||{}).n||"Sample"; return base+(keys.length>2?" Compound":(keys.length>1?" Alloy":" Sample")); }
-function labMix(){
-  var keys=Object.keys(labSel); if(!keys.length){ if(window.toast)toast("Add some ingredients first"); return; }
-  var e=0,s=0,x=0,n=0; keys.forEach(function(k){ var g=LAB_ING.find(function(y){return y.k===k;}), c=labSel[k]; e+=g.e*c; s+=g.s*c; x+=g.x*c; n+=c; });
-  var stab=Math.max(0.15,Math.min(1.6,1+s/Math.max(1,n*3)));
-  var yld=Math.round(x*stab);
-  var d=labGet(); d.charge=(d.charge||0)+yld; labSave(d); labRenderCharge();
-  var verdict,cls;
-  if(x===0){ verdict="Inert compound — no exotic energy. Add Dark Matter, Dark Energy or Exotic Matter to charge a portal."; cls="warn"; }
-  else if(s<-3){ verdict="Highly unstable — safely contained in the simulation (no detonation). Yielded +"+yld+" charge. Add a stabilizer (Helium, Iron, Casimir Vacuum)."; cls="warn"; }
-  else if(yld>=20){ verdict="⚛ Portal-grade reaction! +"+yld+" charge — this is the good stuff."; cls="good"; }
-  else { verdict="Stable reaction. +"+yld+" charge."; cls="ok"; }
-  window._labLast=keys.slice();
-  document.getElementById("lab-result").innerHTML='<div class="lab-res '+cls+'"><b>'+labName(keys)+'</b><div class="lab-bars">'+labBar("Energy",e,40,"#ff7a4d")+labBar("Stability",s+20,40,"#5fe08a")+labBar("Exotic",x,40,"#9a4dff")+'</div><div style="margin-top:8px">'+verdict+'</div><button class="lab-ask" onclick="labExplain()">Ask Bam what this is</button></div>';
-  labSel={}; labRenderBeaker();
-}
-async function labExplain(){
-  var ks=window._labLast||[]; if(!ks.length) return;
-  if(!(cfg.apikey||cfg.apiUrl)){ if(window.toast)toast("Add an API key in Settings so Bam can analyze it"); return; }
-  var names=ks.map(function(k){ return (LAB_ING.find(function(y){return y.k===k;})||{}).n; }).join(" + ");
-  var res=document.getElementById("lab-result"); var note=document.createElement("div"); note.className="lab-explain"; note.textContent="Bam is analyzing…"; res.appendChild(note);
-  try{ var full=await callAPI("jarvis",[{role:"user",content:"As Bam, in 3-4 sentences: what really happens if you combine "+names+"? Be scientifically grounded but exciting, and tie it to wormhole/portal physics where relevant. This is a thought-experiment simulation."}],function(t){note.textContent=t;}); note.textContent=full; }
-  catch(e){ note.textContent="⚠ "+(e&&e.message?e.message:e); }
-}
-function forgeRender(){ var d=labGet(), frame=d.frame||0, charge=d.charge||0, ring="";
-  for(var i=0;i<8;i++){ ring+='<div class="forge-seg'+(i<frame?" on":"")+'" style="transform:rotate('+(i*45)+'deg) translateY(-100px)"></div>'; }
-  document.getElementById("forge-portal").innerHTML='<div class="forge-ring">'+ring+'<div class="forge-core" style="opacity:'+Math.min(1,charge/1000)+'"></div></div>';
-  document.getElementById("forge-status").textContent="Frame: "+frame+"/8 segments · ⚡ Charge: "+Math.round(charge)+"/1000";
-}
-function forgeSegment(){ var d=labGet(); d.frame=Math.min(8,(d.frame||0)+1); labSave(d); forgeRender(); }
-function forgeOpen(){ var d=labGet(), out=document.getElementById("forge-out");
-  if((d.frame||0)<8){ out.innerHTML='<div class="lab-res warn">The frame isn\'t complete — forge all 8 segments first. (Nothing detonates — it\'s a sim.)</div>'; return; }
-  if((d.charge||0)<1000){ out.innerHTML='<div class="lab-res warn">Not enough exotic charge ('+Math.round(d.charge||0)+'/1000). The throat collapsed gently — safely vented in the simulation, no explosion. Go mix more Dark Matter / Dark Energy / Exotic Matter.</div>'; return; }
-  var rs=(window.goPhysics)?window.goPhysics.exoticEnergy(1000):null;
-  d.charge-=1000; labSave(d); forgeRender(); labRenderCharge();
-  out.innerHTML='<div class="lab-res good">🌀 <b>PORTAL STABILIZED.</b> A traversable throat holds open in the simulation.'+(rs?(' Required exotic energy density: '+rs.toExponential(2)+' J/m³ (computed by the Go-WASM engine).'):'')+' Fully contained — zero real-world risk.</div>';
-}
-
-// ════════ AR HAND LAB — pinch to grab & mix matter with your camera (MediaPipe) ════════
-let arRunning=false, arHL=null, arStream=null, arOrbs=[], arGrab=null, arRaf=null, arMixCD=0;
-const arReactor={x:0.5,y:0.52};
-function labReaction(ings){ var e=0,s=0,x=0,n=ings.length||1; ings.forEach(function(g){ e+=g.e; s+=g.s; x+=g.x; }); var stab=Math.max(0.15,Math.min(1.6,1+s/Math.max(1,n*3))); return {e:e,s:s,x:x,yld:Math.round(x*stab)}; }
-function arInitOrbs(){ arOrbs=[]; LAB_ING.forEach(function(g,idx){ var a=idx/LAB_ING.length*Math.PI*2; arOrbs.push({g:g, hx:0.5+Math.cos(a)*0.42, hy:0.5+Math.sin(a)*0.42, x:0.5+Math.cos(a)*0.42, y:0.5+Math.sin(a)*0.42, held:false}); }); arReactor.items=[]; }
-async function arStart(){
-  var st=document.getElementById("ar-status");
-  if(arRunning) return;
-  try{
-    st.textContent="Loading hand tracking (first time downloads ~17MB)…";
-    if(!arHL){
-      var vision=await import("./vendor/mediapipe/vision_bundle.mjs");
-      var fs=await vision.FilesetResolver.forVisionTasks("./vendor/mediapipe/wasm");
-      arHL=await vision.HandLandmarker.createFromOptions(fs,{baseOptions:{modelAssetPath:"./vendor/mediapipe/hand_landmarker.task"},numHands:1,runningMode:"VIDEO"});
-    }
-    st.textContent="Starting camera…";
-    arStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:640,height:480},audio:false});
-    var v=document.getElementById("ar-vid"); v.srcObject=arStream; await v.play();
-    var c=document.getElementById("ar-canvas"); c.width=v.videoWidth||640; c.height=v.videoHeight||480;
-    arInitOrbs(); arRunning=true; arRaf=requestAnimationFrame(arLoop);
-    st.textContent="✋ Pinch (thumb + index) to grab an orb → drag it into the ring → pinch the glowing MIX.";
-  }catch(e){ st.textContent="⚠ "+(e&&e.message?e.message:e); }
-}
-function arStop(){ arRunning=false; if(arRaf) cancelAnimationFrame(arRaf); if(arStream){ arStream.getTracks().forEach(function(t){t.stop();}); arStream=null; } }
-function arOrb(ctx,W,H,o){ var px=o.x*W, py=o.y*H, r=o.held?34:28;
-  var g=ctx.createRadialGradient(px,py,2,px,py,r); g.addColorStop(0,o.g.ex?"#cda0ff":"#9fd0ff"); g.addColorStop(1,o.g.ex?"rgba(154,77,255,.15)":"rgba(80,140,255,.12)");
-  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,r,0,7); ctx.fill();
-  ctx.font="22px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(o.g.i,px,py);
-  ctx.font="bold 9px Arial"; ctx.fillStyle="#fff"; ctx.fillText(o.g.n.toUpperCase(),px,py+r+8); }
-function arLoop(){
-  if(!arRunning) return;
-  var v=document.getElementById("ar-vid"), c=document.getElementById("ar-canvas"), x=c.getContext("2d"), W=c.width, H=c.height;
-  x.save(); x.scale(-1,1); x.drawImage(v,-W,0,W,H); x.restore();
-  x.fillStyle="rgba(6,3,14,.35)"; x.fillRect(0,0,W,H);
-  var hand=null; try{ var res=arHL.detectForVideo(v, performance.now()); if(res&&res.landmarks&&res.landmarks.length) hand=res.landmarks[0]; }catch(e){}
-  var tip=null, pinch=false;
-  if(hand){ var it=hand[8], th=hand[4]; tip={x:1-it.x,y:it.y}; var thumb={x:1-th.x,y:th.y}; pinch=Math.hypot(tip.x-thumb.x,tip.y-thumb.y)<0.07;
-    if(pinch){ if(!arGrab){ var bd=0.11,best=null; arOrbs.forEach(function(o){ var dd=Math.hypot(o.x-tip.x,o.y-tip.y); if(dd<bd){bd=dd;best=o;} }); if(best){ arGrab=best; best.held=true; } }
-      if(arGrab){ arGrab.x=tip.x; arGrab.y=tip.y; } }
-    else if(arGrab){ var dr=Math.hypot(arGrab.x-arReactor.x,arGrab.y-arReactor.y); if(dr<0.14){ arReactor.items.push(arGrab.g); } arGrab.x=arGrab.hx; arGrab.y=arGrab.hy; arGrab.held=false; arGrab=null; }
-  } else if(arGrab){ arGrab.x=arGrab.hx; arGrab.y=arGrab.hy; arGrab.held=false; arGrab=null; }
-  // reactor ring
-  var rx=arReactor.x*W, ry=arReactor.y*H, rr=Math.min(W,H)*0.16;
-  x.lineWidth=3; x.strokeStyle="rgba(154,77,255,.7)"; x.setLineDash([8,8]); x.beginPath(); x.arc(rx,ry,rr,0,7); x.stroke(); x.setLineDash([]);
-  x.fillStyle="#cda0ff"; x.font="bold 12px Arial"; x.textAlign="center"; x.fillText("REACTOR ("+ (arReactor.items?arReactor.items.length:0) +")", rx, ry);
-  arOrbs.forEach(function(o){ arOrb(x,W,H,o); });
-  // MIX button
-  if(arReactor.items && arReactor.items.length>=2){ var mx=0.5,my=0.14, mpx=mx*W,mpy=my*H;
-    x.fillStyle="rgba(95,224,138,.9)"; x.beginPath(); x.arc(mpx,mpy,30,0,7); x.fill(); x.fillStyle="#04121d"; x.font="bold 14px Arial"; x.fillText("MIX",mpx,mpy);
-    if(tip&&pinch&&Math.hypot(tip.x-mx,tip.y-my)<0.09 && performance.now()-arMixCD>1200){ arMixCD=performance.now(); arDoMix(); }
-  }
-  if(tip){ x.beginPath(); x.arc(tip.x*W,tip.y*H,pinch?15:10,0,7); x.fillStyle=pinch?"#5fe08a":"#fff"; x.fill(); }
-  var d=labGet(); x.fillStyle="#cda0ff"; x.font="bold 18px Arial"; x.textAlign="left"; x.fillText("⚡ "+Math.round(d.charge||0)+"/1000", 14, 26);
-  arRaf=requestAnimationFrame(arLoop);
-}
-function arDoMix(){ if(!arReactor.items||arReactor.items.length<2) return; var r=labReaction(arReactor.items); var d=labGet(); d.charge=(d.charge||0)+r.yld; labSave(d); arReactor.items=[]; if(window.toast) toast("⚛ Reaction! +"+r.yld+" portal charge"); }
 
 function openDeck(){ document.getElementById("deck").classList.add("open"); deckRefresh(); deckBindParallax(); }
 var _deckPB=false;
