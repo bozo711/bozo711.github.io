@@ -1514,6 +1514,7 @@ strong{color:#e8d4b0}
     </div>
     <div id="ph-out" style="margin-top:16px"></div>
     <div style="margin-top:16px;color:var(--text-d);font-size:11px">Every number here is computed by a physics engine written in <b>Go</b>, compiled to <b>WebAssembly</b>, running right inside your browser — no server.</div>
+    <div id="poly-out" style="margin-top:18px"></div>
   </div>
 </div>
 <!-- App -->
@@ -3139,7 +3140,7 @@ async function openPhys(){
   document.getElementById("phys").classList.add("open");
   var st=document.getElementById("phys-status");
   st.textContent="Loading the Go engine…";
-  try{ await loadGoWasm(); st.textContent="⚛ Engine online — "+window.goPhysics.lang(); physCalc(); }
+  try{ await loadGoWasm(); st.textContent="⚛ Engine online — "+window.goPhysics.lang(); physCalc(); renderPoly(); }
   catch(e){ st.textContent="⚠ "+(e&&e.message?e.message:e); }
 }
 function closePhys(){ document.getElementById("phys").classList.remove("open"); }
@@ -3156,6 +3157,24 @@ function physCalc(){
    +'<div class="dp-row"><b>Time-dilation factor (γ)</b><span>'+(isFinite(gamma)?gamma.toFixed(4):"∞")+'×</span></div>'
    +'<div class="dp-row"><b>1 hr at this speed feels like</b><span>'+(isFinite(gamma)?(1/gamma*60).toFixed(1)+" min to you":"frozen")+'</span></div>'
    +'<div class="dp-row"><b>Exotic energy to hold the throat</b><span>'+physFmt(exo)+' J/m³</span></div>';
+}
+
+// ── Polyglot engines: C and C++ compiled to WebAssembly ──
+let _ceLoaded=null;
+function loadCEngines(){ if(_ceLoaded) return _ceLoaded; _ceLoaded=(async function(){
+  try{ var c=await WebAssembly.instantiate(await (await fetch("vendor/cengine.wasm")).arrayBuffer(),{}); window.cEngine=c.instance.exports; }catch(e){}
+  try{ var cpp=await WebAssembly.instantiate(await (await fetch("vendor/cppengine.wasm")).arrayBuffer(),{}); window.cppEngine=cpp.instance.exports; }catch(e){}
+  return true; })(); return _ceLoaded; }
+async function renderPoly(){
+  await loadCEngines();
+  var rows=[];
+  if(window.goPhysics) rows.push(["Go → WASM","time-dilation γ at 0.5c", window.goPhysics.lorentz(0.5*299792458).toFixed(4)]);
+  if(window.cEngine){ rows.push(["C → WASM","fib(30)", window.cEngine.fib(30)]); rows.push(["C → WASM","isPrime(7919)", window.cEngine.isPrime(7919)?"true":"false"]); }
+  if(window.cppEngine){ rows.push(["C++ → WASM","mandelbrot iters(-0.5,0)", window.cppEngine.mandel(-0.5,0.0,1000)]); }
+  if(window.TSForecast) rows.push(["TypeScript","net per $27 sale", "$"+window.TSForecast.netPerSale(27)]);
+  var el=document.getElementById("poly-out"); if(!el) return;
+  el.innerHTML='<div style="color:#9fc7e6;font-size:11px;letter-spacing:1px;margin-bottom:6px">⚙ POLYGLOT ENGINES — each running live in your browser</div>'
+    +rows.map(function(r){ return '<div class="dp-row"><b>'+r[0]+'</b><span>'+r[1]+' = '+r[2]+'</span></div>'; }).join("");
 }
 
 function openDeck(){ document.getElementById("deck").classList.add("open"); deckRefresh(); deckBindParallax(); }
