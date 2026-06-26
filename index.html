@@ -3164,6 +3164,7 @@ let _ceLoaded=null;
 function loadCEngines(){ if(_ceLoaded) return _ceLoaded; _ceLoaded=(async function(){
   try{ var c=await WebAssembly.instantiate(await (await fetch("vendor/cengine.wasm")).arrayBuffer(),{}); window.cEngine=c.instance.exports; }catch(e){}
   try{ var cpp=await WebAssembly.instantiate(await (await fetch("vendor/cppengine.wasm")).arrayBuffer(),{}); window.cppEngine=cpp.instance.exports; }catch(e){}
+  try{ var rs=await WebAssembly.instantiate(await (await fetch("vendor/rustengine.wasm")).arrayBuffer(),{}); window.rustEngine=rs.instance.exports; }catch(e){}
   return true; })(); return _ceLoaded; }
 async function renderPoly(){
   await loadCEngines();
@@ -3171,6 +3172,7 @@ async function renderPoly(){
   if(window.goPhysics) rows.push(["Go → WASM","time-dilation γ at 0.5c", window.goPhysics.lorentz(0.5*299792458).toFixed(4)]);
   if(window.cEngine){ rows.push(["C → WASM","fib(30)", window.cEngine.fib(30)]); rows.push(["C → WASM","isPrime(7919)", window.cEngine.isPrime(7919)?"true":"false"]); }
   if(window.cppEngine){ rows.push(["C++ → WASM","mandelbrot iters(-0.5,0)", window.cppEngine.mandel(-0.5,0.0,1000)]); }
+  if(window.rustEngine){ rows.push(["Rust → WASM","collatz(27) steps", window.rustEngine.collatz(27)]); rows.push(["Rust → WASM","100th prime", window.rustEngine.nth_prime(100)]); }
   if(window.TSForecast) rows.push(["TypeScript","net per $27 sale", "$"+window.TSForecast.netPerSale(27)]);
   var el=document.getElementById("poly-out"); if(!el) return;
   el.innerHTML='<div style="color:#9fc7e6;font-size:11px;letter-spacing:1px;margin-bottom:6px">⚙ POLYGLOT ENGINES — each running live in your browser</div>'
