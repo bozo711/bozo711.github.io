@@ -1420,10 +1420,10 @@ strong{color:#e8d4b0}
       <input id="biz-loc" placeholder="Location — e.g. Miami FL, or a neighborhood">
       <input id="biz-type" placeholder="(optional) type — e.g. restaurant, salon">
       <select id="biz-radius"><option value="1500">1.5 km</option><option value="3000" selected>3 km</option><option value="6000">6 km</option><option value="12000">12 km</option></select>
-      <select id="biz-src"><option value="osm">OpenStreetMap (free)</option><option value="google">Google Maps (needs key)</option></select>
+      <select id="biz-src" style="display:none"><option value="osm">Free · OpenStreetMap</option><option value="google">Google Maps · your key</option></select>
       <button onclick="bizSearch()">Search</button>
     </div>
-    <div id="biz-status">Enter a location and search — Bam finds local businesses with no website (your leads).</div>
+    <div id="biz-status">Enter a location and search — Bam finds local businesses with no website (your leads). Free, no setup needed.</div>
     <div id="biz-results"></div>
     <button id="biz-csv" onclick="bizCSV()" style="display:none">⬇ Export leads as CSV</button>
   </div>
@@ -2832,7 +2832,7 @@ function shipLastProduct(){
 
 // ════════ LEAD FINDER (no-website businesses) + WEBSITE BUILDER ════════
 let bizResults=[];
-function openBiz(){ document.getElementById("biz").classList.add("open"); }
+function openBiz(){ document.getElementById("biz").classList.add("open"); var sel=document.getElementById("biz-src"); if(sel) sel.style.display=(typeof cfg!=="undefined"&&cfg.gmapsKey)?"":"none"; }
 function closeBiz(){ document.getElementById("biz").classList.remove("open"); }
 function bizTab(t){ document.getElementById("biz-find").style.display=t==="find"?"":"none"; document.getElementById("biz-build").style.display=t==="build"?"":"none"; document.getElementById("biztab-find").classList.toggle("on",t==="find"); document.getElementById("biztab-build").classList.toggle("on",t==="build"); }
 async function bizGeocode(q){ var r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+encodeURIComponent(q)); var d=await r.json(); if(!d||!d.length) throw new Error("Location not found — try 'City, State'"); return {lat:+d[0].lat, lon:+d[0].lon, name:d[0].display_name}; }
@@ -2869,7 +2869,8 @@ async function bizSearchGoogle(loc,type,radius){
 }
 async function bizSearch(){
   var loc=document.getElementById("biz-loc").value.trim(); if(!loc){ if(window.toast)toast("Enter a location"); return; }
-  var type=document.getElementById("biz-type").value.trim(), radius=+document.getElementById("biz-radius").value, src=document.getElementById("biz-src").value;
+  var type=document.getElementById("biz-type").value.trim(), radius=+document.getElementById("biz-radius").value;
+  var sel=document.getElementById("biz-src"); var src=(typeof cfg!=="undefined"&&cfg.gmapsKey&&sel)?sel.value:"osm";
   var st=document.getElementById("biz-status"); st.textContent="Searching "+loc+" …"; document.getElementById("biz-results").innerHTML=""; document.getElementById("biz-csv").style.display="none";
   try{ var out= src==="google"? await bizSearchGoogle(loc,type,radius) : await bizSearchOSM(loc,type,radius); bizResults=out.list; renderBizResults(out.area); }
   catch(e){ st.textContent="⚠ "+(e&&e.message?e.message:e); }
@@ -2879,7 +2880,7 @@ function renderBizResults(area){
   var h=bizResults.map(function(b,i){ return '<div class="biz-card"><div style="flex:1;min-width:160px"><b>'+doomEsc(b.name)+'</b><div class="biz-meta">'+doomEsc(b.type)+(b.addr?" · "+doomEsc(b.addr):"")+(b.phone?" · "+doomEsc(b.phone):"")+'</div></div>'
     +'<button onclick="bizOutreach('+i+')">✉ Pitch</button><button onclick="bizBuildFor('+i+')">🌐 Build site</button></div>'
     +'<div id="biz-out-'+i+'" class="biz-out"></div>'; }).join("");
-  document.getElementById("biz-results").innerHTML = h || '<div style="color:var(--text-d);padding:14px">None found here — try a bigger radius, a different area, or the Google source for fuller data.</div>';
+  document.getElementById("biz-results").innerHTML = h || '<div style="color:var(--text-d);padding:14px">None found here — try a bigger radius, or a nearby bigger town/city.</div>';
   document.getElementById("biz-csv").style.display=bizResults.length?"":"none";
 }
 function bizCSV(){ var rows=[["Name","Type","Address","Phone"]].concat(bizResults.map(function(b){return [b.name,b.type,b.addr,b.phone];}));
