@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000814">
 <!-- Security: restrict where the app can load from and (critically) send data to -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev https://nominatim.openstreetmap.org https://overpass-api.de https://places.googleapis.com; frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev https://nominatim.openstreetmap.org https://overpass-api.de https://places.googleapis.com; frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <link rel="manifest" href="manifest.json">
@@ -1032,6 +1032,11 @@ strong{color:#e8d4b0}
 #biz.open{display:flex}
 #yt{position:fixed;inset:0;z-index:436;background:radial-gradient(1000px 600px at 50% -10%,#180206,#0a0307 60%,#03060c);display:none;flex-direction:column}
 #yt.open{display:flex}
+#phys{position:fixed;inset:0;z-index:437;background:radial-gradient(900px 600px at 50% -10%,#0a1226,#05030c 60%,#03060c);display:none;flex-direction:column}
+#phys.open{display:flex}
+.ph-l{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#9fc7e6}
+.ph-l input{background:rgba(255,255,255,.06);border:1px solid rgba(120,180,255,.3);border-radius:8px;color:var(--text);padding:9px 11px;font-family:inherit;font-size:14px;outline:none}
+
 .bm-file{display:inline-flex;flex-direction:column;font-size:10px;color:#9fc7e6;gap:3px;border:1px dashed rgba(255,90,90,.35);border-radius:8px;padding:7px 10px}
 .bm-file input{font-size:11px;color:var(--text-d);max-width:150px}
 #bm-script{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,90,90,.25);border-radius:8px;color:var(--text);padding:10px;font-family:inherit;font-size:12px;outline:none;resize:vertical;min-height:84px;margin-bottom:8px}
@@ -1498,6 +1503,19 @@ strong{color:#e8d4b0}
     <div id="bm-out"></div>
   </div>
 </div>
+<div id="phys">
+  <div class="biz-top"><span class="biz-title">⚛ PORTAL PHYSICS LAB</span><button onclick="closePhys()">✕</button></div>
+  <div class="biz-body" style="max-width:560px">
+    <div id="phys-status" style="color:#9fc7e6;font-size:12px;margin-bottom:12px">Powered by Go → WebAssembly</div>
+    <div class="biz-search" style="flex-direction:column;align-items:stretch;gap:10px">
+      <label class="ph-l">Mass (in Suns)<input id="ph-mass" type="number" value="1" oninput="physCalc()"></label>
+      <label class="ph-l">Speed (% of light)<input id="ph-vel" type="number" value="86.6" oninput="physCalc()"></label>
+      <label class="ph-l">Wormhole throat radius (meters)<input id="ph-throat" type="number" value="1000" oninput="physCalc()"></label>
+    </div>
+    <div id="ph-out" style="margin-top:16px"></div>
+    <div style="margin-top:16px;color:var(--text-d);font-size:11px">Every number here is computed by a physics engine written in <b>Go</b>, compiled to <b>WebAssembly</b>, running right inside your browser — no server.</div>
+  </div>
+</div>
 <!-- App -->
 <div id="app">
 
@@ -1537,6 +1555,7 @@ strong{color:#e8d4b0}
       <button class="icon-btn" onclick="openDoom()" title="Doomscroll — insights, games & more">🌀</button>
       <button class="icon-btn" onclick="openBiz()" title="Lead Finder & Website Builder">🏢</button>
       <button class="icon-btn" onclick="openYT()" title="Faceless YouTube Studio">📹</button>
+      <button class="icon-btn" onclick="openPhys()" title="Portal Physics Lab (Go · WASM)">⚛</button>
       <button class="icon-btn" onclick="openCfg()">⚙</button>
     </div>
   </div>
@@ -1592,6 +1611,7 @@ strong{color:#e8d4b0}
 
 <!-- shared brain: same modes + system prompt as the terminal CLI -->
 <script src="jarvis-core.js"></script>
+<script src="vendor/wasm_exec.js"></script>
 <script>
 // register the service worker so JARVIS installs to the home screen + works offline
 if ('serviceWorker' in navigator) {
@@ -3094,6 +3114,47 @@ async function bmRender(){
   if(!blob.size){ st.textContent="⚠ Recording produced no data — try a different background clip or browser."; return; }
   document.getElementById("bm-out").innerHTML='<div class="yt-actions"><a download="video.'+ext+'" href="'+url+'"><button>⬇ Download video (.'+ext+')</button></a></div><video src="'+url+'" controls playsinline style="width:100%;max-width:300px;border-radius:10px;margin-top:10px"></video>';
   st.textContent="✓ Video rendered ("+ext.toUpperCase()+", "+Math.round(duration)+"s). Download it and post.";
+}
+
+// ════════ POLYGLOT — Go (WebAssembly) physics engine ════════
+let _goLoaded=false, _goLoading=null;
+function loadGoWasm(){
+  if(_goLoaded) return Promise.resolve(true);
+  if(_goLoading) return _goLoading;
+  _goLoading=(async function(){
+    if(typeof Go==="undefined") throw new Error("wasm_exec.js not loaded");
+    var go=new Go();
+    var resp=await fetch("vendor/portal.wasm");
+    var bytes=await resp.arrayBuffer();
+    var res=await WebAssembly.instantiate(bytes, go.importObject);
+    go.run(res.instance);
+    for(var i=0;i<150 && !window.goPhysicsReady;i++){ await new Promise(function(r){setTimeout(r,20);}); }
+    if(!window.goPhysicsReady) throw new Error("Go engine did not start");
+    _goLoaded=true; return true;
+  })();
+  return _goLoading;
+}
+async function openPhys(){
+  document.getElementById("phys").classList.add("open");
+  var st=document.getElementById("phys-status");
+  st.textContent="Loading the Go engine…";
+  try{ await loadGoWasm(); st.textContent="⚛ Engine online — "+window.goPhysics.lang(); physCalc(); }
+  catch(e){ st.textContent="⚠ "+(e&&e.message?e.message:e); }
+}
+function closePhys(){ document.getElementById("phys").classList.remove("open"); }
+function physFmt(n){ if(!isFinite(n)) return "∞"; var a=Math.abs(n); if(a!==0&&(a<1e-3||a>=1e6)) return n.toExponential(3); return n.toFixed(3); }
+function physCalc(){
+  if(!window.goPhysics) return;
+  var SUN=1.989e30;
+  var m=(parseFloat(document.getElementById("ph-mass").value)||1)*SUN;
+  var v=(parseFloat(document.getElementById("ph-vel").value)||0)/100*299792458;
+  var r=parseFloat(document.getElementById("ph-throat").value)||1000;
+  var rs=window.goPhysics.schwarzschild(m), gamma=window.goPhysics.lorentz(v), exo=window.goPhysics.exoticEnergy(r);
+  document.getElementById("ph-out").innerHTML=
+    '<div class="dp-row"><b>Event horizon (Schwarzschild radius)</b><span>'+physFmt(rs)+' m</span></div>'
+   +'<div class="dp-row"><b>Time-dilation factor (γ)</b><span>'+(isFinite(gamma)?gamma.toFixed(4):"∞")+'×</span></div>'
+   +'<div class="dp-row"><b>1 hr at this speed feels like</b><span>'+(isFinite(gamma)?(1/gamma*60).toFixed(1)+" min to you":"frozen")+'</span></div>'
+   +'<div class="dp-row"><b>Exotic energy to hold the throat</b><span>'+physFmt(exo)+' J/m³</span></div>';
 }
 
 function openDeck(){ document.getElementById("deck").classList.add("open"); deckRefresh(); deckBindParallax(); }
