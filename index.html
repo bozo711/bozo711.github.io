@@ -1612,6 +1612,7 @@ strong{color:#e8d4b0}
 <!-- shared brain: same modes + system prompt as the terminal CLI -->
 <script src="jarvis-core.js"></script>
 <script src="vendor/wasm_exec.js"></script>
+<script src="vendor/forecast.js"></script>
 <script>
 // register the service worker so JARVIS installs to the home screen + works offline
 if ('serviceWorker' in navigator) {
@@ -3202,6 +3203,7 @@ function deckRefresh(){
     document.getElementById("dp-settings").innerHTML='<div class="dp-row"><b>Name</b><span>'+doomEsc(c.name||"—")+'</span></div>'
       +'<div class="dp-row"><b>Niche</b><span>'+doomEsc((typeof getNiche==="function"?getNiche():c.niche)||"—")+'</span></div>'
       +'<div class="dp-row"><b>Goal</b><span>$'+((c.goal||0).toLocaleString())+'</span></div>'
+      +(window.TSForecast?('<div class="dp-row"><b>Sales to goal</b><span>'+window.TSForecast.project(27,1,(c.goal||1000)).salesToGoal+' @ $27</span></div>'):"")
       +'<div class="dp-row"><b>Keys</b><span>'+(c.apiUrl?"Server vault":(c.apikey?"Local key":"None"))+'</span></div>'
       +(iq.latest?'<div class="dp-row"><b>IQ index</b><span>'+iq.latest.index+'</span></div>':'')
       +'<div class="dp-feed" onclick="closeDeck();setTimeout(openIQ,190)" style="margin-top:8px">🧠 Intelligence Profile ▸</div>';
