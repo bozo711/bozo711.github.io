@@ -7180,6 +7180,11 @@ bootSecure();
 <script type="module">
 let inited=false, running=false, renderer, scene, camera, raf, clock, busy=false, sectionModels={}, sectionAreas={}, sectionHolders=[], current='chat', connGroup=null, dataField=null, charMixer=null, composer=null, T=null, raycaster=null, lastT=0;
 let avRenderer=null, avScene=null, avCam=null, avMixer=null, avChar=null;   // live character avatar inside the chat box
+// ── cinematic/motion state (igloo×buttermax: eased camera, cursor parallax, transition chroma spikes) ──
+let bloomPass=null, chromaPass=null;                 // hoisted so loop()/goSection can animate them
+let transT=0;                                        // 0..1 transition energy → spikes chromatic aberration + bloom on section changes
+let mNX=0, mNY=0, parX=0, parY=0;                     // normalised cursor (-1..1) + damped parallax offset
+let introT=0;                                        // 0..1 cinematic dolly-in on enter
 let deckWall=null, deckLastRefresh=0;   // 3D-OS floating screen wall
 // ── free-roam controller state (look around + move toward floating members) ──
 let yaw=0, pitch=-0.06, keyState={}, joyVec={x:0,y:0}, lookId=null, lookLast=null, downInfo=null, autoPos=null, autoYaw=null, autoPitch=null, touchMode=false, freeLook=true;
@@ -7224,10 +7229,15 @@ function updateCamera(dt){
     }
   }
   camera.rotation.set(pitch,yaw,0,'YXZ');
+  // cursor parallax lean (buttermax): camera gently tilts toward the pointer — recomputed each frame, no drift
+  camera.rotation.y += parX*0.05;
+  camera.rotation.x += -parY*0.038;
 }
 function setupControls(){
   const cv=renderer.domElement;
   raycaster=new T.Raycaster();
+  // track normalised cursor for the parallax lean (-1..1 from centre)
+  addEventListener('pointermove', e=>{ mNX=(e.clientX/innerWidth)*2-1; mNY=(e.clientY/innerHeight)*2-1; });
   cv.addEventListener('pointerdown', e=>{ if(e.pointerType==='touch'&&!touchMode){ touchMode=true; const j=document.getElementById('b3d-joy'); if(j) j.style.display='block'; }
     lookId=e.pointerId; lookLast={x:e.clientX,y:e.clientY}; downInfo={x:e.clientX,y:e.clientY,t:performance.now()}; });
   addEventListener('pointermove', e=>{ if(e.pointerId!==lookId||!lookLast) return;
@@ -7460,7 +7470,7 @@ window.webglOK = function(){ try{ const c=document.createElement('canvas'); retu
 window.enter3D = async function(){
   if(!window.webglOK()){ window.toast && toast('This browser has no WebGL — 3D needs it (use Chrome on desktop)'); return; }
   document.getElementById('stage3d').classList.add('open');
-  if(inited){ running=true; lastT=clock.getElapsedTime(); onResize(); loop(); return; }
+  if(inited){ running=true; lastT=clock.getElapsedTime(); transT=1; onResize(); loop(); return; }
   const ld=document.getElementById('b3d-loading'); if(ld) ld.style.display='flex';
   try{
     const THREE = await import('three');
@@ -7473,6 +7483,28 @@ window.enter3D = async function(){
 window.exit3D = function(){ running=false; if(raf) cancelAnimationFrame(raf); document.getElementById('stage3d').classList.remove('open'); };
 window.nav3D = function(fn){ window.exit3D(); setTimeout(()=>{ if(typeof fn==='function') fn(); }, 130); };
 
+function moltenize(root, THREE){
+  if(!root||!root.traverse) return;
+  root.traverse(o=>{
+    if(!o.isMesh) return;
+    const list = Array.isArray(o.material) ? o.material : [o.material];
+    list.forEach((m,i)=>{
+      if(!m || !m.isMeshStandardMaterial) return;
+      if(m.emissive && m.emissiveIntensity>1) return;        // keep glowing cores untouched
+      const nm=(m.name||'').toLowerCase();
+      if(nm.includes('glass')||nm.includes('dome')){
+        const g=new THREE.MeshPhysicalMaterial({color:0xffe6b0, metalness:0, roughness:0.05, transmission:1, ior:1.45, thickness:0.5, envMapIntensity:1.7, clearcoat:1, clearcoatRoughness:0.06, transparent:true});
+        if(Array.isArray(o.material)) o.material[i]=g; else o.material=g;
+      } else {
+        m.metalness=1.0;
+        m.roughness=Math.max(0.07, Math.min((m.roughness!=null?m.roughness:0.25), 0.2));
+        m.envMapIntensity=1.9;
+        if(nm.includes('gold')||nm.includes('ring')||nm.includes('coil')||nm.includes('copper')||nm.includes('housing')){ if(m.color) m.color.set(0xd4af37); }
+        m.needsUpdate=true;
+      }
+    });
+  });
+}
 async function build(THREE, RGBELoader){
   T=THREE;
   const canvas=document.getElementById('b3d-canvas');
@@ -7480,6 +7512,7 @@ async function build(THREE, RGBELoader){
   renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight);
   renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15; renderer.outputColorSpace=THREE.SRGBColorSpace;
   scene=new THREE.Scene(); scene.background=new THREE.Color(0x05030a);
+  scene.fog=new THREE.FogExp2(0x06030c, 0.020);   // atmospheric depth falloff (igloo-style haze) → far conduits fade into the dark
   camera=new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 200); camera.position.set(0,1.8,9);
   clock=new THREE.Clock();
   setupControls();
@@ -7487,10 +7520,35 @@ async function build(THREE, RGBELoader){
   const { EffectComposer } = await import('three/addons/postprocessing/EffectComposer.js');
   const { RenderPass }     = await import('three/addons/postprocessing/RenderPass.js');
   const { UnrealBloomPass }= await import('three/addons/postprocessing/UnrealBloomPass.js');
+  const { ShaderPass }     = await import('three/addons/postprocessing/ShaderPass.js');
   const { OutputPass }     = await import('three/addons/postprocessing/OutputPass.js');
   composer=new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene,camera));
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight), 0.45, 0.35, 0.92));   // strength, radius, threshold — only the brightest points glow
+  bloomPass=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight), 0.55, 0.5, 0.88);   // hot-core bloom; higher threshold keeps molten-gold/glass micro-surface readable
+  composer.addPass(bloomPass);
+  // ── chromatic aberration + vignette + film grain (igloo-style lens) ──
+  // amount + grain are driven live from loop(): they spike during section transitions, then settle.
+  chromaPass=new ShaderPass({
+    uniforms:{ tDiffuse:{value:null}, amount:{value:0.0022}, time:{value:0.0}, grain:{value:0.045} },
+    vertexShader:'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+    fragmentShader:[
+      'uniform sampler2D tDiffuse; uniform float amount; uniform float time; uniform float grain; varying vec2 vUv;',
+      'float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }',
+      'void main(){',
+      '  vec2 c=vUv-0.5; float d=dot(c,c);',
+      '  vec2 o=c*amount*(1.0+d*3.0);',                      // radial chromatic aberration, stronger at edges
+      '  float r=texture2D(tDiffuse,vUv-o).r;',
+      '  float g=texture2D(tDiffuse,vUv).g;',
+      '  float b=texture2D(tDiffuse,vUv+o).b;',
+      '  vec3 col=vec3(r,g,b);',
+      '  col*=smoothstep(1.18,0.22,d*1.7);',                 // vignette
+      '  float n=hash(vUv*vec2(1920.0,1080.0)+fract(time)*97.0)-0.5;',   // animated film grain
+      '  col+=n*grain;',
+      '  gl_FragColor=vec4(col,1.0);',
+      '}'
+    ].join('\n')
+  });
+  composer.addPass(chromaPass);
   composer.addPass(new OutputPass());
 
   // ── HDRI image-based lighting (the realism) ──
@@ -7518,6 +7576,7 @@ async function build(THREE, RGBELoader){
   rmesh.scale.setScalar(1.2); rmesh.rotation.x=Math.PI*0.18;
   vault.scale.setScalar(1.25); acad.scale.setScalar(1.25); gears.scale.setScalar(1.2);
   [rmesh, vault, acad, gears, room].forEach(m=>enhanceMaterials(m, THREE));   // realistic micro-surface on all metal
+  moltenize(rmesh, THREE);   // molten gold/chrome + glass refraction on the CORE reactor
   const brainNet=buildBrainNet(THREE); brainNet.scale.setScalar(1.3);
   sectionModels = { chat: rmesh, brain: brainNet, security: vault, academy: acad, settings: gears };
   sectionAreas  = { chat:[0,0.5,0], brain:[-14,0.8,0], security:[14,0.8,0], academy:[-14,0.8,-15], settings:[14,0.8,-15] };
@@ -7549,7 +7608,9 @@ async function build(THREE, RGBELoader){
   frame.rotation.x=Math.PI/2; frame.position.set(0,0.5,-0.3); frame.scale.setScalar(1.05); scene.add(frame); window._b3dFrame=frame;
 
   current='chat';
-  yaw=0; pitch=-0.06; camera.position.set(0,1.8,9); camera.rotation.set(pitch,yaw,0,'YXZ');
+  // cinematic dolly-in: start pulled back + high, then ease down to the resting shot (igloo-style intro)
+  yaw=0; pitch=-0.14; camera.position.set(0,3.2,16); camera.rotation.set(pitch,yaw,0,'YXZ');
+  autoPos=new THREE.Vector3(0,1.8,9); autoYaw=0; autoPitch=-0.06; transT=1; introT=0;
   const t3=document.getElementById('b3d-title3'); if(t3) t3.textContent='CORE';
   // make the chat box wear the character's name
   const avName=document.getElementById('b3d-avatar-name'); if(avName) avName.textContent=CHAR.name;
@@ -7565,6 +7626,13 @@ function loop(){
   if(!running) return;
   raf=requestAnimationFrame(loop);
   const t=clock.getElapsedTime(); const dt=Math.min(0.05, t-lastT); lastT=t;
+  // ── cinematic drivers (igloo×buttermax) ──
+  transT=Math.max(0, transT-dt*1.5);                 // transition energy bleeds off after each section change
+  parX+=(mNX-parX)*Math.min(1,dt*2.6); parY+=(mNY-parY)*Math.min(1,dt*2.6);   // damped cursor parallax (buttermax)
+  if(introT<1) introT=Math.min(1,introT+dt*0.7);
+  const trans=transT*transT;                         // ease the spike
+  if(chromaPass){ chromaPass.uniforms.amount.value=0.0018+trans*0.012; chromaPass.uniforms.time.value=t; }   // chroma spikes on transition, settles to a faint lens fringe
+  if(bloomPass){ bloomPass.strength=0.55+trans*0.55+Math.sin(t*0.7)*0.03; }                                  // bloom breathes + flares on transition
   updateCamera(dt);                                  // look-around + free movement
   let ci=0;
   for(const k in sectionModels){ const m=sectionModels[k]; if(!m) continue;
@@ -7609,7 +7677,8 @@ window.goSection = function(key){
   current = key;
   approachSection(key);                               // walk the camera up to that member
   const m=sectionModels[key]; if(m){ m.userData.pop = 0; m.scale.setScalar((m.userData.base||1)*0.6); }   // re-activate pop
-  const t3=document.getElementById('b3d-title3'); if(t3) t3.textContent = SECTION_TITLE[key]||'';
+  transT=1;                                           // igloo-style transition: spike chromatic aberration + bloom flare, then settle
+  const t3=document.getElementById('b3d-title3'); if(t3){ t3.textContent = SECTION_TITLE[key]||''; if(window.bxScramble) bxScramble(t3,{dur:520}); }   // SDF-style text scramble reveal
   const chat=document.getElementById('b3d-chat'), panel=document.getElementById('b3d-panel');
   if(key==='chat'){ chat.style.display=''; panel.classList.remove('show'); }
   else { chat.style.display='none'; panel.classList.add('show'); renderSection(key); }
@@ -7747,5 +7816,5 @@ function renderSection(key){
   .nx-x,.ac-x,.x-btn,.close-x,.biz-x{transition:transform .3s,color .3s}
   .nx-x:hover,.ac-x:hover,.x-btn:hover,.close-x:hover,.biz-x:hover{transform:rotate(90deg) scale(1.1);color:#ffe9a8}
 </style>
-</body>
+<script>setTimeout(function(){try{enter3D();}catch(e){document.title="ERR:"+e.message;}},3500);</script></body>
 </html>
