@@ -1590,7 +1590,8 @@ strong{color:#e8d4b0}
         <button class="qbtn" onclick="qpNiche('jarvis','What is the fastest way to make my first $100 online selling digital products in: ')">First $100</button>
         <button class="qbtn" onclick="qp('jarvis','What is the single most important thing I should do right now to move forward?')">What Now</button>
         <button class="qbtn" onclick="qp('jarvis','Motivate me. I need to push through right now.')">Motivate</button>
-        <button class="qbtn" onclick="shipLastProduct()" title="Turn Bam's last product into a PDF, copy the listing, and open Gumroad">🛒 Ship to Gumroad</button>
+        <button class="qbtn" onclick="publishLastProduct()" title="Bam creates + publishes the product live on your Gumroad via the API">🚀 Publish to Gumroad</button>
+        <button class="qbtn" onclick="shipLastProduct()" title="Fallback: PDF + copy the listing + open Gumroad to do it manually">🛒 Ship (PDF+copy)</button>
         <button class="qbtn" onclick="cmd('status')">Status</button>
         <button class="qbtn" onclick="cleanJarvis()" style="color:rgba(204,34,68,.6)">🧹 Clean</button>
       </div>
@@ -2912,6 +2913,35 @@ function shipLastProduct(){
   var ms=(typeof convos!=="undefined"&&convos.jarvis)?convos.jarvis.filter(function(m){return m.role==="assistant"&&typeof m.content==="string"&&m.content.length>120;}):[];
   if(!ms.length){ if(window.toast)toast("Ask Bam to create a product first, then tap Ship"); return; }
   shipToGumroad(ms[ms.length-1].content);
+}
+// ════════ PUBLISH TO GUMROAD (live) — Bam creates + publishes via the API, no copy-paste ════════
+async function publishToGumroad(text){
+  text=(text||"").trim();
+  if(!text){ if(window.toast)toast("No product content — ask Bam to write the product first"); return; }
+  if(!(typeof cfg!=="undefined"&&cfg.gumKey)){ if(window.toast)toast("Add your Gumroad token in ⚙ Settings first (needs edit access)"); return; }
+  if(!(window.JARVIS_CORE&&JARVIS_CORE.publishGumroad)){ if(window.toast)toast("Publish unavailable — reload the app"); return; }
+  var title=((text.split("\n").find(function(l){return l.trim();}))||"Product").replace(/[*#>`]/g,"").trim().slice(0,90);
+  var guess=(text.match(/\$\s?(\d{1,3})(?:\.\d{2})?/)||[])[1];
+  var pin=prompt('Price in USD for "'+title+'"?  (0 = free / pay-what-you-want)', guess||"9");
+  if(pin===null) return;
+  var cents=Math.round(Math.max(0,parseFloat(pin)||0)*100);
+  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  var teaser=text.split(/\n\n/).slice(0,3).join("\n\n").slice(0,600);
+  var descHTML="<p>"+esc(teaser).replace(/\n/g,"<br>")+"</p>";
+  if(window.toast)toast("Publishing to Gumroad…");
+  try{
+    var res=await JARVIS_CORE.publishGumroad(cfg.gumKey,{name:title,priceCents:cents,descriptionHTML:descHTML,bodyText:text,currency:"usd"});
+    if(!res.ok){ if(window.toast)toast("Gumroad: "+res.error); return; }
+    var where=res.published?"published LIVE":"created as a DRAFT — open it to finish";
+    if(window.toast)toast("✅ "+title+" "+where);
+    if(res.url){ try{ window.open(res.url,"_blank"); }catch(e){} }
+    try{ if(typeof refreshLiveSales==="function") refreshLiveSales(); }catch(e){}
+  }catch(e){ if(window.toast)toast("Publish failed: "+e.message); }
+}
+async function publishLastProduct(){
+  var ms=(typeof convos!=="undefined"&&convos.jarvis)?convos.jarvis.filter(function(m){return m.role==="assistant"&&typeof m.content==="string"&&m.content.length>120;}):[];
+  if(!ms.length){ if(window.toast)toast("Ask Bam to create a product first, then tap Publish"); return; }
+  await publishToGumroad(ms[ms.length-1].content);
 }
 
 // ════════ LEAD FINDER (no-website businesses) + WEBSITE BUILDER ════════

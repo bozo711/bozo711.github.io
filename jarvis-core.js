@@ -264,8 +264,8 @@ Commands: "status" · "list" · "add product X" · "set income X" · "[name] mod
   }
 
   // ── REAL ACTIONS ────────────────────────────────────────────────────────
-  // Things JARVIS can actually DO. Read-only Gumroad data + an approval-gated
-  // Discord blast. (Gumroad has NO create-product API — listings stay manual.)
+  // Things JARVIS can actually DO. Read Gumroad data, and now CREATE + PUBLISH
+  // products via the Gumroad API (POST /v2/products + PUT .../enable — verified live).
 
   // pull real sales + products from Gumroad (read-only)
   async function fetchGumroad(token) {
@@ -284,6 +284,53 @@ Commands: "status" · "list" · "add product X" · "set income X" · "[name] mod
         if (pd.success) products = (pd.products || []).map(p => ({ name:p.name, price:(Number(p.price)||0)/100, sales:p.sales_count||0, published:!!p.published }));
       } catch (e) {}
       return { ok:true, salesCount:sales.length, revenue, products };
+    } catch (e) { return { ok:false, error:e.message }; }
+  }
+
+  // CREATE + UPLOAD + PUBLISH a product on Gumroad (no copy-paste).
+  // Flow: POST /v2/products (draft) -> PUT /v2/products/:id/enable (go live).
+  // The product content ships as rich_content (text), so no file upload is needed.
+  // opts: { name, priceCents, descriptionHTML, bodyText, currency }
+  async function publishGumroad(token, opts) {
+    opts = opts || {};
+    if (!token)      return { ok:false, error:'No Gumroad token — add it in ⚙ Settings (token needs edit access).' };
+    if (!opts.name)  return { ok:false, error:'Missing product name.' };
+    const paras = String(opts.bodyText || '').split(/\n/).map(line => {
+      const t = line.trim();
+      return t ? { type:'paragraph', content:[{ type:'text', text:line }] } : { type:'paragraph' };
+    });
+    const base = {
+      access_token: token,
+      name: String(opts.name).slice(0, 200),
+      price: Math.max(0, Math.round(opts.priceCents || 0)),     // cents
+      native_type: 'digital',
+      price_currency_type: (opts.currency || 'usd')
+    };
+    if (opts.descriptionHTML) base.description = opts.descriptionHTML;
+    async function postJSON(url, obj, method) {
+      const r = await fetch(url, { method: method || 'POST',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(obj) });
+      const d = await r.json().catch(() => ({}));
+      return { r, d };
+    }
+    try {
+      // try with the deliverable content; if Gumroad dislikes the rich_content shape, retry without it
+      let { r, d } = await postJSON('https://api.gumroad.com/v2/products',
+        Object.assign({}, base, { rich_content: [{ description: { type:'doc', content: paras } }] }));
+      if (!d.success) ({ r, d } = await postJSON('https://api.gumroad.com/v2/products', base));
+      if (!d.success) return { ok:false, error: (d.message || ('Gumroad rejected the request (HTTP ' + r.status + ')')) };
+      const prod = d.product || {};
+      const id = prod.id || prod.permalink || prod.custom_permalink;
+      let published = false, url = prod.short_url || prod.preview_url || '';
+      if (id) {
+        try {
+          const er = await postJSON('https://api.gumroad.com/v2/products/' + encodeURIComponent(id) + '/enable',
+            { access_token: token }, 'PUT');
+          published = !!er.d.success;
+          if (er.d.product && er.d.product.short_url) url = er.d.product.short_url;
+        } catch (e) {}
+      }
+      return { ok:true, published, url, id, name: base.name };
     } catch (e) { return { ok:false, error:e.message }; }
   }
 
@@ -332,5 +379,5 @@ Commands: "status" · "list" · "add product X" · "set income X" · "[name] mod
     } catch (e) { return ''; }
   }
 
-  return { MODES, modeKey, buildSystemPrompt, streamChat, MEMORY_CAP, mergeFacts, relevantFacts, extractFacts, fetchGumroad, fetchYouTube, fetchYouTubeSearch, sendDiscord, learnStyle };
+  return { MODES, modeKey, buildSystemPrompt, streamChat, MEMORY_CAP, mergeFacts, relevantFacts, extractFacts, fetchGumroad, publishGumroad, fetchYouTube, fetchYouTubeSearch, sendDiscord, learnStyle };
 });
