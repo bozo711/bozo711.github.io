@@ -7728,5 +7728,24 @@ function renderSection(key){
   if(document.readyState!=='loading') boot(); else addEventListener('DOMContentLoaded',boot);
 }catch(e){ if(window.console)console.warn('aurum',e); } })();
 </script>
+<!-- ════════ AURUM COVERAGE — apply the techniques to EVERY screen ════════ -->
+<style id="aurum-cover">
+  #cfg,#neuro,#academy,#iqtest,#biz,.panel{-webkit-backdrop-filter:blur(18px) saturate(1.15);backdrop-filter:blur(18px) saturate(1.15)}
+  .nx-row,.nx-agent,.nx-tool,.ac-hero,.ac-card,.ac-module,.iq-card,.biz-card,.card,.sec-row,.sec-item,.niche-tag,.course-card,.lesson{
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    box-shadow:0 8px 22px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05);
+    transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .3s,border-color .3s}
+  .nx-row:hover,.nx-agent:hover,.nx-tool:hover,.ac-card:hover,.iq-card:hover,.card:hover,.sec-row:hover,.course-card:hover,.lesson:hover{
+    transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.5)}
+  .field input,.field textarea,.field select,#cfg input,#cfg textarea,#cfg select,#biz input,.panel input,.panel textarea,.panel select{
+    background:linear-gradient(155deg,rgba(48,10,20,.4),rgba(10,2,9,.34)) !important;border:1px solid rgba(212,175,55,.2) !important;border-radius:10px !important;transition:border-color .25s,box-shadow .25s !important}
+  .field input:focus,.field textarea:focus,.field select:focus,#cfg input:focus,.panel input:focus,.panel textarea:focus{
+    border-color:rgba(255,220,120,.7) !important;box-shadow:0 0 0 3px rgba(212,175,55,.14),0 0 18px rgba(212,175,55,.18) !important;outline:none !important}
+  .nx-title,.ac-top h2,.ac-hero h1,.pt-wrap h3,.sec-title,#cfg h2,#cfg h3,.iq-hero h1{font-family:'Cinzel',serif !important;letter-spacing:1.5px}
+  #cfg.open .field,#neuro.open .nx-row,#neuro.open .nx-agent,#neuro.open .nx-tool,#academy.open .ac-card,#academy.open .ac-hero,#iqtest.open .iq-card{
+    animation:bxrise .5s cubic-bezier(.16,1,.3,1) both}
+  .nx-x,.ac-x,.x-btn,.close-x,.biz-x{transition:transform .3s,color .3s}
+  .nx-x:hover,.ac-x:hover,.x-btn:hover,.close-x:hover,.biz-x:hover{transform:rotate(90deg) scale(1.1);color:#ffe9a8}
+</style>
 </body>
 </html>
