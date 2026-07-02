@@ -1098,6 +1098,17 @@ strong{color:#e8d4b0}
 #b3d-panel::-webkit-scrollbar{display:none}
 #b3d-panel.show{display:flex}
 #b3d-reticle{position:absolute;top:50%;left:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;border:1px solid rgba(255,255,255,.45);box-shadow:0 0 9px rgba(204,34,68,.55);pointer-events:none}
+#b3d-inspect{display:none;position:absolute;top:74px;right:18px;width:min(320px,86vw);pointer-events:auto;background:rgba(10,2,18,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(150,60,200,.45);border-radius:12px;padding:13px 15px;box-shadow:0 10px 40px rgba(0,0,0,.55);z-index:4}
+.b3i-x{position:absolute;top:8px;right:10px;background:none;border:none;color:rgba(255,255,255,.55);font-size:15px;cursor:pointer}
+.b3i-hdr{display:flex;align-items:center;gap:9px;margin-bottom:7px;padding-right:20px}
+.b3i-ic{font-size:17px}
+.b3i-name{font-size:12px;font-weight:bold;letter-spacing:2.5px;flex:1;font-family:'Courier New',monospace}
+.b3i-badge{font-size:9px;letter-spacing:1.5px;padding:2px 8px;border-radius:5px;font-weight:bold;font-family:'Courier New',monospace}
+.b3i-badge.on{background:rgba(20,140,70,.3);color:#5fd38a;border:1px solid rgba(20,140,70,.55)}
+.b3i-badge.off{background:rgba(150,110,0,.28);color:#e0b23c;border:1px solid rgba(150,110,0,.55)}
+.b3i-desc{color:#e8d8f0;font-size:12px;line-height:1.55;font-family:'Courier New',monospace}
+.b3i-links{margin-top:8px;font-size:9px;letter-spacing:1.5px;color:#8fd7ff;text-transform:uppercase;line-height:1.8;font-family:'Courier New',monospace}
+.b3i-tip{margin-top:7px;font-size:10px;color:#e0b23c;font-family:'Courier New',monospace}
 #b3d-joy{display:none;position:absolute;right:24px;bottom:30px;width:118px;height:118px;border-radius:50%;background:rgba(10,0,16,.32);border:1px solid rgba(204,34,68,.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);pointer-events:auto;z-index:2;touch-action:none}
 #b3d-stick{position:absolute;top:50%;left:50%;width:48px;height:48px;border-radius:50%;background:radial-gradient(circle at 40% 35%,rgba(255,84,114,.92),rgba(120,0,30,.85));border:1px solid rgba(255,180,200,.5);transform:translate(-50%,-50%);box-shadow:0 0 14px rgba(204,34,68,.6)}
 #b3d-hint{position:absolute;bottom:13px;left:50%;transform:translateX(-50%);color:rgba(255,220,228,.72);font-size:11px;letter-spacing:.4px;pointer-events:none;text-shadow:0 0 8px rgba(0,0,0,.85);animation:b3dHintFade 7s forwards}
@@ -1501,9 +1512,10 @@ strong{color:#e8d4b0}
       <div id="b3d-inbar"><input id="b3d-inp" placeholder="Speak to Bam…" autocomplete="off" autocorrect="off" spellcheck="false"><button id="b3d-send" onclick="b3dSend()">➤</button></div>
     </div>
     <div id="b3d-panel"></div>
+    <div id="b3d-inspect"></div>
     <div id="b3d-reticle"></div>
     <div id="b3d-joy"><div id="b3d-stick"></div></div>
-    <div id="b3d-hint">move mouse to look (L toggles) · WASD to move · click a member to approach</div>
+    <div id="b3d-hint">move mouse to look · WASD to move · tap a blueprint node to inspect · tap a member to approach</div>
   </div>
 </div>
 
@@ -2266,6 +2278,8 @@ async function boot() {
         : (cfg.provider==='ollama'?cfg.url:cfg.apikey)
           ? `API connected. What do you need?`
           : 'Tap ⚙ to add your Groq API key to get started.'));
+    // land in the 3D core on open (✕ drops you to the 2D app; the ⋯ menu brings it back)
+    setTimeout(() => { try { if (typeof webglOK === 'function' && webglOK() && typeof enter3D === 'function') enter3D(); } catch(e){} }, 300);
   }, 400);
 }
 
@@ -3254,7 +3268,8 @@ async function dispatchAgents(){
 }
 
 // ── bridge: expose let/const-scoped app state so the Three.js ES module can reach it ──
-window.JV = { get cfg(){return cfg}, get convos(){return convos}, get voiceOut(){return voiceOut}, get subsys(){return NEURO_SUBSYS}, get layers(){return SEC_LAYERS}, get academy(){return ACADEMY} };
+window.JV = { get cfg(){return cfg}, get convos(){return convos}, get voiceOut(){return voiceOut}, get subsys(){return NEURO_SUBSYS}, get layers(){return SEC_LAYERS}, get academy(){return ACADEMY},
+  get nxNodes(){return CORE_NODES}, get nxEdges(){return CORE_EDGES} };
 
 // ════════════════════════════════════════════════
 // ACADEMY — Teacher Mode: structured courses, lessons taught step-by-step, quizzes
@@ -8732,8 +8747,32 @@ function tapSelect(e){
   const ndc=new T.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
   raycaster.setFromCamera(ndc, camera);
   if(deckWall){ const dh=raycaster.intersectObjects(deckWall.children, true); if(dh.length){ let o=dh[0].object; while(o){ if(o.userData&&o.userData.deckKey){ deckOpen3D(o.userData.deckKey); return; } o=o.parent; } } }
+  // blueprint nodes first — tap one to inspect the subsystem
+  if(dataField){
+    const bh=raycaster.intersectObjects(dataField.children, true);
+    if(bh.length){ let o=bh[0].object; while(o){ if(o.userData&&o.userData.nxId){ b3dInspect(o.userData.nxId); return; } o=o.parent; } }
+  }
   const hits=raycaster.intersectObjects(sectionHolders, true);
   if(hits.length){ let o=hits[0].object; while(o){ if(o.userData&&o.userData.sectionKey){ goSection(o.userData.sectionKey); break; } o=o.parent; } }
+}
+// HUD inspector card for a tapped blueprint node — same intel as the 2D NEUROLINK sheet
+function b3dInspect(id){
+  const NX=(window.JV&&window.JV.nxNodes)?window.JV.nxNodes:[];
+  const NXE=(window.JV&&window.JV.nxEdges)?window.JV.nxEdges:[];
+  const n=NX.find(x=>x.id===id); const box=document.getElementById('b3d-inspect');
+  if(!n||!box) return;
+  const live=nxLive(n);
+  const links=NXE.filter(([a,b])=>a===id||b===id)
+    .map(([a,b])=>{ const other=NX.find(x=>x.id===(a===id?b:a)); return other?other.label:''; }).filter(Boolean);
+  const col='#'+NX3_COL[n.grp].toString(16).padStart(6,'0');
+  box.innerHTML =
+    '<button class="b3i-x" onclick="document.getElementById(\'b3d-inspect\').style.display=\'none\'">✕</button>'+
+    '<div class="b3i-hdr"><span class="b3i-ic">'+b3esc(n.icon)+'</span><span class="b3i-name" style="color:'+col+'">'+b3esc(n.label)+'</span>'+
+    '<span class="b3i-badge '+(live?'on':'off')+'">'+(live?'ONLINE':'OFFLINE')+'</span></div>'+
+    '<div class="b3i-desc">'+b3esc(n.desc)+'</div>'+
+    (links.length?'<div class="b3i-links">wired to ⟶ '+links.map(b3esc).join(' · ')+'</div>':'')+
+    (!live&&n.tip?'<div class="b3i-tip">⚡ '+b3esc(n.tip)+'</div>':'');
+  box.style.display='block';
 }
 function updateCamera(dt){
   if(autoPos){                                   // auto-approach a member
@@ -8817,35 +8856,73 @@ function connectAreas(THREE){
   grp.userData={pulses};
   return grp;
 }
-// a deep mesh of data-nodes filling the space BETWEEN the members — turns "5 things"
-// into a real living network you fly through. Deterministic layout (same every load).
+// ── THE CORE BLUEPRINT IN 3D — the same real system map as NEUROLINK, orbiting the reactor.
+// Every glowing node is a real subsystem, every conduit a real data flow; live status
+// comes straight from your config/toggles, and tapping a node inspects it.
+const NX3_COL = { core:0xff4d6d, sys:0x9b6bff, ext:0x54b9e8, work:0xd4af37, store:0x3fd07a };
+function makeNxLabel(THREE, n){
+  const c=document.createElement('canvas'); c.width=340; c.height=92; const x=c.getContext('2d');
+  x.textAlign='center'; x.textBaseline='middle';
+  x.shadowColor='rgba(0,0,0,.95)'; x.shadowBlur=9;
+  x.font='34px "Courier New",monospace'; x.fillText(n.icon, 170, 26);
+  x.font='bold 22px "Courier New",monospace';
+  x.fillStyle='#'+NX3_COL[n.grp].toString(16).padStart(6,'0');
+  x.fillText(n.label, 170, 66);
+  const t=new THREE.CanvasTexture(c); t.anisotropy=4;
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t, transparent:true, depthWrite:false}));
+  s.scale.set(2.3,0.62,1);
+  return s;
+}
 function buildDataField(THREE){
-  const grp=new THREE.Group(); const pts=[]; const N=34;
-  const areas=Object.values(sectionAreas).map(a=>new THREE.Vector3(...a));
-  const nodeMat=new THREE.MeshStandardMaterial({color:0x041220, emissive:0x2bd9ff, emissiveIntensity:3.4, roughness:0.4});
-  // scatter through the whole arena, biased toward the gaps between the big members
-  for(let i=0;i<N;i++){
-    const a=i*2.399963, r=4.5+((i*0.713)%1)*13;
-    const x=Math.cos(a)*r, z=Math.sin(a)*r*0.78 - 6.5, y=0.1+((i*0.37)%1)*3.4;
-    const v=new THREE.Vector3(x,y,z);
-    const s=new THREE.Mesh(new THREE.SphereGeometry(0.065,12,12), nodeMat);
-    s.position.copy(v); grp.add(s); pts.push(v);
+  const grp=new THREE.Group();
+  const NX = (window.JV && window.JV.nxNodes) ? window.JV.nxNodes : [];
+  const NXE = (window.JV && window.JV.nxEdges) ? window.JV.nxEdges : [];
+  const pos = { core: new THREE.Vector3(0, 1.5, 0) };           // wires meet inside the reactor heart
+  const RAD = { sys:5.4, ext:9.0, work:6.8, store:6.0 };
+  const HGT = { sys:2.6, ext:3.9, work:0.5, store:1.6 };
+  const nodes=[];
+  NX.forEach((n,i)=>{
+    if(n.id==='core') return;
+    // keep each node in the same compass direction as the 2D blueprint sheet
+    const ang=Math.atan2(n.fy-0.42, (n.fx-0.5)*1.35);
+    const r=RAD[n.grp]||6, y=(HGT[n.grp]||2)+(((i*0.618)%1)-0.5)*0.9;
+    // depth axis compressed so front-row nodes ring the reactor instead of crowding the camera
+    const p=new THREE.Vector3(Math.cos(ang)*r, y, Math.sin(ang)*r*0.58);
+    pos[n.id]=p;
+    const holder=new THREE.Group(); holder.position.copy(p);
+    holder.userData.nxId=n.id; holder.userData.baseY=p.y;
+    const size = n.grp==='work' ? 0.26 : (n.grp==='ext' ? 0.19 : 0.24);
+    const mat=new THREE.MeshStandardMaterial({color:0x0a0614, emissive:NX3_COL[n.grp], emissiveIntensity:2.6, roughness:0.35});
+    holder.add(new THREE.Mesh(new THREE.SphereGeometry(size,20,20), mat));
+    const ringMat=new THREE.MeshBasicMaterial({color:NX3_COL[n.grp], transparent:true, opacity:0.5, depthWrite:false, side:THREE.DoubleSide});
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(size+0.15,0.013,8,48), ringMat);
+    ring.rotation.x=Math.PI/2; holder.add(ring);
+    const lab=makeNxLabel(THREE,n); lab.position.set(0, size+0.5, 0); holder.add(lab);
+    grp.add(holder);
+    nodes.push({ def:n, holder, mat, ring, ringMat });
+  });
+  // conduits — one per real data flow
+  const edges=[];
+  NXE.forEach(([ai,bi])=>{
+    const a=pos[ai], b=pos[bi]; if(!a||!b) return;
+    const mid=a.clone().add(b).multiplyScalar(0.5); mid.y += 0.8 + a.distanceTo(b)*0.10;
+    const curve=new THREE.QuadraticBezierCurve3(a, mid, b);
+    const na=NX.find(n=>n.id===ai), nb=NX.find(n=>n.id===bi);
+    const far=(ai==='core') ? nb : na;
+    const mat=new THREE.MeshBasicMaterial({color:NX3_COL[far.grp], transparent:true, opacity:0.3, depthWrite:false});
+    grp.add(new THREE.Mesh(new THREE.TubeGeometry(curve,40,0.022,6,false), mat));
+    edges.push({ curve, mat, a:na, b:nb });
+  });
+  // energy pulses ride only the live conduits (retargeted as they wrap)
+  const pulses=[], pm=new THREE.MeshBasicMaterial({color:0xfff1c9});
+  for(let i=0;i<22;i++){
+    const m=new THREE.Mesh(new THREE.SphereGeometry(0.05,8,8), pm);
+    grp.add(m); pulses.push({ m, e:edges[(i*5)%edges.length]||edges[0], t:(i*0.137)%1 });
   }
-  // weave the web: each node links to its 2 nearest nodes + its nearest member
-  const segs=[], conns=[];
-  for(let i=0;i<N;i++){
-    pts.map((p,j)=>({j,d:pts[i].distanceTo(p)})).filter(o=>o.j!==i).sort((a,b)=>a.d-b.d).slice(0,2)
-      .forEach(o=>{ if(o.j>i){ segs.push(pts[i],pts[o.j]); conns.push([pts[i],pts[o.j]]); } });
-    let m=areas[0], md=1e9; areas.forEach(A=>{ const d=pts[i].distanceTo(A); if(d<md){ md=d; m=A; } });
-    segs.push(pts[i], m); conns.push([pts[i], m]);
-  }
-  grp.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(segs),
-    new THREE.LineBasicMaterial({color:0x2bd9ff, transparent:true, opacity:0.26})));
-  const pulses=[], pm=new THREE.MeshBasicMaterial({color:0xbfefff});
-  for(let i=0;i<24;i++){ const m=new THREE.Mesh(new THREE.SphereGeometry(0.04,8,8),pm); grp.add(m); pulses.push({m, c:conns[(i*7)%conns.length], t:i/24}); }
-  grp.userData={pulses, conns};
+  grp.userData={ nodes, edges, pulses, statusT:-9 };
   return grp;
 }
+function nxLive(def){ try{ return !!def.on(); }catch(e){ return true; } }
 const SECTION_TITLE = { chat:'CORE', brain:'NEUROLINK', security:'SECURITY', academy:'ACADEMY', settings:'CONFIG' };
 function makeLabel(THREE, text){
   const c=document.createElement('canvas'); c.width=256; c.height=64; const x=c.getContext('2d');
@@ -9145,7 +9222,7 @@ async function build(THREE, RGBELoader){
 
   addEventListener('resize', onResize);
   const inp=document.getElementById('b3d-inp'); if(inp) inp.addEventListener('keydown', e=>{ if(e.key==='Enter') window.b3dSend(); });
-  b3dMsg('a', (window.JV.cfg.apiUrl ? 'Server vault online — keys stay on the backend. ' : '') + CHAR.name+' online. Move the mouse to look around, WASD to move, click a glowing member to approach it. Speak, '+(window.JV.cfg.name||'Commander')+'.');
+  b3dMsg('a', (window.JV.cfg.apiUrl ? 'Server vault online — keys stay on the backend. ' : '') + CHAR.name+' online. This is the core blueprint — every glowing node is one of my live systems; tap one to inspect it, tap a big member to approach it. Speak, '+(window.JV.cfg.name||'Commander')+'.');
 }
 
 function onResize(){ if(!renderer) return; camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); if(composer) composer.setSize(innerWidth,innerHeight); }
@@ -9171,7 +9248,21 @@ function loop(){
   if(bn && bn.userData.pulses){ bn.userData.pulses.forEach(p=>{ p.t+=0.02; if(p.t>=1){ p.t=0; p.c=bn.userData.conns[(Math.random()*bn.userData.conns.length)|0]; } if(p.c) p.m.position.lerpVectors(p.c[0],p.c[1],p.t); }); }
   if(connGroup){ connGroup.userData.pulses.forEach(p=>{ p.t+=0.006; if(p.t>1) p.t=0; p.curve.getPoint(p.t, p.m.position); }); }   // energy flowing between areas
   if(deckWall){ deckWall.children.forEach((m,i)=>{ if(m.userData.deckKey) m.position.y=m.userData.baseY+Math.sin(t*0.8+i)*0.06; }); if(t-deckLastRefresh>1.2){ deckLastRefresh=t; refreshDeckWall(); } }
-  if(dataField){ dataField.userData.pulses.forEach(p=>{ p.t+=0.008; if(p.t>=1){ p.t=0; p.c=dataField.userData.conns[(Math.random()*dataField.userData.conns.length)|0]; } if(p.c) p.m.position.lerpVectors(p.c[0],p.c[1],p.t); }); }   // data flowing across the web
+  if(dataField){ const ud=dataField.userData;
+    // pulses travel the blueprint conduits — only ones whose both ends are live
+    const liveE = ud.edges.filter(e=>nxLive(e.a)&&nxLive(e.b));
+    ud.pulses.forEach(p=>{ p.t+=0.006; if(p.t>=1){ p.t=0; if(liveE.length) p.e=liveE[(Math.random()*liveE.length)|0]; }
+      if(p.e){ p.e.curve.getPoint(p.t, p.m.position); p.m.visible=nxLive(p.e.a)&&nxLive(p.e.b); } });
+    // nodes float gently; rings spin when live
+    ud.nodes.forEach((n,i)=>{ n.holder.position.y=n.holder.userData.baseY+Math.sin(t*0.7+i)*0.10; n.ring.rotation.z=t*(0.4+i*0.03); });
+    // live-status refresh (throttled ~1s): dim what's off, glow what's on
+    if(t-ud.statusT>1){ ud.statusT=t;
+      ud.nodes.forEach(n=>{ const on=nxLive(n.def);
+        n.mat.emissive.setHex(on?NX3_COL[n.def.grp]:0x444455); n.mat.emissiveIntensity=on?2.6:0.5;
+        n.ringMat.opacity=on?0.5:0.12; });
+      ud.edges.forEach(e=>{ e.mat.opacity=(nxLive(e.a)&&nxLive(e.b))?0.3:0.06; });
+    }
+  }
   if(charMixer) charMixer.update(dt);                // animate the custom character (if loaded)
   // live chat-box avatar — only render when the chat panel is showing (CORE mode)
   if(avRenderer && current==='chat'){
