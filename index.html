@@ -8,10 +8,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000814">
 <!-- Security: restrict where the app can load from and (critically) send data to -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev https://nominatim.openstreetmap.org https://overpass-api.de https://places.googleapis.com; frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://api.telegram.org https://r.jina.ai https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev https://nominatim.openstreetmap.org https://overpass-api.de https://places.googleapis.com; frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <script type="importmap">
 { "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/jsm/" } }
 </script>
@@ -280,6 +282,103 @@ textarea.inp::placeholder{color:rgba(190,150,160,.2)}
 .niche-label{font-size:6px;letter-spacing:3px;color:rgba(184,134,11,.55);white-space:nowrap;text-transform:uppercase;padding-left:14px}
 .niche-inp{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:inherit;font-size:12px;letter-spacing:.5px}
 .niche-inp::placeholder{color:rgba(190,150,160,.18)}
+
+/* ── POWERS ROW (chat toggles) ── */
+#powers-row{border-top:none;padding-top:0}
+.qbtn.on{color:var(--gold) !important;border-color:var(--gold-b) !important;background:var(--gold-d) !important;box-shadow:0 0 8px rgba(138,104,0,.25)}
+
+/* ── REASONING (think) BLOCK ── */
+.think-block{opacity:.55;font-size:11px;font-style:italic;border-left:2px solid rgba(138,104,0,.4);padding:6px 9px;margin-bottom:8px;background:rgba(138,104,0,.05);border-radius:0 6px 6px 0;white-space:normal}
+.think-block::before{content:'💭 reasoning';display:block;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);opacity:.8;margin-bottom:3px;font-style:normal}
+
+/* ── MESSAGE ACTIONS (copy/export) ── */
+.msg-actions{display:flex;gap:6px;margin-top:4px}
+.msg-actions button{background:none;border:1px solid rgba(100,0,30,.25);border-radius:4px;color:var(--text-d);font-family:inherit;font-size:8px;letter-spacing:1.5px;padding:3px 9px;cursor:pointer;transition:all .15s}
+.msg-actions button:hover,.msg-actions button:active{color:var(--gold);border-color:var(--gold-b)}
+.msg.flash .bubble{animation:msg-flash 1.2s ease}
+@keyframes msg-flash{0%,60%{box-shadow:0 0 0 2px var(--gold),0 0 22px rgba(212,175,55,.5)}100%{box-shadow:none}}
+
+/* ── IMAGE CARDS IN CHAT ── */
+.img-card img{width:100%;max-width:320px;border-radius:6px;display:block;background:rgba(138,104,0,.06);min-height:120px}
+
+/* ── 🎙️ VOICE MODE OVERLAY ── */
+#voicemode{position:fixed;inset:0;z-index:1500;display:none;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:radial-gradient(120% 90% at 50% 30%,rgba(90,0,28,.5),rgba(1,0,8,.97));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#voicemode.open{display:flex}
+.vm-orb{width:130px;height:130px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(204,34,68,.4);transition:all .3s}
+.vm-orb-core{width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,120,150,.9),var(--live) 45%,#4a0018 100%);box-shadow:0 0 40px rgba(204,34,68,.55)}
+.vm-orb.listening{border-color:rgba(212,175,55,.6);animation:vm-pulse 1.6s ease-in-out infinite}
+.vm-orb.listening .vm-orb-core{background:radial-gradient(circle at 35% 30%,#ffe9a8,#d4af37 45%,#6b5300 100%);box-shadow:0 0 46px rgba(212,175,55,.6)}
+.vm-orb.thinking{animation:vm-spin 1.1s linear infinite;border-style:dashed}
+.vm-orb.speaking .vm-orb-core{animation:vm-beat .5s ease-in-out infinite alternate}
+@keyframes vm-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+@keyframes vm-spin{to{transform:rotate(360deg)}}
+@keyframes vm-beat{from{transform:scale(.92)}to{transform:scale(1.08)}}
+.vm-state{font-size:11px;letter-spacing:6px;color:var(--gold);text-transform:uppercase;font-weight:bold}
+.vm-last{max-width:80%;font-size:12px;color:var(--text-d);text-align:center;line-height:1.55;max-height:100px;overflow:hidden}
+.vm-hint{position:absolute;bottom:26px;font-size:9px;letter-spacing:2px;color:var(--text-d)}
+
+/* ── 🔍 UNIVERSAL SEARCH ── */
+#usearch{position:fixed;inset:0;z-index:1400;display:none;flex-direction:column;background:rgba(1,0,8,.97);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#usearch.open{display:flex}
+.us-bar{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:14px;border-bottom:1px solid var(--red-b)}
+#us-inp{flex:1;background:rgba(100,0,0,.08);border:1px solid var(--red-b);border-radius:8px;color:var(--text);font-family:inherit;font-size:14px;padding:11px 13px;outline:none;-webkit-appearance:none}
+#us-inp:focus{border-color:var(--red)}
+.us-x{background:none;border:none;color:var(--text-d);font-size:26px;cursor:pointer;line-height:1;padding:0 4px}
+.us-results{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.us-group{font-size:8px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin:8px 0 2px}
+.us-hit{background:var(--panel);border:1px solid var(--red-b);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.55;color:var(--text);cursor:pointer;border-left:2px solid transparent;transition:all .15s}
+.us-hit:hover,.us-hit:active{border-left-color:var(--gold)}
+.us-hit mark{background:rgba(212,175,55,.35);color:#ffe9a8;border-radius:2px;padding:0 1px}
+.us-hit .us-meta{font-size:9px;color:var(--text-d);margin-top:4px}
+.us-empty{text-align:center;color:var(--text-d);font-size:11px;padding:30px 0;letter-spacing:2px;text-transform:uppercase}
+
+/* ── TOPBAR MORE MENU ── */
+.topbar{position:relative}
+.more-menu{position:absolute;top:calc(100% + 4px);right:8px;z-index:900;display:none;flex-direction:column;background:var(--panel);border:1px solid var(--red-b);border-radius:9px;padding:6px;min-width:200px;max-height:70vh;overflow-y:auto;box-shadow:0 14px 40px rgba(0,0,0,.6)}
+.more-menu.open{display:flex}
+.mm-item{display:flex;align-items:center;gap:10px;background:none;border:none;color:var(--text);font-family:inherit;font-size:11px;letter-spacing:1px;padding:9px 11px;cursor:pointer;text-align:left;border-radius:6px;transition:background .15s;white-space:nowrap}
+.mm-item:hover,.mm-item:active{background:rgba(140,0,32,.22)}
+.mm-item .mm-ic{width:18px;text-align:center;flex-shrink:0}
+.mm-sep{height:1px;background:var(--red-b);margin:4px 6px}
+
+/* ── WORKSPACE NAV — BAM / HUSTLE / MONEY / TOOLS ── */
+.cat-bar{flex-shrink:0;display:flex;gap:6px;padding:6px 12px 3px;background:rgba(2,0,7,.9);overflow-x:auto;scrollbar-width:none}
+.cat-bar::-webkit-scrollbar{display:none}
+.cat-btn{flex:1;min-width:70px;padding:7px 12px;background:rgba(70,0,18,.12);border:1px solid rgba(110,0,30,.32);border-radius:2px;color:rgba(195,95,75,.75);font-family:inherit;font-size:9px;letter-spacing:2px;cursor:pointer;white-space:nowrap;transition:all .15s;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%);text-transform:uppercase}
+.cat-btn.on{background:rgba(140,0,32,.3);color:var(--live);border-color:rgba(204,34,68,.55)}
+.sub-tabs{flex-shrink:0;display:none;gap:5px;padding:4px 12px 6px;background:rgba(2,0,7,.9);border-bottom:1px solid rgba(70,0,20,.35);overflow-x:auto;scrollbar-width:none}
+.sub-tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:5px 12px;background:none;border:1px solid rgba(100,0,30,.25);border-radius:11px;color:var(--text-d);font-family:inherit;font-size:8px;letter-spacing:2px;cursor:pointer;white-space:nowrap;transition:all .15s;text-transform:uppercase}
+.tab.on{color:var(--gold);border-color:var(--gold-b);background:var(--gold-d)}
+
+/* ── TOOL PANELS (hustle/tools workspaces) ── */
+.tool-content{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+.tool-card{background:var(--panel);border:1px solid var(--red-b);border-radius:var(--r);padding:13px;border-left:2px solid var(--red)}
+.tool-title{font-size:8px;letter-spacing:3px;color:var(--red);text-transform:uppercase;margin-bottom:9px}
+.tool-sub{font-size:10px;color:var(--text-d);line-height:1.5;margin-bottom:9px}
+.tool-fields{display:flex;flex-direction:column;gap:7px}
+.tool-inp,.tool-sel,.tool-ta{width:100%;background:rgba(100,0,0,.06);border:1px solid var(--red-b);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;padding:9px 11px;outline:none;-webkit-appearance:none;box-sizing:border-box}
+.tool-ta{resize:vertical;min-height:80px;line-height:1.55}
+.tool-inp:focus,.tool-sel:focus,.tool-ta:focus{border-color:var(--red)}
+.tool-lbl{font-size:8px;letter-spacing:2px;color:var(--text-d);text-transform:uppercase;margin:3px 0 -2px}
+.tool-go{width:100%;margin-top:9px;padding:11px;background:linear-gradient(135deg,var(--red),#4a0018);border:none;border-radius:7px;color:#fff;font-family:inherit;font-size:10px;font-weight:bold;letter-spacing:2.5px;cursor:pointer;transition:opacity .15s}
+.tool-go:disabled{opacity:.45}
+.tool-out{display:none;background:rgba(4,0,10,.85);border:1px solid var(--red-b);border-radius:8px;padding:12px;font-size:12px;line-height:1.6;color:var(--text);margin-top:10px;word-break:break-word}
+.tool-checks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tool-check{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text);cursor:pointer;background:rgba(100,0,0,.05);border:1px solid rgba(100,0,30,.2);border-radius:6px;padding:7px 9px}
+.tool-check input{width:auto;margin:0}
+.copy-out-btn{margin-top:8px;padding:6px 14px;background:var(--gold-d);border:1px solid var(--gold-b);border-radius:5px;color:var(--gold);font-family:inherit;font-size:9px;letter-spacing:2px;cursor:pointer}
+
+/* ── HOOK LIBRARY ── */
+.hook-cat-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;margin:4px 0 2px;font-weight:bold}
+.hook-item{background:var(--panel);border:1px solid var(--red-b);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.5;color:var(--text);cursor:pointer;transition:all .15s;border-left:2px solid transparent}
+.hook-item:hover,.hook-item:active{border-left-color:var(--gold);background:rgba(138,104,0,.07)}
+
+/* ── REVENUE CHART v2 (SVG) + RANGE + TILES ── */
+.rev-range{display:flex;gap:5px;margin-bottom:8px}
+.rev-range button{flex:1;padding:4px 0;background:none;border:1px solid rgba(100,0,30,.25);border-radius:10px;color:var(--text-d);font-family:inherit;font-size:8px;letter-spacing:1.5px;cursor:pointer}
+.rev-range button.on{color:var(--gold);border-color:var(--gold-b);background:var(--gold-d)}
+#rev-tip{position:absolute;pointer-events:none;background:rgba(4,0,10,.95);border:1px solid var(--gold-b);border-radius:6px;padding:5px 9px;font-size:10px;color:var(--gold);display:none;z-index:5;white-space:nowrap}
 
 /* ── REVENUE CHART ── */
 .chart-wrap{background:var(--panel);border:1px solid var(--red-b);border-radius:var(--r);padding:12px;border-left:2px solid var(--red)}
@@ -1314,8 +1413,60 @@ strong{color:#e8d4b0}
           <button type="button" class="save-btn" style="flex:1;margin:0" onclick="exportSettings()">⬇ EXPORT</button>
           <button type="button" class="save-btn" style="flex:1;margin:0" onclick="importSettings()">⬆ RESTORE</button>
         </div>
-        <div class="hint">Export copies a code (API key + all settings + brain memory). Save it in your Notes. If iOS ever clears your data, paste it back and Restore — no re-typing.</div>
+        <div style="display:flex;gap:8px;margin-top:7px">
+          <button type="button" class="save-btn" style="flex:1;margin:0" onclick="exportSettingsToFile()">💾 BACKUP FILE</button>
+          <button type="button" class="save-btn" style="flex:1;margin:0" onclick="importSettingsFromFile()">📂 IMPORT FILE</button>
+        </div>
+        <div class="hint">Export copies a code (API key + all settings + brain memory). Save it in your Notes. If iOS ever clears your data, paste it back and Restore — no re-typing. <strong>Backup File downloads everything as one JSON — it contains your API keys, so keep it private.</strong></div>
       </div>
+      <div class="field">
+        <label>Audit Log</label>
+        <button type="button" class="save-btn" style="margin-top:2px" onclick="toggleAuditLog()">📜 VIEW AUDIT LOG</button>
+        <div id="audit-log-box" style="display:none;max-height:180px;overflow-y:auto;margin-top:7px;background:rgba(4,0,10,.8);border:1px solid var(--red-b);border-radius:7px;padding:8px 10px;font-size:9px;letter-spacing:.5px"></div>
+        <div class="hint">The last 200 events: AI calls, blasts/sends and settings changes.</div>
+      </div>
+    </div>
+    <div class="cfg-sec">
+      <div class="cfg-sec-title">🤖 AI Behavior</div>
+      <div class="field">
+        <label>Daily AI Call Limit (spend guard)</label>
+        <input type="number" id="c-ai-cap" placeholder="300">
+        <div class="hint">Hard cap on AI calls per day so a runaway loop can never burn your quota. Default 300.</div>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="c-auto-model" style="width:auto"> Smart model routing</label>
+        <div class="hint">Automatically uses the big model for hard tasks (writing, code, strategy, agent runs) and the fast model for quick chat.</div>
+      </div>
+      <div class="field">
+        <label>Smart Model (big)</label>
+        <input type="text" id="c-smart-model" placeholder="llama-3.3-70b-versatile">
+        <div class="hint">Used when routing decides a task is complex. The Model field above stays your fast default.</div>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="c-auto-mem" style="width:auto"> 🧠 Long-term memory (auto-remember)</label>
+        <div class="hint">After each exchange Bam quietly saves 0–3 durable facts to his brain (uses the fast model).</div>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="c-brief-tg" style="width:auto"> ☀️ Text my daily briefing to Telegram</label>
+        <div class="hint">Sends the morning briefing to your saved Telegram bot/chat ID.</div>
+      </div>
+    </div>
+    <div class="cfg-sec">
+      <div class="cfg-sec-title">🎙 Voice</div>
+      <div class="field">
+        <label>Voice</label>
+        <select id="c-voice-name"><option value="">System default</option></select>
+        <div class="hint">Any voice installed on this device.</div>
+      </div>
+      <div class="field">
+        <label>Speed <span id="c-voice-rate-val" style="color:var(--red)">1.05</span></label>
+        <input type="range" id="c-voice-rate" min="0.5" max="2" step="0.05" value="1.05" style="width:100%" oninput="document.getElementById('c-voice-rate-val').textContent=this.value">
+      </div>
+      <div class="field">
+        <label>Pitch <span id="c-voice-pitch-val" style="color:var(--red)">0.85</span></label>
+        <input type="range" id="c-voice-pitch" min="0.5" max="1.5" step="0.05" value="0.85" style="width:100%" oninput="document.getElementById('c-voice-pitch-val').textContent=this.value">
+      </div>
+      <button type="button" class="save-btn" onclick="testVoice()">🔊 TEST VOICE</button>
     </div>
     <button class="save-btn" onclick="saveCfg()">SAVE &amp; APPLY</button>
   </div>
@@ -1544,20 +1695,28 @@ strong{color:#e8d4b0}
         <span class="clock" id="clock">--:--</span>
         <span class="sys-tag">SYS ONLINE</span>
       </div>
-      <button class="icon-btn" onclick="toggleVoiceOut()" id="voice-out-btn" title="Toggle voice output">🔊</button>
-      <button class="icon-btn" onclick="toggleHandsFree()" id="hands-free-btn" title="Hands-free conversation" style="opacity:0.4">🗣</button>
-      <button class="icon-btn" onclick="toggleWake()" id="wake-btn" title="Wake word — say 'Bam' to talk hands-free" style="opacity:0.4">🎙</button>
-      <button class="icon-btn" onclick="visionLook()" id="vision-btn" title="Let Bam see your screen/camera (once)">👁</button>
-      <button class="icon-btn" onclick="toggleWatch()" id="watch-btn" title="Watch my screen/camera continuously">📡</button>
-      <button class="icon-btn" onclick="enter3D()" id="b3d-btn" title="3D interface (holographic)" style="font-size:13px;font-weight:bold;letter-spacing:1px">3D</button>
-      <button class="icon-btn" onclick="openDeck()" id="deck-btn" title="Command Deck — all panels at once" style="font-size:16px">⌸</button>
-      <button class="icon-btn" onclick="openNeuro()" title="NEUROLINK — Bam's cortex, tools & agents">🧠</button>
-      <button class="icon-btn" onclick="openAcademy()" title="Teacher mode — structured lessons">🎓</button>
-      <button class="icon-btn" onclick="openDoom()" title="Doomscroll — insights, games & more">🌀</button>
-      <button class="icon-btn" onclick="openBiz()" title="Lead Finder & Website Builder">🏢</button>
-      <button class="icon-btn" onclick="openYT()" title="Faceless YouTube Studio">📹</button>
-      <button class="icon-btn" onclick="openPhys()" title="Portal Physics Lab (Go · WASM)">⚛</button>
-      <button class="icon-btn" onclick="openCfg()">⚙</button>
+      <button class="icon-btn" onclick="openSearch()" id="usearch-btn" title="Search everything — chat, brain, offers, sales">🔍</button>
+      <button class="icon-btn" onclick="enterVoiceMode()" id="voicemode-btn" title="Voice Mode — hands-free conversation">🎙️</button>
+      <button class="icon-btn" onclick="toggleMoreMenu(event)" id="more-btn" title="All tools">⋯</button>
+      <button class="icon-btn" onclick="openCfg()" title="Settings">⚙</button>
+    </div>
+    <div class="more-menu" id="more-menu">
+      <button class="mm-item" onclick="toggleVoiceOut()" id="voice-out-btn"><span class="mm-ic">🔊</span> Voice output</button>
+      <button class="mm-item" onclick="toggleHandsFree()" id="hands-free-btn" style="opacity:0.4"><span class="mm-ic">🗣</span> Hands-free chat</button>
+      <button class="mm-item" onclick="toggleWake()" id="wake-btn" style="opacity:0.4"><span class="mm-ic">🎙</span> Wake word “Bam”</button>
+      <button class="mm-item" onclick="visionLook()" id="vision-btn"><span class="mm-ic">👁</span> Look once (vision)</button>
+      <button class="mm-item" onclick="toggleWatch()" id="watch-btn"><span class="mm-ic">📡</span> Watch my screen</button>
+      <div class="mm-sep"></div>
+      <button class="mm-item" onclick="runBriefing(true)"><span class="mm-ic">☀️</span> Daily briefing</button>
+      <button class="mm-item" onclick="openNeuro()"><span class="mm-ic">🧠</span> Neurolink</button>
+      <button class="mm-item" onclick="openAcademy()"><span class="mm-ic">🎓</span> Academy</button>
+      <button class="mm-item" onclick="openDoom()"><span class="mm-ic">🌀</span> Doomscroll</button>
+      <button class="mm-item" onclick="openBiz()"><span class="mm-ic">🏢</span> Lead finder</button>
+      <button class="mm-item" onclick="openYT()"><span class="mm-ic">📹</span> YouTube studio</button>
+      <div class="mm-sep"></div>
+      <button class="mm-item" onclick="enter3D()" id="b3d-btn"><span class="mm-ic">🧊</span> 3D interface</button>
+      <button class="mm-item" onclick="openDeck()" id="deck-btn"><span class="mm-ic">⌸</span> Command deck</button>
+      <button class="mm-item" onclick="openPhys()"><span class="mm-ic">⚛</span> Physics lab</button>
     </div>
   </div>
 
@@ -1575,6 +1734,15 @@ strong{color:#e8d4b0}
     <span class="niche-label">Niche</span>
     <input class="niche-inp" id="niche-inp" placeholder="Type a niche or idea… e.g. dark psychology, fitness, crypto" oninput="saveNiche()">
   </div>
+
+  <!-- Workspace nav -->
+  <div class="cat-bar">
+    <button class="cat-btn on" data-cat="agents" onclick="switchCat('agents')">💬 Bam</button>
+    <button class="cat-btn" data-cat="hustle" onclick="switchCat('hustle')">⚡ Hustle</button>
+    <button class="cat-btn" data-cat="money" onclick="switchCat('money')">💰 Money</button>
+    <button class="cat-btn" data-cat="tools" onclick="switchCat('tools')">🛠 Tools</button>
+  </div>
+  <div class="sub-tabs" id="sub-tabs"></div>
 
   <!-- Mode Indicator -->
   <div class="mode-ind" id="mode-ind"></div>
@@ -1595,6 +1763,14 @@ strong{color:#e8d4b0}
         <button class="qbtn" onclick="cmd('status')">Status</button>
         <button class="qbtn" onclick="cleanJarvis()" style="color:rgba(204,34,68,.6)">🧹 Clean</button>
       </div>
+      <div class="qrow" id="powers-row">
+        <button class="qbtn" id="tg-web" onclick="toggleWeb()" title="Web access — Bam reads links you paste and can search the live web">🌐 Web</button>
+        <button class="qbtn" id="tg-mem" onclick="toggleMem()" title="Long-term memory — Bam quietly remembers durable facts">🧠 Memory</button>
+        <button class="qbtn" id="tg-think" onclick="toggleThink()" title="Reasoning mode — think step-by-step before answering">💭 Think</button>
+        <button class="qbtn" onclick="genImageFromInput()" title="Generate an image from the message box (free)">🎨 Image</button>
+        <button class="qbtn" onclick="startAgent()" title="Autonomous agent — give a goal, Bam plans and executes it">🤖 Agent</button>
+        <button class="qbtn" onclick="runBriefing(true)" title="Morning briefing on demand">☀️ Briefing</button>
+      </div>
       <div class="inp-area">
         <button class="mic-btn" id="mic"
           ontouchstart="startMic(event)" ontouchend="stopMic(event)"
@@ -1608,17 +1784,280 @@ strong{color:#e8d4b0}
     </div>
 
 
+    <!-- ═══ HUSTLE · SCRIPT GENERATOR ═══ -->
+    <div class="panel" id="p-scripts">
+      <div class="tool-content">
+        <div class="tool-card">
+          <div class="tool-title">⚡ Script Generator</div>
+          <div class="tool-sub">Pick a format, drop a topic and a hook — Bam writes the whole script.</div>
+          <div class="tool-fields">
+            <span class="tool-lbl">Format</span>
+            <select class="tool-sel" id="sg-format">
+              <option value="TikTok video (30-45s, spoken word-for-word)">TikTok</option>
+              <option value="Instagram Reel (30-45s, spoken word-for-word)">Reel</option>
+              <option value="YouTube Short (45-60s, spoken word-for-word)">YT Short</option>
+              <option value="Twitter/X thread (8-12 tweets)">Thread</option>
+              <option value="marketing email (subject line + body, 150-250 words)">Email</option>
+            </select>
+            <span class="tool-lbl">Topic</span>
+            <input class="tool-inp" id="sg-topic" placeholder="e.g. why most people fail selling ebooks">
+            <span class="tool-lbl">Hook (optional — tap one in HOOKS)</span>
+            <input class="tool-inp" id="sg-hook" placeholder="opening line to build the script around">
+          </div>
+          <button class="tool-go" id="sg-btn" onclick="genScript()">⚡ GENERATE SCRIPT</button>
+          <div class="tool-out" id="sg-out"></div>
+          <button class="copy-out-btn" id="sg-copy" style="display:none" onclick="cpTxt(document.getElementById('sg-out').innerText)">COPY</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ HUSTLE · CONTENT REPURPOSER ═══ -->
+    <div class="panel" id="p-repurpose">
+      <div class="tool-content">
+        <div class="tool-card">
+          <div class="tool-title">♻ Content Repurposer</div>
+          <div class="tool-sub">Paste any content once — get it rewritten for every platform you check.</div>
+          <div class="tool-fields">
+            <textarea class="tool-ta" id="rp-in" placeholder="Paste your content here — a script, post, email, anything…"></textarea>
+            <div class="tool-checks">
+              <label class="tool-check"><input type="checkbox" value="TikTok/Reel script (30-45s, spoken)" checked> TikTok / Reel</label>
+              <label class="tool-check"><input type="checkbox" value="Twitter/X thread (6-10 tweets)"> X Thread</label>
+              <label class="tool-check"><input type="checkbox" value="marketing email (subject + body)"> Email</label>
+              <label class="tool-check"><input type="checkbox" value="LinkedIn post (150-250 words)"> LinkedIn</label>
+              <label class="tool-check"><input type="checkbox" value="Instagram caption (with hashtags)"> IG Caption</label>
+              <label class="tool-check"><input type="checkbox" value="YouTube Short script (45-60s, spoken)"> YT Short</label>
+            </div>
+          </div>
+          <button class="tool-go" id="rp-btn" onclick="repurpose()">♻ REPURPOSE</button>
+          <div class="tool-out" id="rp-out"></div>
+          <button class="copy-out-btn" id="rp-copy" style="display:none" onclick="cpTxt(document.getElementById('rp-out').innerText)">COPY</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ HUSTLE · HOOK LIBRARY ═══ -->
+    <div class="panel" id="p-hooks">
+      <div class="tool-content" id="hooks-list"></div>
+    </div>
+
+    <!-- ═══ MONEY · INCOME DASHBOARD ═══ -->
+    <div class="panel" id="p-sales">
+      <div class="sales-content">
+        <div class="sale-hero">
+          <div class="sale-total" id="st-total">$0.00</div>
+          <div class="sale-label">Total Revenue Logged</div>
+          <div class="sale-progress-wrap"><div class="sale-progress-bar" id="st-bar" style="width:0%"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:9px;color:var(--text-d)">
+            <span id="st-pct">0%</span><span>goal $<span id="st-goal-lbl">0</span>/mo</span>
+          </div>
+        </div>
+        <div class="sale-stats">
+          <div class="sale-stat"><div class="sale-stat-v" id="st-today">$0.00</div><div class="sale-stat-l">Today</div></div>
+          <div class="sale-stat"><div class="sale-stat-v" id="st-week">$0.00</div><div class="sale-stat-l">7 Days</div></div>
+          <div class="sale-stat"><div class="sale-stat-v" id="st-count">0</div><div class="sale-stat-l">Sales</div></div>
+        </div>
+        <div class="chart-wrap" style="position:relative">
+          <div class="chart-title">📊 Daily Revenue</div>
+          <div class="rev-range" id="rev-range">
+            <button data-days="7" onclick="setChartRange(7)">7D</button>
+            <button data-days="14" class="on" onclick="setChartRange(14)">14D</button>
+            <button data-days="30" onclick="setChartRange(30)">30D</button>
+            <button data-days="90" onclick="setChartRange(90)">90D</button>
+          </div>
+          <div id="rev-chart"></div>
+          <div id="rev-tip"></div>
+          <div class="chart-total" id="rev-chart-total"></div>
+          <div class="sale-stats" id="rev-tiles" style="margin-top:8px;grid-template-columns:1fr 1fr"></div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-title">💸 Log a Sale</div>
+          <div class="log-sale-area">
+            <input class="sale-amt" id="sale-amt-inp" type="number" inputmode="decimal" placeholder="$ amount">
+            <input class="sale-amt" id="sale-prod-inp" type="text" placeholder="product (optional)">
+            <button class="log-btn" onclick="logSale()">+ LOG</button>
+          </div>
+        </div>
+        <div class="sale-history">
+          <div class="sale-history-hdr">Sale History</div>
+          <div id="sale-history-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MONEY · OFFER VAULT ═══ -->
+    <div class="panel" id="p-vault">
+      <div class="tool-content">
+        <div class="tool-card">
+          <div class="tool-title">🗃 Offer Vault</div>
+          <div class="tool-fields">
+            <input class="tool-inp" id="v-name" placeholder="Product name">
+            <div style="display:flex;gap:7px">
+              <input class="tool-inp" id="v-price" type="number" inputmode="decimal" placeholder="Price $" style="flex:1">
+              <select class="tool-sel" id="v-type" style="flex:1.4">
+                <option value="">Type…</option>
+                <option>Ebook</option><option>Template</option><option>Course</option>
+                <option>Notion pack</option><option>Prompt pack</option><option>Service</option><option>Other</option>
+              </select>
+            </div>
+            <input class="tool-inp" id="v-niche" placeholder="Niche (blank = current)">
+            <input class="tool-inp" id="v-link" type="url" placeholder="Gumroad URL (optional)">
+          </div>
+          <button class="tool-go" onclick="addVaultProduct()">+ ADD TO VAULT</button>
+        </div>
+        <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none" id="pipeline-header">
+          <span class="pipe-stage-hdr">Built</span><span class="pipe-stage-hdr">Listed</span>
+          <span class="pipe-stage-hdr">Promoted</span><span class="pipe-stage-hdr">Scaling</span>
+        </div>
+        <div id="vault-list" style="display:flex;flex-direction:column;gap:9px">
+          <div class="ideas-empty" id="vault-empty">Vault is empty.<br>Add your first offer.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MONEY · REVENUE PLANNER ═══ -->
+    <div class="panel" id="p-planner">
+      <div class="tool-content">
+        <div class="tool-card">
+          <div class="tool-title">🎯 Revenue Planner</div>
+          <div class="tool-sub">Enter your price — see exactly how many sales, leads and views you need to hit your goal.</div>
+          <div class="tool-fields">
+            <span class="tool-lbl">Product price ($)</span>
+            <input class="tool-inp" id="pl-price" type="number" inputmode="decimal" placeholder="27" oninput="renderPlanner()">
+            <span class="tool-lbl">Monthly goal ($)</span>
+            <input class="tool-inp" id="pl-goal" type="number" inputmode="decimal" placeholder="10000" oninput="renderPlanner()">
+            <span class="tool-lbl">Visitor → buyer conversion (%)</span>
+            <input class="tool-inp" id="pl-conv" type="number" inputmode="decimal" value="2" oninput="renderPlanner()">
+            <span class="tool-lbl">View → visitor click-through (%)</span>
+            <input class="tool-inp" id="pl-ctr" type="number" inputmode="decimal" value="3" oninput="renderPlanner()">
+          </div>
+          <div class="sale-stats" id="pl-tiles" style="margin-top:12px"></div>
+          <div class="tool-sub" id="pl-note" style="margin:10px 0 0"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TOOLS · BLAST (Telegram + Discord) ═══ -->
+    <div class="panel" id="p-blast">
+      <div class="tool-content">
+        <div class="tool-card">
+          <div class="tool-title">📣 Blast — Telegram + Discord</div>
+          <textarea class="blast-compose" id="blast-compose" placeholder="Write your message — or let Bam generate one below…"></textarea>
+          <div style="display:flex;gap:7px;margin-top:8px">
+            <input class="tool-inp" id="blast-ai-topic" placeholder="AI topic e.g. new product drop" style="flex:1">
+            <button class="tool-go" id="blast-ai-btn" style="width:auto;margin:0;padding:9px 14px" onclick="blastAI()">✨ AI WRITE</button>
+          </div>
+          <div style="display:flex;gap:5px;margin-top:8px;overflow-x:auto;scrollbar-width:none">
+            <button class="qbtn" onclick="blastTemplate('drop')">Drop</button>
+            <button class="qbtn" onclick="blastTemplate('update')">Update</button>
+            <button class="qbtn" onclick="blastTemplate('sale')">Sale</button>
+            <button class="qbtn" onclick="blastTemplate('content')">Content</button>
+            <button class="qbtn" onclick="blastTemplate('grind')">Grind</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:9px">
+            <button class="blast-btn blast-telegram" onclick="blastSend('telegram')">✈ TELEGRAM</button>
+            <button class="blast-btn blast-discord" onclick="blastSend('discord')">🎮 DISCORD</button>
+            <button class="blast-btn" style="border-color:var(--red-b);color:var(--live)" onclick="blastSend('both')">⚡ BOTH</button>
+          </div>
+          <div class="blast-status" id="blast-status"></div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-title">📜 Send Log</div>
+          <div class="blast-log" id="blast-log"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TOOLS · SALES PAGE BUILDER ═══ -->
+    <div class="panel" id="p-salespage">
+      <div class="tool-content">
+        <div class="tool-card">
+          <div class="tool-title">📝 Sales Page Builder</div>
+          <div class="tool-fields">
+            <input class="tool-inp" id="sp-name" placeholder="Product name">
+            <input class="tool-inp" id="sp-price" placeholder="Price e.g. $27">
+            <input class="tool-inp" id="sp-aud" placeholder="Who it's for e.g. broke college students">
+            <input class="tool-inp" id="sp-pain" placeholder="Main pain it solves e.g. no time to cook">
+          </div>
+          <button class="tool-go" id="sp-btn" onclick="genSalesPage()">📝 BUILD SALES PAGE</button>
+          <div class="tool-out" id="sp-out"></div>
+          <button class="copy-out-btn" id="sp-copy" style="display:none" onclick="cpTxt(document.getElementById('sp-out').innerText)">COPY</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TOOLS · CLIENT PROPOSAL ═══ -->
+    <div class="panel" id="p-proposal">
+      <div class="tool-content">
+        <div class="tool-card">
+          <div class="tool-title">🤝 Client Proposal Generator</div>
+          <div class="tool-fields">
+            <input class="tool-inp" id="pp-client" placeholder="Client / company">
+            <input class="tool-inp" id="pp-service" placeholder="Service you're offering">
+            <input class="tool-inp" id="pp-price" placeholder="Price / budget e.g. $1,500">
+            <input class="tool-inp" id="pp-time" placeholder="Timeline e.g. 2 weeks">
+          </div>
+          <button class="tool-go" id="pp-btn" onclick="genProposal()">🤝 WRITE PROPOSAL</button>
+          <div class="tool-out" id="pp-out"></div>
+          <button class="copy-out-btn" id="pp-copy" style="display:none" onclick="cpTxt(document.getElementById('pp-out').innerText)">COPY</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TOOLS · COMPETITOR SPY ═══ -->
+    <div class="panel" id="p-spy">
+      <div class="scan-content">
+        <div class="scan-input-card">
+          <div class="scan-input-title">🕵 Competitor Spy</div>
+          <div class="scan-row">
+            <input class="scan-inp" id="scan-inp" placeholder="Competitor name, account or niche…">
+            <button class="scan-btn" id="scan-btn" onclick="runScan()">SCAN</button>
+          </div>
+        </div>
+        <div class="ideas-empty" id="scan-empty">No intel gathered yet.<br>Scan a competitor or a niche.</div>
+        <div class="scan-results" id="scan-results"></div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /app -->
+
+<!-- 🎙️ VOICE MODE — hands-free, full-screen state orb -->
+<div id="voicemode" onclick="exitVoiceMode()">
+  <div class="vm-orb" id="vm-orb"><div class="vm-orb-core"></div></div>
+  <div class="vm-state" id="vm-state">LISTENING…</div>
+  <div class="vm-last" id="vm-last"></div>
+  <div class="vm-hint">say “stop listening” or tap anywhere to exit</div>
+</div>
+
+<!-- 🔍 UNIVERSAL SEARCH -->
+<div id="usearch">
+  <div class="us-bar">
+    <span style="font-size:15px">🔍</span>
+    <input id="us-inp" placeholder="Search chat, brain, offers, sales…" autocomplete="off" autocorrect="off" spellcheck="false" oninput="uSearch()">
+    <button class="us-x" onclick="closeSearch()">×</button>
+  </div>
+  <div class="us-results" id="us-results"><div class="us-empty">Type to search everything at once.</div></div>
+</div>
 
 <!-- shared brain: same modes + system prompt as the terminal CLI -->
 <script src="jarvis-core.js"></script>
 <script src="vendor/wasm_exec.js"></script>
 <script src="vendor/forecast.js"></script>
 <script>
-// register the service worker so JARVIS installs to the home screen + works offline
+// register the service worker so JARVIS installs to the home screen + works offline,
+// and surface a toast when a new version of the app has been downloaded
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      if (!nw) return;
+      nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller && window.toast) {
+          toast('✨ New version ready — close and reopen the app to update');
+        }
+      });
+    });
+  }).catch(()=>{}));
 }
 </script>
 <script>
@@ -1631,7 +2070,8 @@ let activeNiche = '';
 let cfg = {
   provider:'groq', apikey:'', url:'', model:'llama-3.1-8b-instant',
   name:'Commander', goal:10000, income:0, date:'', tasks:[], done:[], ctx:'',
-  ytKey:'', ytChannel:'', gumKey:'', gmapsKey:'', tgToken:'', tgChat:'', discordWh:'', identity:'', style:'', autoMem:true
+  ytKey:'', ytChannel:'', gumKey:'', gmapsKey:'', tgToken:'', tgChat:'', discordWh:'', identity:'', style:'', autoMem:true,
+  aiCap:300, autoModel:true, smartModel:'llama-3.3-70b-versatile', briefTg:false, voiceName:'', voiceRate:1.05, voicePitch:0.85
 };
 let convos = {};          // {agent:[{role,content}]}
 let busy = false;
@@ -1642,6 +2082,39 @@ let liveYT = null;       // cached real YouTube channel stats
 let lastUserMsg = '';    // latest user message, for memory relevance
 let pendingAttachment = null; // {type:'image'|'file', name, mime, data}
 let attachTargetAgent = '';
+
+// ═══════════════════════════════════════════════
+// SECURITY HELPERS — escaping, URL vetting, spend guard, audit log
+// ═══════════════════════════════════════════════
+// escH: escape ANY user/AI text before it goes through innerHTML (stored-XSS guard)
+function escH(s){ return String(s==null?'':s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+// safeUrl: only http/https survive — kills javascript:/data: link injection
+function safeUrl(u){ u = String(u||'').trim(); return /^https?:\/\//i.test(u) ? u : ''; }
+
+// audit log — ring buffer of the last 200 notable events (API calls, sends, settings changes)
+function jvLog(type, detail){
+  try {
+    const log = JSON.parse(localStorage.getItem('jv-log')||'[]');
+    log.unshift({ t: Date.now(), type, detail: String(detail||'').slice(0,200) });
+    if (log.length > 200) log.length = 200;
+    localStorage.setItem('jv-log', JSON.stringify(log));
+  } catch(e){}
+}
+
+// daily AI-call spend guard — hard cap on calls/day (default 300, configurable in ⚙)
+function aiGuard(label){
+  const today = new Date().toDateString();
+  let g; try { g = JSON.parse(localStorage.getItem('jv-aiguard')||'{}'); } catch(e){ g = {}; }
+  if (g.date !== today) g = { date: today, n: 0 };
+  const cap = parseInt(cfg.aiCap) || 300;
+  if (g.n >= cap) {
+    jvLog('guard', 'daily AI cap hit ('+cap+')');
+    throw new Error('Daily AI call limit reached ('+cap+'/day). Raise it in ⚙ Settings → AI Behavior if you need more.');
+  }
+  g.n++;
+  localStorage.setItem('jv-aiguard', JSON.stringify(g));
+  jvLog('ai', (label||'call')+' #'+g.n);
+}
 let visionStream = null;      // active screen-share / camera MediaStream
 let visionVideo = null;       // hidden <video> the stream feeds into
 let watchInterval = null;     // continuous-watch timer (also = "is watching")
@@ -1723,7 +2196,18 @@ function init() {
   loadTasks2();
   loadBeats();
   loadCodeState();
+  loadVault();
+  loadSales();
+  setChartRange(chartDays);
+  loadBlastLog(); renderBlastLog();
+  loadScans();
   initAttach();
+  // spend-guard every direct core AI call too (academy, lessons, fact-extraction…)
+  if (window.JARVIS_CORE && !JARVIS_CORE._guarded) {
+    const _sc = JARVIS_CORE.streamChat;
+    JARVIS_CORE.streamChat = function(opts){ aiGuard('core'); return _sc(opts); };
+    JARVIS_CORE._guarded = true;
+  }
   startClock();
   updateStats();
   initSpeech();
@@ -1736,6 +2220,15 @@ function init() {
   const inp = document.getElementById('i-jarvis');
   inp.addEventListener('focus', () => iw.classList.add('focus'));
   inp.addEventListener('blur',  () => iw.classList.remove('focus'));
+
+  // restore the chat power toggles (🌐/🧠/💭)
+  reasoningMode = localStorage.getItem('jv-think') === '1';
+  document.getElementById('tg-web')?.classList.toggle('on', webAccess);
+  document.getElementById('tg-mem')?.classList.toggle('on', cfg.autoMem !== false);
+  document.getElementById('tg-think')?.classList.toggle('on', reasoningMode);
+
+  // ☀️ first open of the day → auto morning briefing
+  setTimeout(() => { try { runBriefing(false); } catch(e){} }, 2500);
 
   // security: mark started, arm auto-lock, install activity + visibility hooks (once)
   appStarted = true;
@@ -2097,7 +2590,47 @@ function fillCfgForm() {
   document.getElementById('c-tg-chat').value    = cfg.tgChat||'';
   document.getElementById('c-discord-wh').value = cfg.discordWh||'';
   document.getElementById('c-ctx').value      = cfg.ctx||'';
+  if (document.getElementById('c-ai-cap'))      document.getElementById('c-ai-cap').value = cfg.aiCap||300;
+  if (document.getElementById('c-auto-model'))  document.getElementById('c-auto-model').checked = cfg.autoModel !== false;
+  if (document.getElementById('c-smart-model')) document.getElementById('c-smart-model').value = cfg.smartModel||'llama-3.3-70b-versatile';
+  if (document.getElementById('c-auto-mem'))    document.getElementById('c-auto-mem').checked = cfg.autoMem !== false;
+  if (document.getElementById('c-brief-tg'))    document.getElementById('c-brief-tg').checked = !!cfg.briefTg;
+  fillVoiceSelect();
+  if (document.getElementById('c-voice-rate'))  { document.getElementById('c-voice-rate').value = cfg.voiceRate||1.05; document.getElementById('c-voice-rate-val').textContent = cfg.voiceRate||1.05; }
+  if (document.getElementById('c-voice-pitch')) { document.getElementById('c-voice-pitch').value = cfg.voicePitch||0.85; document.getElementById('c-voice-pitch-val').textContent = cfg.voicePitch||0.85; }
   toggleProvider();
+}
+
+// ── voice settings ──
+function fillVoiceSelect() {
+  const sel = document.getElementById('c-voice-name');
+  if (!sel || !window.speechSynthesis) return;
+  const voices = speechSynthesis.getVoices();
+  sel.innerHTML = '<option value="">System default</option>' +
+    voices.map(v => `<option value="${escH(v.name)}"${v.name===cfg.voiceName?' selected':''}>${escH(v.name)} (${escH(v.lang)})</option>`).join('');
+}
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => fillVoiceSelect();
+
+// shared: apply saved voice/speed/pitch to any utterance
+function applyVoice(u) {
+  u.rate  = parseFloat(cfg.voiceRate)  || CHAR.voiceRate  || 1.05;
+  u.pitch = parseFloat(cfg.voicePitch) || CHAR.voicePitch || 0.85;
+  if (cfg.voiceName && window.speechSynthesis) {
+    const v = speechSynthesis.getVoices().find(x => x.name === cfg.voiceName);
+    if (v) u.voice = v;
+  }
+  return u;
+}
+
+function testVoice() {
+  if (!window.speechSynthesis) { toast('No speech support on this browser'); return; }
+  // read the sliders live so you can audition before saving
+  const u = new SpeechSynthesisUtterance('Systems online. This is how I sound, ' + (cfg.name||'Commander') + '.');
+  u.rate  = parseFloat(document.getElementById('c-voice-rate')?.value)  || 1.05;
+  u.pitch = parseFloat(document.getElementById('c-voice-pitch')?.value) || 0.85;
+  const name = document.getElementById('c-voice-name')?.value;
+  if (name) { const v = speechSynthesis.getVoices().find(x => x.name === name); if (v) u.voice = v; }
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
 }
 
 function toggleProvider() {
@@ -2143,7 +2676,16 @@ function saveCfg() {
   cfg.tgToken   = document.getElementById('c-tg-token').value.trim();
   cfg.tgChat    = document.getElementById('c-tg-chat').value.trim();
   cfg.discordWh = document.getElementById('c-discord-wh').value.trim();
+  cfg.aiCap      = parseInt(document.getElementById('c-ai-cap')?.value)||300;
+  cfg.autoModel  = !!document.getElementById('c-auto-model')?.checked;
+  cfg.smartModel = (document.getElementById('c-smart-model')?.value||'').trim()||'llama-3.3-70b-versatile';
+  cfg.autoMem    = !!document.getElementById('c-auto-mem')?.checked;
+  cfg.briefTg    = !!document.getElementById('c-brief-tg')?.checked;
+  cfg.voiceName  = document.getElementById('c-voice-name')?.value||'';
+  cfg.voiceRate  = parseFloat(document.getElementById('c-voice-rate')?.value)||1.05;
+  cfg.voicePitch = parseFloat(document.getElementById('c-voice-pitch')?.value)||0.85;
   persistCfg();
+  jvLog('settings', 'settings saved');
   refreshSales();
   refreshYouTube();
   updateStats(); updateDot(); closeCfg(); toast('Saved');
@@ -2253,7 +2795,7 @@ function doomUpdateProg(card){
 function videoCard(v){
   const c = document.createElement('div'); c.className='doom-card imp'; c.style.background=doomGrad(v.topicKey||'foryou');
   c.innerHTML = '<div class="imp-kicker">▶ Watch · '+(v.topic?doomEsc(v.topic)+' · ':'')+doomEsc(v.channel||'clip')+'</div>'
-    + '<iframe class="doom-video" src="https://www.youtube.com/embed/'+encodeURIComponent(v.id)+'?rel=0&modestbranding=1" allow="encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe>'
+    + '<iframe class="doom-video" sandbox="allow-scripts allow-same-origin allow-popups" src="https://www.youtube.com/embed/'+encodeURIComponent(v.id)+'?rel=0&modestbranding=1" allow="encrypted-media;picture-in-picture" allowfullscreen loading="lazy"></iframe>'
     + '<div class="imp-text" style="font-size:15px;margin-top:13px">'+doomEsc(v.title||'')+'</div><div class="doom-hint">▲ swipe up</div>';
   return c;
 }
@@ -3022,7 +3564,7 @@ async function bizBuildSite(){
     document.getElementById("biz-preview").innerHTML='<div class="biz-preview-bar">LIVE PREVIEW · '+doomEsc(name)+'</div>'
       +'<button class="biz-dl" onclick="bizDownloadSite()">⬇ Download site (.html)</button>'
       +'<button class="biz-dl" onclick="bizOpenSite()" style="background:rgba(255,255,255,.1);color:#fff">↗ Open full</button>'
-      +'<iframe class="biz-iframe" src="'+url+'"></iframe>';
+      +'<iframe class="biz-iframe" sandbox="allow-scripts allow-same-origin allow-popups" src="'+url+'"></iframe>';
     st.textContent="✓ Site built — preview below. Download it, send it to the business, or sell it.";
   }catch(e){ st.textContent="⚠ "+(e&&e.message?e.message:e); } }
 function bizDownloadSite(){ var blob=new Blob([window._bizSiteHTML||""],{type:"text/html"}); var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=((window._bizSiteName||"website").replace(/[^a-z0-9]+/gi,"-").toLowerCase().replace(/^-|-$/g,"")||"website")+".html"; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},3000); }
@@ -3058,7 +3600,7 @@ function ytDownloadScript(){ var blob=new Blob([window._ytScript||""],{type:"tex
 function ytReadScript(){ if(!window.speechSynthesis){ if(window.toast)toast("No speech support on this browser"); return; } window.speechSynthesis.cancel();
   var t=(window._ytScript||"").replace(/\[(B-ROLL|ON-SCREEN)[^\]]*\]/gi,"").replace(/[#*`>]/g,"");
   var parts=t.match(/[^.!?\n]+[.!?\n]?/g)||[t];
-  parts.forEach(function(p){ p=p.trim(); if(!p) return; var u=new SpeechSynthesisUtterance(p); u.rate=1; u.pitch=0.95; window.speechSynthesis.speak(u); });
+  parts.forEach(function(p){ p=p.trim(); if(!p) return; var u=applyVoice(new SpeechSynthesisUtterance(p)); window.speechSynthesis.speak(u); });
   if(window.toast)toast("Reading the script aloud — tap Stop to end"); }
 function ytStopSpeak(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); }
 var YT_THEMES={ fire:{bg:["#1a0500","#ff3b00","#ffb300"],txt:"#ffffff",accent:"#ffd166"}, gold:{bg:["#000000","#241803","#000000"],txt:"#ffd25a",accent:"#ffd25a"}, blue:{bg:["#02060f","#0a2a5e","#13a9ff"],txt:"#ffffff",accent:"#6ad1ff"}, purple:{bg:["#0a021a","#3b0a6e","#9a4dff"],txt:"#ffffff",accent:"#cda0ff"}, green:{bg:["#001a08","#065f2e","#22e07a"],txt:"#ffffff",accent:"#9bffc4"} };
@@ -3452,6 +3994,62 @@ async function importSettings() {
     setTimeout(() => location.reload(), 800);
   } catch (e) { toast(e.message==='locked' ? 'Unlock first to restore' : 'Invalid backup code'); }
 }
+
+// file-based backup: ALL localStorage keys → one JSON download (contains API keys — keep it private)
+function exportSettingsToFile() {
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k) data[k] = localStorage.getItem(k);
+  }
+  const blob = new Blob([JSON.stringify({ app:'BAM', exported:new Date().toISOString(), data }, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bam-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+  jvLog('settings', 'backup exported to file');
+  toast('⚠ Backup downloaded — it contains your API keys. Keep it private.');
+}
+
+function importSettingsFromFile() {
+  const fi = document.createElement('input');
+  fi.type = 'file'; fi.accept = '.json,application/json';
+  fi.onchange = () => {
+    const f = fi.files && fi.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        const data = parsed.data || parsed;   // accept raw key→value maps too
+        let n = 0;
+        for (const k in data) { if (typeof data[k] === 'string') { localStorage.setItem(k, data[k]); n++; } }
+        if (!n) { toast('No settings found in that file'); return; }
+        jvLog('settings', 'backup restored from file ('+n+' keys)');
+        toast('Restored ' + n + ' items — reloading…');
+        setTimeout(() => location.reload(), 800);
+      } catch(err) { toast('Invalid backup file'); }
+    };
+    r.readAsText(f);
+  };
+  fi.click();
+}
+
+// audit log viewer — renders the jv-log ring buffer into the settings panel
+function toggleAuditLog() {
+  const box = document.getElementById('audit-log-box');
+  if (!box) return;
+  if (box.style.display !== 'none') { box.style.display = 'none'; return; }
+  let log = []; try { log = JSON.parse(localStorage.getItem('jv-log')||'[]'); } catch(e){}
+  box.innerHTML = log.length
+    ? log.slice(0,200).map(e => `<div style="display:flex;gap:8px;padding:3px 0;border-bottom:1px solid rgba(120,0,30,.15)">
+        <span style="color:var(--text-d);flex-shrink:0">${new Date(e.t).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</span>
+        <span style="color:var(--red);flex-shrink:0;text-transform:uppercase;letter-spacing:1px">${escH(e.type)}</span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escH(e.detail)}</span>
+      </div>`).join('')
+    : '<div style="color:var(--text-d)">No events logged yet.</div>';
+  box.style.display = '';
+}
 function updateDot(){
   const ok = !!cfg.apiUrl || (cfg.provider==='ollama' ? !!cfg.url : !!cfg.apikey);
   document.getElementById('dot').classList.toggle('off', !ok);
@@ -3508,12 +4106,10 @@ function pushConvo(agent, role, content) {
 // TABS
 // ═══════════════════════════════════════════════
 const CATEGORIES = {
-  agents:  [{tab:'jarvis',label:'Bam'}],
-  empire:  [{tab:'brain',label:'BRAIN'},{tab:'tasks',label:'TASKS'},{tab:'analytics',label:'ANALYTICS'},{tab:'launch',label:'LAUNCH'},{tab:'ideas',label:'IDEAS'},{tab:'empire',label:'EMPIRE'}],
-  content: [{tab:'tiktok',label:'TIKTOK'},{tab:'email',label:'EMAIL'},{tab:'calendar',label:'CAL'},{tab:'bundle',label:'BUNDLE'},{tab:'blast',label:'BLAST'}],
-  intel:   [{tab:'scanner',label:'SCANNER'},{tab:'trends',label:'TRENDS'},{tab:'proof',label:'PROOF'},{tab:'expand',label:'EXPAND'},{tab:'warroom',label:'WAR ROOM'}],
-  create:  [{tab:'overseer',label:'BUILD'},{tab:'code',label:'CODE'},{tab:'beats',label:'BEATS'},{tab:'auto',label:'AUTO'}],
-  money:   [{tab:'vault',label:'VAULT'},{tab:'sales',label:'SALES'},{tab:'tax',label:'TAX'},{tab:'publish',label:'PUBLISH'}],
+  agents: [{tab:'jarvis',label:'Bam'}],
+  hustle: [{tab:'scripts',label:'⚡ Scripts'},{tab:'repurpose',label:'♻ Repurpose'},{tab:'hooks',label:'🪝 Hooks'}],
+  money:  [{tab:'sales',label:'💸 Income'},{tab:'vault',label:'🗃 Offers'},{tab:'planner',label:'🎯 Planner'}],
+  tools:  [{tab:'blast',label:'📣 Blast'},{tab:'salespage',label:'📝 Sales Page'},{tab:'proposal',label:'🤝 Proposal'},{tab:'spy',label:'🕵 Spy'}],
 };
 let currentCat = 'agents';
 
@@ -3548,6 +4144,8 @@ function switchCat(cat) {
 }
 
 function switchTab(t) {
+  // legacy callers may target tabs whose panels no longer exist — land on chat instead
+  if (!document.getElementById(`p-${t}`)) t = 'jarvis';
   // Auto-switch category if the tab belongs to a different one
   const cat = catOfTab(t);
   if (cat && cat !== currentCat) {
@@ -3558,16 +4156,12 @@ function switchTab(t) {
   currentTab = t;
   document.querySelectorAll('.tab').forEach(el => el.classList.toggle('on', el.dataset.tab === t));
   document.querySelectorAll('.panel').forEach(el => el.classList.toggle('on', el.id === `p-${t}`));
-  if (t === 'bundle') renderBundlePicker();
-  if (t === 'expand') renderPlatformGrid();
-  if (t === 'empire') renderEmpire();
-  if (t === 'analytics') renderAnalytics();
-  if (t === 'launch') renderLaunches();
-  if (t === 'code') renderCodeMsgs();
-  if (t === 'tax') renderTax();
   if (t === 'blast') renderBlastLog();
-  if (t === 'publish') renderPubHistory();
-  if (t === 'beats') { renderBeatGrid(); renderMelGrid(); renderSavedBeats(); renderRefs(); renderBeatMsgs(); }
+  if (t === 'sales') { renderSales(); renderChart(); }
+  if (t === 'vault') renderVault();
+  if (t === 'planner') renderPlanner();
+  if (t === 'hooks') renderHooks();
+  if (t === 'spy') renderScans();
 }
 
 // ═══════════════════════════════════════════════
@@ -3585,8 +4179,40 @@ function renderMsg(agent, role, content) {
   div.className = `msg ${role==='user'?'u':'a'}`;
   div.innerHTML = `<div class="msg-who">${role==='user'?cfg.name.toUpperCase():agent.toUpperCase()}</div>
     <div class="bubble">${fmt(content)}</div>`;
+  if (role !== 'user') addMsgActions(div, content);
   c.appendChild(div);
   c.scrollTop = c.scrollHeight;
+}
+
+// ── Copy + Export buttons under every AI reply ──
+function addMsgActions(div, rawText) {
+  div._raw = typeof rawText === 'string' ? rawText : '';
+  const row = document.createElement('div');
+  row.className = 'msg-actions';
+  row.innerHTML = '<button onclick="cpMsg(this)" title="Copy the reply">⧉ COPY</button><button onclick="exMsg(this)" title="Download as .md">⬇ EXPORT</button>';
+  div.appendChild(row);
+}
+
+function msgPlainText(msg) {
+  if (msg._raw) return msg._raw;
+  // reconstruct clean line breaks from the rendered HTML
+  const clone = msg.querySelector('.bubble').cloneNode(true);
+  clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+  clone.querySelectorAll('div,p').forEach(d => d.append('\n'));
+  return clone.textContent.replace(/\n{3,}/g,'\n\n').trim();
+}
+
+function cpMsg(btn) { cpTxt(msgPlainText(btn.closest('.msg'))); }
+
+function exMsg(btn) {
+  const text = msgPlainText(btn.closest('.msg'));
+  const blob = new Blob([text], { type:'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bam-' + new Date().toISOString().slice(0,16).replace(/[:T]/g,'-') + '.md';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+  toast('Exported as .md');
 }
 
 function mkStream(agent) {
@@ -3599,20 +4225,26 @@ function mkStream(agent) {
   c.scrollTop = c.scrollHeight;
   const bubble = div.querySelector('.bubble');
   const upd = text => { bubble.innerHTML = fmt(text)+'<span class="cur"></span>'; c.scrollTop=c.scrollHeight; };
-  const fin = text => { div.classList.remove('thinking'); bubble.innerHTML = fmt(text); c.scrollTop=c.scrollHeight; };
+  const fin = text => { div.classList.remove('thinking'); bubble.innerHTML = fmt(text); addMsgActions(div, text); c.scrollTop=c.scrollHeight; };
   return { upd, fin };
 }
 
 function fmt(t) {
   if (!t) return '';
   const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // 💭 reasoning: render <think>…</think> as a dimmed scratchpad block above the answer
+  let thinkHtml = '';
+  t = String(t).replace(/<think>([\s\S]*?)(?:<\/think>|$)/gi, (_, inner) => {
+    if (inner.trim()) thinkHtml += '<div class="think-block">' + esc(inner.trim()).replace(/\n/g,'<br>') + '</div>';
+    return '';
+  });
   const md = s => esc(s)
     .replace(/\*\*(.*?)\*\*/gs,'<strong>$1</strong>')
     .replace(/\*(.*?)\*/gs,'<em>$1</em>')
     .replace(/`([^`]+)`/g,'<code>$1</code>')
     .replace(/\n/g,'<br>');
   const parts = t.split(/(```[\s\S]*?```)/g);
-  return parts.map((seg, i) => {
+  return thinkHtml + parts.map((seg, i) => {
     if (i % 2 === 1) {
       const m = seg.match(/```(\w*)\n?([\s\S]*?)```/);
       if (m) return `<div class="code-block">${esc(m[2].replace(/\n$/,''))}</div>`;
@@ -3633,6 +4265,13 @@ function sysPrompt(agent) {
   if (agent === 'jarvis' && CHAR.name && CHAR.name !== 'JARVIS') {
     base += '\n\nIMPORTANT IDENTITY: Your name is '+CHAR.name+'. Always speak and refer to yourself as '+CHAR.name+' — never call yourself JARVIS or any other name. You are '+(cfg.name||'the user')+"'s personal AI, with all the same powers and tools.";
   }
+  if (typeof webAccess !== 'undefined' && webAccess) {
+    base += '\n\nWEB ACCESS is ON. If you need current information from the internet, write [SEARCH: your query] on its own line and STOP — live search results will be fed back to you so you can finish the answer. Page text of any links the user shares is injected automatically as [WEB PAGE] blocks.';
+  }
+  base += '\n\nIMAGE GENERATION: you can create images. To show one, include [IMAGE: a detailed visual prompt] in your reply — it renders automatically. Use it when the user asks for an image, logo, thumbnail or visual idea.';
+  if (typeof reasoningMode !== 'undefined' && reasoningMode) {
+    base += '\n\nREASONING MODE is ON: before answering, think step-by-step inside <think>…</think> tags (your private scratchpad), then give the final answer after the closing tag.';
+  }
   return base;
 }
 function sysPromptBase(agent) {
@@ -3652,6 +4291,26 @@ function sysPromptBase(agent) {
     identity: cfg.identity,
     style: cfg.style,
   });
+}
+
+// ── SMART MODEL ROUTING ──
+// big model for hard work (reasoning, agent runs, long/complex asks), fast model for quick chat.
+// Vision override stays: multimodal messages always go to the vision model on Groq.
+let reasoningMode = false;   // 💭 toggle — think step-by-step in <think>…</think>
+function pickModel(messages, opts) {
+  opts = opts || {};
+  const p = cfg.provider || 'groq';
+  const fast = cfg.model || 'llama-3.1-8b-instant';
+  if ((messages||[]).some(m => Array.isArray(m.content)) && p !== 'openai')
+    return 'meta-llama/llama-4-scout-17b-16e-instruct';
+  if (p !== 'groq' || cfg.autoModel === false) return fast;
+  const smart = cfg.smartModel || 'llama-3.3-70b-versatile';
+  if (reasoningMode || opts.smart) return smart;
+  const last = (messages||[]).slice(-1)[0];
+  const text = last ? (typeof last.content === 'string' ? last.content : '') : '';
+  if (text.length > 600) return smart;
+  if (/\b(write|draft|code|debug|build|analy[sz]e|strateg|plan|design|research|essay|script|sales page|proposal|review|optimi[sz]e|refactor|step[- ]by[- ]step|in depth)\b/i.test(text)) return smart;
+  return fast;
 }
 
 // pull real Gumroad data so JARVIS quotes real numbers/products (parity with terminal)
@@ -3693,6 +4352,7 @@ async function backendChat(system, messages, onToken){
 }
 
 async function callAPI(agent, messages, onToken) {
+  aiGuard('chat');                                                         // daily spend cap + audit trail
   if(cfg.apiUrl){                                                          // server vault first…
     try { return await backendChat(sysPrompt(agent), messages, onToken); }
     catch(e){                                                              // …but if the backend is unreachable/down, don't just die
@@ -3725,9 +4385,7 @@ async function callAPI(agent, messages, onToken) {
   // OpenAI-compatible (Groq or OpenAI)
   if (!cfg.apikey) throw new Error('No API key. Tap ⚙ to add your key.');
   const base = p==='openai' ? 'https://api.openai.com' : 'https://api.groq.com/openai';
-  const hasVision = messages.some(m => Array.isArray(m.content));
-  let model = cfg.model || 'llama-3.1-8b-instant';
-  if (hasVision && p !== 'openai') model = 'meta-llama/llama-4-scout-17b-16e-instruct';
+  const model = pickModel(messages);
   const res = await fetch(`${base}/v1/chat/completions`, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apikey}`},
@@ -3747,7 +4405,8 @@ async function callAPI(agent, messages, onToken) {
   return full;
 }
 
-async function callAPIWithPrompt(sysP, messages, onToken) {
+async function callAPIWithPrompt(sysP, messages, onToken, opts) {
+  aiGuard('tool');                                              // daily spend cap + audit trail
   if(cfg.apiUrl) return backendChat(sysP, messages, onToken);   // server vault
   const p = cfg.provider || 'groq';
   if (p === 'ollama') {
@@ -3770,9 +4429,7 @@ async function callAPIWithPrompt(sysP, messages, onToken) {
   }
   if (!cfg.apikey) throw new Error('No API key. Tap ⚙ to add your key.');
   const base = p==='openai' ? 'https://api.openai.com' : 'https://api.groq.com/openai';
-  const hasVision = messages.some(m => Array.isArray(m.content));
-  let model = cfg.model||'llama-3.1-8b-instant';
-  if (hasVision && p !== 'openai') model = 'meta-llama/llama-4-scout-17b-16e-instruct';
+  const model = pickModel(messages, opts);
   const res = await fetch(`${base}/v1/chat/completions`, {
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apikey}`},
@@ -4008,10 +4665,21 @@ async function send(agent) {
         last.content = `[File: ${attach.name}]\n${attach.data.slice(0,8000)}\n[/File]\n\n${text || 'Analyze this file and give me actionable insights.'}`;
       }
     }
-    const full = await callAPI(target, msgs, t => el?.upd(t));
+    // 🌐 web access: pull the text of any pasted links into this call's context
+    if (webAccess && text && /https?:\/\//.test(text) && msgs.length > 0) {
+      el?.upd('🌐 reading the page…');
+      const ctx = await webContext(text);
+      const last = msgs[msgs.length-1];
+      if (ctx && typeof last.content === 'string') msgs[msgs.length-1] = { role:'user', content: last.content + ctx };
+    }
+    let full = await callAPI(target, msgs, t => el?.upd(t));
+    full = await webSearchLoop(target, msgs, full, el);   // honour [SEARCH: …] (max 2 rounds)
     el?.fin(full);
     pushConvo(target,'assistant',full);
     sfx('recv');
+    // 🎨 render any [IMAGE: …] the model asked for
+    (full.match(/\[IMAGE:\s*([^\]]+)\]/gi) || []).slice(0,3)
+      .forEach(m => addImageCard(target, m.replace(/^\[IMAGE:\s*/i,'').replace(/\]$/,'')));
     if (voiceOut && agent==='jarvis') speak(full);
     if (target === 'jarvis') { const bp = parseBeatPattern(full); if (bp) applyBeatPattern(bp); }
     autoRemember(lastUserMsg, full, target);
@@ -4054,7 +4722,7 @@ function handleAttach(files) {
   if (!files || !files[0]) return;
   const file = files[0];
   const agent = attachTargetAgent;
-  if (file.size > 4 * 1024 * 1024) { toast('File too large — max 4MB'); return; }
+  if (file.size > 12 * 1024 * 1024) { toast('File too large — max 12MB'); return; }
 
   const reader = new FileReader();
   if (file.type.startsWith('image/')) {
@@ -4063,6 +4731,18 @@ function handleAttach(files) {
       showAttachPreview(agent);
     };
     reader.readAsDataURL(file);
+  } else if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+    // 📄 PDFs: extract the text right here in the browser (no libraries)
+    reader.onload = async e => {
+      toast('Extracting PDF text…');
+      let text = '';
+      try { text = await extractPdfText(e.target.result); } catch(err){}
+      pendingAttachment = {type:'file', name:file.name, mime:file.type,
+        data: text || '[No extractable text found in this PDF — it may be scanned images.]'};
+      showAttachPreview(agent);
+      if (text) toast('PDF text extracted ✓ (' + text.length.toLocaleString() + ' chars)');
+    };
+    reader.readAsArrayBuffer(file);
   } else {
     reader.onload = e => {
       pendingAttachment = {type:'file', name:file.name, mime:file.type, data:e.target.result};
@@ -4070,6 +4750,77 @@ function handleAttach(files) {
     };
     reader.readAsText(file);
   }
+}
+
+// ═══════════════════════════════════════════════
+// 📄 PDF TEXT EXTRACTION — native DecompressionStream, zero libraries
+// Scans the raw bytes for stream…endstream spans, trims the trailing
+// newline bytes (critical — one stray byte corrupts the zlib tail),
+// inflates with 'deflate' then 'deflate-raw', and pulls text from
+// (…)Tj / […]TJ operators.
+// ═══════════════════════════════════════════════
+async function extractPdfText(buf) {
+  const bytes = new Uint8Array(buf);
+  const seq = s => Uint8Array.from(s, c => c.charCodeAt(0));
+  const STREAM = seq('stream'), END = seq('endstream');
+  function findSeq(target, from) {
+    outer: for (let i = from; i <= bytes.length - target.length; i++) {
+      for (let j = 0; j < target.length; j++) if (bytes[i+j] !== target[j]) continue outer;
+      return i;
+    }
+    return -1;
+  }
+  let pos = 0, out = '';
+  while (out.length < 400000) {
+    const s = findSeq(STREAM, pos);
+    if (s < 0) break;
+    let ds = s + 6;
+    if (bytes[ds] === 13) ds++;            // skip CR
+    if (bytes[ds] === 10) ds++;            // skip LF
+    const e = findSeq(END, ds);
+    if (e < 0) break;
+    let de = e;
+    while (de > ds && (bytes[de-1] === 10 || bytes[de-1] === 13)) de--;   // trim trailing EOLs before inflating
+    const chunk = bytes.slice(ds, de);
+    let content = null;
+    for (const algo of ['deflate', 'deflate-raw']) {
+      try {
+        const stream = new Blob([chunk]).stream().pipeThrough(new DecompressionStream(algo));
+        content = new TextDecoder('latin1').decode(await new Response(stream).arrayBuffer());
+        break;
+      } catch(err){}
+    }
+    if (!content) {                        // maybe the stream isn't compressed at all
+      const raw = new TextDecoder('latin1').decode(chunk);
+      if (/\)\s*Tj|\]\s*TJ/.test(raw)) content = raw;
+    }
+    if (content) out += pdfOpsToText(content);
+    pos = e + END.length;
+  }
+  return out.replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+}
+
+// walk the content stream in order: string-show operators emit text, Td/TD/T* emit line breaks
+function pdfOpsToText(s) {
+  let out = '';
+  const re = /\(((?:\\.|[^()\\])*)\)\s*Tj|\[((?:\\.|[^\]])*?)\]\s*TJ|\bT\*|\bTd\b|\bTD\b/g;
+  let m;
+  while ((m = re.exec(s))) {
+    if (m[1] !== undefined) out += pdfDecodeStr(m[1]);
+    else if (m[2] !== undefined) {
+      const re2 = /\(((?:\\.|[^()\\])*)\)/g;
+      let m2; while ((m2 = re2.exec(m[2]))) out += pdfDecodeStr(m2[1]);
+      out += ' ';
+    }
+    else out += '\n';
+  }
+  return out ? out + '\n' : '';
+}
+
+function pdfDecodeStr(s) {
+  return s
+    .replace(/\\([nrtbf()\\])/g, (_, c) => ({n:'\n', r:'\r', t:'\t', b:'\b', f:'\f', '(':'(', ')':')', '\\':'\\'}[c]))
+    .replace(/\\(\d{1,3})/g, (_, o) => String.fromCharCode(parseInt(o, 8)));
 }
 
 function showAttachPreview(agent) {
@@ -4083,9 +4834,9 @@ function showAttachPreview(agent) {
   div.id = `ap-${agent}`;
   div.className = 'attach-chip';
   if (pendingAttachment.type === 'image') {
-    div.innerHTML = `<img src="${pendingAttachment.data}" alt=""><span class="ac-name">${pendingAttachment.name}</span><span class="ac-rm" onclick="clearAttachment('${agent}')">✕</span>`;
+    div.innerHTML = `<img src="${escH(pendingAttachment.data)}" alt=""><span class="ac-name">${escH(pendingAttachment.name)}</span><span class="ac-rm" onclick="clearAttachment('${agent}')">✕</span>`;
   } else {
-    div.innerHTML = `<span style="font-size:18px">📎</span><span class="ac-name">${pendingAttachment.name}</span><span class="ac-rm" onclick="clearAttachment('${agent}')">✕</span>`;
+    div.innerHTML = `<span style="font-size:18px">📎</span><span class="ac-name">${escH(pendingAttachment.name)}</span><span class="ac-rm" onclick="clearAttachment('${agent}')">✕</span>`;
   }
   inpArea.parentNode.insertBefore(div, inpArea);
   document.getElementById(`abt-${agent}`)?.classList.add('live');
@@ -4304,13 +5055,21 @@ function initSpeech() {
   recognition.lang = 'en-US';
   recognition.onresult = e => {
     const t = Array.from(e.results).map(r=>r[0].transcript).join('');
+    // voice-mode exit phrases — "stop listening", "exit voice", …
+    if (voiceModeOn && VM_EXIT_RE.test(t)) {
+      document.getElementById('i-jarvis').value = '';
+      try { recognition.stop(); } catch(err){}
+      exitVoiceMode();
+      return;
+    }
     document.getElementById('i-jarvis').value = t;
     autoH(document.getElementById('i-jarvis'));
+    if (voiceModeOn) setVMState('listening', t.slice(0,160));
   };
   recognition.onend = () => {
     document.getElementById('mic').classList.remove('on');
     const t = document.getElementById('i-jarvis').value.trim();
-    if (t) setTimeout(()=>send('jarvis'),300);            // send() resumes wake at its end
+    if (t) { if (voiceModeOn) setVMState('thinking', t.slice(0,160)); setTimeout(()=>send('jarvis'),300); }  // send() resumes wake at its end
     else if (wakeCapturing) { wakeCapturing=false; resumeWake(); }   // you said nothing after "Jarvis"
     else if (handsFree && !busy) setTimeout(startListen, 500);
   };
@@ -4357,7 +5116,7 @@ function wakeTriggered() {
   wakeCapturing = true;
   if (wakeRec) try { wakeRec.stop(); } catch(e){}
   sfx('send');
-  if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance('Yes?'); u.rate=1.1; u.pitch=0.85; window.speechSynthesis.speak(u); }
+  if (window.speechSynthesis) { const u = applyVoice(new SpeechSynthesisUtterance('Yes?')); window.speechSynthesis.speak(u); }
   switchTab('jarvis');
   const inp = document.getElementById('i-jarvis'); if (inp) { inp.value=''; autoH(inp); }
   setTimeout(() => { try { recognition && recognition.start(); const m=document.getElementById('mic'); if(m) m.classList.add('on'); } catch(e){} }, 750);
@@ -4407,12 +5166,334 @@ function toggleVoiceOut() {
 function speak(text) {
   if (!voiceOut || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const clean = text.replace(/<[^>]*>/g,'').replace(/[*_`#>]/g,'').substring(0,1500);
-  const u = new SpeechSynthesisUtterance(clean);
-  u.rate = 1.1; u.pitch = 0.85;
-  u.onend = () => { if (handsFree && !busy) setTimeout(startListen, 400); };   // loop back to listening
+  const clean = text
+    .replace(/<think>[\s\S]*?(<\/think>|$)/gi,'')      // never speak the reasoning block
+    .replace(/\[(IMAGE|SEARCH):[^\]]*\]/gi,'')          // or tool directives
+    .replace(/<[^>]*>/g,'').replace(/[*_`#>]/g,'').substring(0,1500).trim();
+  if (!clean) { if (handsFree && !busy) setTimeout(startListen, 400); return; }
+  const u = applyVoice(new SpeechSynthesisUtterance(clean));
+  if (voiceModeOn) setVMState('speaking', clean.slice(0,160));
+  u.onend = () => {
+    if (handsFree && !busy) { if (voiceModeOn) setVMState('listening'); setTimeout(startListen, 400); }   // loop back to listening
+  };
   window.speechSynthesis.speak(u);
 }
+
+// ═══════════════════════════════════════════════
+// 🎙️ VOICE MODE — full-screen hands-free loop with a state orb
+// ═══════════════════════════════════════════════
+let voiceModeOn = false;
+const VM_EXIT_RE = /\b(stop listening|exit voice|close voice|goodbye bam|shut down voice)\b/i;
+
+function enterVoiceMode() {
+  if (!(window.SpeechRecognition || window.webkitSpeechRecognition)) { toast('Voice not supported on this browser'); return; }
+  closeMoreMenu();
+  voiceModeOn = true;
+  handsFree = true; voiceOut = true;
+  const vb = document.getElementById('voice-out-btn'); if (vb) vb.style.opacity = '1';
+  const hb = document.getElementById('hands-free-btn'); if (hb) hb.style.opacity = '1';
+  document.getElementById('voicemode').classList.add('open');
+  setVMState('listening');
+  if (!busy) startListen();
+  jvLog('voice', 'voice mode on');
+}
+
+function exitVoiceMode() {
+  voiceModeOn = false;
+  handsFree = false;
+  const hb = document.getElementById('hands-free-btn'); if (hb) hb.style.opacity = '0.4';
+  document.getElementById('voicemode').classList.remove('open');
+  if (recognition) try { recognition.stop(); } catch(e){}
+  if (window.speechSynthesis) speechSynthesis.cancel();
+}
+
+function setVMState(state, lastText) {
+  const orb = document.getElementById('vm-orb');
+  const lbl = document.getElementById('vm-state');
+  const last = document.getElementById('vm-last');
+  if (!orb) return;
+  orb.className = 'vm-orb ' + state;
+  if (lbl) lbl.textContent = state === 'listening' ? 'LISTENING…' : state === 'thinking' ? 'THINKING…' : 'SPEAKING';
+  if (last && lastText !== undefined) last.textContent = lastText;
+}
+
+// ═══════════════════════════════════════════════
+// 🌐 WEB ACCESS — free page reading + search via Jina Reader
+// ═══════════════════════════════════════════════
+let webAccess = localStorage.getItem('jv-web') === '1';
+
+function toggleWeb() {
+  webAccess = !webAccess;
+  localStorage.setItem('jv-web', webAccess ? '1' : '0');
+  document.getElementById('tg-web')?.classList.toggle('on', webAccess);
+  toast(webAccess ? '🌐 Web access ON — paste links or let Bam search' : 'Web access off');
+}
+
+// r.jina.ai returns any page as clean text, no key needed
+async function jinaFetch(url) {
+  const r = await fetch('https://r.jina.ai/' + url);
+  if (!r.ok) throw new Error('web fetch ' + r.status);
+  return (await r.text()).slice(0, 6000);
+}
+
+// pull the text of every URL in the user's message (max 2) into context
+async function webContext(text) {
+  const urls = (text.match(/https?:\/\/[^\s)\]>"']+/g) || []).slice(0, 2);
+  let ctx = '';
+  for (const u of urls) {
+    try { jvLog('web', 'fetch ' + u.slice(0,120)); ctx += `\n\n[WEB PAGE: ${u}]\n${await jinaFetch(u)}\n[/WEB PAGE]`; }
+    catch(e) { ctx += `\n\n[Could not fetch ${u}: ${e.message}]`; }
+  }
+  return ctx;
+}
+
+async function webSearch(q) {
+  jvLog('web', 'search ' + q.slice(0,120));
+  return (await jinaFetch('https://duckduckgo.com/html/?q=' + encodeURIComponent(q))).slice(0, 4500);
+}
+
+// after a reply, honour [SEARCH: query] requests — feed results back, cap 2 rounds
+async function webSearchLoop(target, msgs, full, el) {
+  let rounds = 0, m;
+  while (webAccess && rounds < 2 && (m = full.match(/\[SEARCH:\s*([^\]]+)\]/i))) {
+    rounds++;
+    const q = m[1].trim();
+    el?.upd(full + `\n\n🌐 searching the web: ${q}…`);
+    let results;
+    try { results = await webSearch(q); } catch(e) { results = 'Search failed: ' + e.message; }
+    msgs.push({ role:'assistant', content: full });
+    msgs.push({ role:'user', content: `[SEARCH RESULTS for "${q}"]\n${results}\n[/SEARCH RESULTS]\n\nContinue your answer using these results. Only emit another [SEARCH: …] if truly necessary.` });
+    full = await callAPI(target, msgs, t => el?.upd(t));
+  }
+  return full;
+}
+
+// ═══════════════════════════════════════════════
+// 🧠 MEMORY + 💭 REASONING toggles
+// ═══════════════════════════════════════════════
+function toggleMem() {
+  cfg.autoMem = cfg.autoMem === false ? true : false;
+  persistCfg();
+  document.getElementById('tg-mem')?.classList.toggle('on', cfg.autoMem !== false);
+  toast(cfg.autoMem !== false ? '🧠 Memory ON — Bam remembers what matters' : 'Memory off');
+}
+
+function toggleThink() {
+  reasoningMode = !reasoningMode;
+  localStorage.setItem('jv-think', reasoningMode ? '1' : '0');
+  document.getElementById('tg-think')?.classList.toggle('on', reasoningMode);
+  toast(reasoningMode ? '💭 Reasoning ON — Bam thinks before answering' : 'Reasoning off');
+}
+
+// ═══════════════════════════════════════════════
+// 🎨 IMAGE GENERATION — free via Pollinations
+// ═══════════════════════════════════════════════
+function pollinationsUrl(prompt) {
+  return 'https://image.pollinations.ai/prompt/' + encodeURIComponent(prompt.slice(0, 300))
+    + '?width=768&height=768&nologo=true&seed=' + Math.floor(Math.random()*1e9);
+}
+
+function addImageCard(agent, prompt) {
+  const c = document.getElementById(`m-${agent}`);
+  if (!c) return;
+  const div = document.createElement('div');
+  div.className = 'msg a img-card';
+  div.innerHTML = `<div class="msg-who">${escH(CHAR.name.toUpperCase())} · IMAGE</div>
+    <div class="bubble" style="padding:7px">
+      <img src="${escH(pollinationsUrl(prompt))}" alt="${escH(prompt.slice(0,200))}" loading="lazy">
+      <div style="font-size:9px;color:var(--text-d);margin-top:5px">${escH(prompt.slice(0,140))}</div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="qbtn" onclick="rerollImage(this)">🎲 REROLL</button>
+      </div>
+    </div>`;
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
+  jvLog('image', prompt.slice(0,80));
+}
+
+function rerollImage(btn) {
+  const img = btn.closest('.bubble').querySelector('img');
+  img.src = pollinationsUrl(img.alt);   // new random seed
+}
+
+function genImageFromInput() {
+  const inp = document.getElementById('i-jarvis');
+  const p = (inp.value || '').trim();
+  if (!p) { toast('Type what to draw in the message box, then tap 🎨'); return; }
+  inp.value = ''; autoH(inp);
+  addMsg('jarvis','user','🎨 ' + p);
+  addImageCard('jarvis', p);
+}
+
+// ═══════════════════════════════════════════════
+// 🤖 AUTONOMOUS AGENT — plan → execute steps → synthesize
+// ═══════════════════════════════════════════════
+async function startAgent() {
+  if (busy) { toast('Busy — wait for the current task to finish'); return; }
+  const ready = cfg.apiUrl || (cfg.provider==='ollama' ? cfg.url : cfg.apikey);
+  if (!ready) { toast('Add API key in ⚙ first'); openCfg(); return; }
+  const inp = document.getElementById('i-jarvis');
+  let goal = (inp.value || '').trim();
+  if (!goal) goal = (window.prompt('🤖 What should the agent accomplish?') || '').trim();
+  if (!goal) return;
+  inp.value = ''; autoH(inp);
+  switchTab('jarvis');
+  busy = true;
+  jvLog('agent', goal.slice(0,100));
+  addMsg('jarvis','user','🤖 AGENT GOAL: ' + goal);
+  try {
+    // 1) plan
+    const planEl = mkStream('jarvis');
+    const planRaw = await callAPIWithPrompt(
+      'You are a planning module. Break the user\'s goal into 2-5 concrete, self-contained steps (research, analysis, writing). Return ONLY a JSON array of step strings — nothing else.',
+      [{role:'user',content:'Goal: '+goal}], t => planEl?.upd('🤖 Planning…\n\n'+t), {smart:true});
+    let steps = [];
+    try { steps = JSON.parse((planRaw.match(/\[[\s\S]*\]/)||['[]'])[0]).filter(s => typeof s === 'string').slice(0,5); } catch(e){}
+    if (!steps.length) steps = [goal];
+    const planText = '🤖 PLAN — ' + steps.length + ' step' + (steps.length>1?'s':'') + '\n' + steps.map((s,i)=>(i+1)+'. '+s).join('\n');
+    planEl?.fin(planText);
+    pushConvo('jarvis','assistant',planText);
+    // 2) execute each step as its own call (with a web search per step when 🌐 is on)
+    const results = [];
+    for (let i = 0; i < steps.length; i++) {
+      const stepEl = mkStream('jarvis');
+      const head = '⚙ STEP ' + (i+1) + '/' + steps.length + ' — ' + steps[i] + '\n\n';
+      let ctx = '';
+      if (webAccess) {
+        stepEl?.upd(head + '🌐 searching…');
+        try { ctx = '\n\n[SEARCH RESULTS]\n' + await webSearch(steps[i]) + '\n[/SEARCH RESULTS]'; } catch(e){}
+      }
+      const out = await callAPIWithPrompt(
+        'You are an execution module handling ONE step of a larger goal. Produce that step\'s output directly — concrete and complete, no meta-commentary.',
+        [{role:'user',content:
+          `GOAL: ${goal}\nSTEP ${i+1}/${steps.length}: ${steps[i]}${ctx}\n\nOutputs from earlier steps:\n${results.map((r,j)=>'Step '+(j+1)+': '+r.slice(0,700)).join('\n\n') || '(none yet)'}`}],
+        t => stepEl?.upd(head + t), {smart:true});
+      results.push(out);
+      stepEl?.fin(head + out);
+      pushConvo('jarvis','assistant','⚙ STEP '+(i+1)+': '+out.slice(0,1500));
+    }
+    // 3) synthesize
+    const finEl = mkStream('jarvis');
+    const finalOut = await callAPIWithPrompt(
+      'You are a synthesis module. Merge the step outputs into ONE polished, final deliverable for the goal. Output the deliverable only.',
+      [{role:'user',content:`GOAL: ${goal}\n\n${results.map((r,i)=>'STEP '+(i+1)+' OUTPUT:\n'+r).join('\n\n')}`}],
+      t => finEl?.upd('🏁 FINAL DELIVERABLE\n\n'+t), {smart:true});
+    finEl?.fin('🏁 FINAL DELIVERABLE\n\n' + finalOut);
+    pushConvo('jarvis','assistant','🏁 FINAL DELIVERABLE\n\n' + finalOut);
+    sfx('recv');
+    if (voiceOut) speak('Agent run complete, ' + (cfg.name||'Commander') + '.');
+  } catch(e) {
+    addMsg('jarvis','assistant','⚠ Agent error: ' + e.message);
+  }
+  busy = false;
+}
+
+// ═══════════════════════════════════════════════
+// ☀️ DAILY BRIEFING — auto once/day + on demand
+// ═══════════════════════════════════════════════
+async function runBriefing(force) {
+  const today = new Date().toDateString();
+  if (!force && localStorage.getItem('jv-briefed') === today) return;
+  const ready = cfg.apiUrl || (cfg.provider==='ollama' ? cfg.url : cfg.apikey);
+  if (!ready) { if (force) { toast('Add API key in ⚙ first'); openCfg(); } return; }
+  closeMoreMenu();
+  switchTab('jarvis');
+  localStorage.setItem('jv-briefed', today);
+  const el = mkStream('jarvis');
+  try {
+    const totalRev = (sales||[]).reduce((a,s)=>a+s.amt,0);
+    const sys = 'You are Bam, the user\'s AI business partner. Write a tight morning briefing (under 180 words) with EXACTLY these labelled sections: STATUS (one line, use the real numbers) · #1 PRIORITY (today\'s single most important move) · FRESH IDEA (one specific new niche/product angle) · PUSH (two sentences of raw motivation) · FIRST ACTION (one 10-minute task to start right now).';
+    const user = `Good ${tod()}. My data — name: ${cfg.name||'Commander'} · niche: ${getNiche()||'not set'} · goal: $${(cfg.goal||0).toLocaleString()}/mo · revenue logged: $${totalRev.toFixed(2)} · offers in vault: ${(vault||[]).length} · products launched: ${(cfg.done||[]).length}. Today is ${new Date().toDateString()}.`;
+    const full = await callAPIWithPrompt(sys, [{role:'user',content:user}], t => el?.upd('☀️ DAILY BRIEFING\n\n'+t));
+    el?.fin('☀️ DAILY BRIEFING\n\n' + full);
+    pushConvo('jarvis','assistant','☀️ DAILY BRIEFING\n\n' + full);
+    jvLog('brief', 'daily briefing generated');
+    if (cfg.briefTg && cfg.tgToken && cfg.tgChat) {
+      try { await sendTelegram('☀️ DAILY BRIEFING\n\n' + full.replace(/[<>&]/g,' ')); jvLog('send', 'briefing → telegram'); toast('☀️ Briefing sent to Telegram'); } catch(e){}
+    }
+  } catch(e) { el?.fin('⚠ Briefing failed: ' + e.message); }
+}
+
+// ═══════════════════════════════════════════════
+// 🔍 UNIVERSAL SEARCH — chat, brain, offers, sales, blasts
+// ═══════════════════════════════════════════════
+function openSearch() {
+  document.getElementById('usearch').classList.add('open');
+  const inp = document.getElementById('us-inp');
+  inp.value = ''; inp.focus();
+  document.getElementById('us-results').innerHTML = '<div class="us-empty">Type to search everything at once.</div>';
+}
+function closeSearch() { document.getElementById('usearch').classList.remove('open'); }
+
+function usHighlight(text, q) {
+  const i = text.toLowerCase().indexOf(q.toLowerCase());
+  const start = Math.max(0, i - 60);
+  let snip = (start > 0 ? '…' : '') + text.slice(start, start + 170) + (start + 170 < text.length ? '…' : '');
+  return escH(snip).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'), m => '<mark>'+m+'</mark>');
+}
+
+function uSearch() {
+  const q = document.getElementById('us-inp').value.trim();
+  const out = document.getElementById('us-results');
+  if (q.length < 2) { out.innerHTML = '<div class="us-empty">Type to search everything at once.</div>'; return; }
+  const ql = q.toLowerCase();
+  const groups = [];
+  // chat history
+  const chatHits = (convos.jarvis||[]).map((m,i)=>({m,i}))
+    .filter(x => typeof x.m.content === 'string' && x.m.content.toLowerCase().includes(ql)).slice(-12).reverse();
+  if (chatHits.length) groups.push(['💬 Chat', chatHits.map(x =>
+    `<div class="us-hit" data-jump="${escH(x.m.content.slice(0,60))}" onclick="usJump(this)">${usHighlight(x.m.content,q)}<div class="us-meta">${x.m.role==='user'?(cfg.name||'you'):'Bam'} · tap to jump</div></div>`)]);
+  // brain
+  const brainHits = (brain||[]).filter(b => (b.fact+' '+b.category).toLowerCase().includes(ql)).slice(0,10);
+  if (brainHits.length) groups.push(['🧠 Brain', brainHits.map(b =>
+    `<div class="us-hit" onclick="closeSearch();switchTab('jarvis')">${usHighlight(b.fact,q)}<div class="us-meta">${escH(b.category)} · ${new Date(b.date).toLocaleDateString()}</div></div>`)]);
+  // offers / vault
+  const vaultHits = (vault||[]).filter(p => (p.name+' '+(p.niche||'')+' '+(p.type||'')).toLowerCase().includes(ql)).slice(0,10);
+  if (vaultHits.length) groups.push(['🗃 Offers', vaultHits.map(p =>
+    `<div class="us-hit" onclick="closeSearch();switchTab('vault')">${usHighlight(p.name + (p.price?' — $'+p.price:'') + (p.niche?' · '+p.niche:''), q)}<div class="us-meta">${STAGES[p.stage]||''}</div></div>`)]);
+  // sales
+  const saleHits = (sales||[]).filter(s => (s.prod||'').toLowerCase().includes(ql)).slice(0,10);
+  if (saleHits.length) groups.push(['💸 Sales', saleHits.map(s =>
+    `<div class="us-hit" onclick="closeSearch();switchTab('sales')">${usHighlight((s.prod||'Product')+' — $'+s.amt.toFixed(2), q)}<div class="us-meta">${new Date(s.date).toLocaleDateString()}</div></div>`)]);
+  // blasts
+  const blastHits = (blastLog||[]).filter(b => b.text.toLowerCase().includes(ql)).slice(0,6);
+  if (blastHits.length) groups.push(['📣 Blasts', blastHits.map(b =>
+    `<div class="us-hit" onclick="closeSearch();switchTab('blast')">${usHighlight(b.text,q)}<div class="us-meta">${escH(b.dest)} · ${new Date(b.ts).toLocaleDateString()}</div></div>`)]);
+  out.innerHTML = groups.length
+    ? groups.map(([title, hits]) => `<div class="us-group">${title}</div>` + hits.join('')).join('')
+    : '<div class="us-empty">No matches for “' + escH(q) + '”</div>';
+}
+
+// jump from a chat search hit to the message in the conversation and flash it
+function usJump(hit) {
+  const key = hit.dataset.jump || '';
+  closeSearch();
+  switchTab('jarvis');
+  const msgs = document.querySelectorAll('#m-jarvis .msg');
+  for (const m of msgs) {
+    if (m.querySelector('.bubble') && m.querySelector('.bubble').innerText.includes(key.slice(0, 40))) {
+      m.scrollIntoView({ behavior:'smooth', block:'center' });
+      m.classList.remove('flash'); void m.offsetWidth; m.classList.add('flash');
+      return;
+    }
+  }
+  toast('Message is in history but not rendered — scroll up');
+}
+
+// ═══════════════════════════════════════════════
+// ⋯ TOPBAR MORE MENU
+// ═══════════════════════════════════════════════
+function toggleMoreMenu(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('more-menu').classList.toggle('open');
+}
+function closeMoreMenu() { document.getElementById('more-menu')?.classList.remove('open'); }
+document.addEventListener('click', e => {
+  const mm = document.getElementById('more-menu');
+  if (!mm || !mm.classList.contains('open')) return;
+  if (e.target.closest('.mm-item')) { setTimeout(closeMoreMenu, 120); return; }   // tap an item → close after it fires
+  if (!mm.contains(e.target) && e.target.id !== 'more-btn') closeMoreMenu();
+});
 
 // ═══════════════════════════════════════════════
 // SOUND FX
@@ -4478,29 +5559,89 @@ function showIOSBanner() {
 }
 
 // ═══════════════════════════════════════════════
-// REVENUE CHART
+// REVENUE CHART — inline SVG, gold gradient, range toggle, insight tiles
 // ═══════════════════════════════════════════════
+let chartDays = parseInt(localStorage.getItem('jv-chart-range')) || 14;
+
+function setChartRange(d) {
+  chartDays = d;
+  localStorage.setItem('jv-chart-range', d);
+  document.querySelectorAll('#rev-range button').forEach(b => b.classList.toggle('on', +b.dataset.days === d));
+  renderChart();
+}
+
 function renderChart() {
   const el = document.getElementById('rev-chart');
   const tot = document.getElementById('rev-chart-total');
   if (!el) return;
-  const days = 14;
+  const days = chartDays;
   const buckets = [];
   const now = new Date();
   for (let i=days-1; i>=0; i--) {
     const d = new Date(now); d.setDate(d.getDate()-i);
     const ds = d.toDateString();
     const amt = (sales||[]).filter(s=>new Date(s.date).toDateString()===ds).reduce((a,s)=>a+s.amt,0);
-    buckets.push({ ds, amt, label: d.toLocaleDateString('en-US',{weekday:'short'}).slice(0,2), isToday: i===0 });
+    // labels: weekday initials for short ranges, sparse date labels for long ones
+    let label = '';
+    if (days <= 14) label = d.toLocaleDateString('en-US',{weekday:'short'}).slice(0,2);
+    else if (i===days-1 || i===0 || d.getDate()===1) label = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    else if (days<=30 ? d.getDate()%5===0 : d.getDate()%10===0) label = String(d.getDate());
+    buckets.push({ ds, amt, label, isToday: i===0 });
   }
+  const W=340, H=100, padB=14, padT=8;
   const max = Math.max(...buckets.map(b=>b.amt), 1);
-  el.innerHTML = buckets.map(b=>`
-    <div class="chart-bar-wrap">
-      <div class="chart-bar ${b.isToday?'today':b.amt>0?'has-sales':''}" style="height:${Math.max(4,Math.round((b.amt/max)*64))}px" title="$${b.amt.toFixed(2)}"></div>
-      <span class="chart-day ${b.isToday?'today':''}">${b.label}</span>
-    </div>`).join('');
-  const total14 = buckets.reduce((a,b)=>a+b.amt,0);
-  if (tot) tot.textContent = total14>0 ? `14-day total: $${total14.toFixed(2)}` : 'No sales yet — log your first one below';
+  const n = buckets.length, gap = n>30 ? 1 : 2, bw = (W - gap*(n-1)) / n;
+  let bars='', labels='';
+  buckets.forEach((b,i)=>{
+    const h = b.amt>0 ? Math.max(3,(b.amt/max)*(H-padB-padT)) : 1.5;
+    const x = i*(bw+gap), y = H-padB-h, r = Math.min(3, bw/2, h);
+    bars += `<path d="M${x.toFixed(1)} ${H-padB} V${(y+r).toFixed(1)} Q${x.toFixed(1)} ${y.toFixed(1)} ${(x+r).toFixed(1)} ${y.toFixed(1)} H${(x+bw-r).toFixed(1)} Q${(x+bw).toFixed(1)} ${y.toFixed(1)} ${(x+bw).toFixed(1)} ${(y+r).toFixed(1)} V${H-padB} Z" fill="${b.amt>0?'url(#revGold)':'rgba(138,104,0,.12)'}" class="rvbar" data-i="${i}" style="cursor:pointer"/>`;
+    if (b.label) labels += `<text x="${(x+bw/2).toFixed(1)}" y="${H-3}" font-size="6.5" fill="rgba(190,165,195,.42)" text-anchor="middle" font-family="Courier New,monospace">${escH(b.label)}</text>`;
+  });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block" id="rev-svg" role="img" aria-label="Daily revenue chart">
+    <defs><linearGradient id="revGold" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="rgba(138,104,0,.35)"/><stop offset="1" stop-color="#d4af37"/>
+    </linearGradient></defs>
+    ${bars}
+    <line x1="0" y1="${H-padB}" x2="${W}" y2="${H-padB}" stroke="rgba(138,104,0,.35)" stroke-width="1"/>
+    ${labels}
+  </svg>`;
+  // per-bar tap tooltip
+  const svg = document.getElementById('rev-svg');
+  const tip = document.getElementById('rev-tip');
+  if (svg && tip) svg.addEventListener('click', ev => {
+    const t = ev.target.closest('.rvbar');
+    if (!t) { tip.style.display='none'; return; }
+    const b = buckets[+t.dataset.i];
+    const wrap = el.closest('.chart-wrap'); if (!wrap) return;
+    const wr = wrap.getBoundingClientRect(), r = t.getBoundingClientRect();
+    tip.textContent = new Date(b.ds).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) + ' · $' + b.amt.toFixed(2);
+    tip.style.display = 'block';
+    tip.style.left = Math.max(4, Math.min(r.left-wr.left+r.width/2-45, wr.width-110)) + 'px';
+    tip.style.top  = Math.max(2, r.top-wr.top-26) + 'px';
+    clearTimeout(tip._t); tip._t = setTimeout(()=>tip.style.display='none', 2200);
+  });
+  const total = buckets.reduce((a,b)=>a+b.amt,0);
+  if (tot) tot.textContent = total>0 ? `${days}-day total: $${total.toFixed(2)}` : 'No sales in this window yet — log one below';
+  renderRevTiles(buckets, days);
+}
+
+// insight tiles under the chart: daily avg, best day, projected monthly, top product
+function renderRevTiles(buckets, days) {
+  const el = document.getElementById('rev-tiles');
+  if (!el) return;
+  const total = buckets.reduce((a,b)=>a+b.amt,0);
+  const avg = total/days;
+  const best = buckets.reduce((m,b)=>b.amt>m.amt?b:m, {amt:0});
+  const from = Date.now() - days*86400000;
+  const byProd = {};
+  (sales||[]).filter(s=>s.date>=from).forEach(s=>{ byProd[s.prod||'Product'] = (byProd[s.prod||'Product']||0)+s.amt; });
+  const top = Object.entries(byProd).sort((a,b)=>b[1]-a[1])[0];
+  el.innerHTML = `
+    <div class="sale-stat"><div class="sale-stat-v">$${avg.toFixed(2)}</div><div class="sale-stat-l">Daily Avg</div></div>
+    <div class="sale-stat"><div class="sale-stat-v">${best.amt>0 ? '$'+best.amt.toFixed(0)+' · '+new Date(best.ds).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</div><div class="sale-stat-l">Best Day</div></div>
+    <div class="sale-stat"><div class="sale-stat-v">$${Math.round(avg*30).toLocaleString()}</div><div class="sale-stat-l">Projected / Mo</div></div>
+    <div class="sale-stat"><div class="sale-stat-v" style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${top ? escH(top[0]) : '—'}</div><div class="sale-stat-l">Top Product</div></div>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -4668,13 +5809,15 @@ function saveVaultData() { localStorage.setItem('jv-vault', JSON.stringify(vault
 function addVaultProduct() {
   const name  = document.getElementById('v-name').value.trim();
   const price = parseFloat(document.getElementById('v-price').value)||0;
+  const type  = document.getElementById('v-type') ? document.getElementById('v-type').value : '';
   const niche = document.getElementById('v-niche').value.trim() || getNiche();
-  const link  = document.getElementById('v-link').value.trim();
+  const link  = safeUrl(document.getElementById('v-link').value.trim());   // http(s) only
   if (!name) { toast('Enter a product name'); return; }
-  vault.unshift({ name, price, niche, link, stage:0, date: Date.now(), id: Date.now() });
+  vault.unshift({ name, price, type, niche, link, stage:0, date: Date.now(), id: Date.now() });
   saveVaultData();
   document.getElementById('v-name').value = '';
   document.getElementById('v-price').value = '';
+  if (document.getElementById('v-type')) document.getElementById('v-type').value = '';
   document.getElementById('v-niche').value = '';
   document.getElementById('v-link').value = '';
   renderVault();
@@ -4721,11 +5864,11 @@ function renderVault() {
     card.innerHTML = `
       <div class="vcard-top">
         <div>
-          <div class="vcard-name">${p.name}</div>
-          <div class="vcard-niche">${p.niche||'—'}</div>
+          <div class="vcard-name">${escH(p.name)}</div>
+          <div class="vcard-niche">${escH(p.niche)||'—'}${p.type?' · '+escH(p.type):''}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          <span class="vcard-price">${p.price?'$'+p.price:''}</span>
+          <span class="vcard-price">${p.price?'$'+escH(p.price):''}</span>
           <button class="vcard-del" onclick="deleteVaultProduct(${p.id})">✕</button>
         </div>
       </div>
@@ -4733,7 +5876,8 @@ function renderVault() {
         <span class="stage-badge stage-${p.stage}" onclick="advanceStage(${p.id})" title="Tap to advance stage">
           ${STAGES[p.stage]}${p.stage<3?' →':''}
         </span>
-        ${p.link?`<a class="vcard-link" href="${p.link}" target="_blank">GUMROAD ↗</a>`:''}
+        ${safeUrl(p.link)?`<a class="vcard-link" href="${escH(safeUrl(p.link))}" target="_blank" rel="noopener noreferrer">GUMROAD ↗</a>`:''}
+        <button class="vcard-link" style="background:none;border:none;cursor:pointer;font-family:inherit" onclick="vaultBuildPage(${p.id})" title="Bam writes a full sales page for this offer">✍ BUILD PAGE</button>
         <span style="margin-left:auto;font-size:8px;color:var(--text-d)">${new Date(p.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
       </div>`;
     list.appendChild(card);
@@ -4807,7 +5951,7 @@ function renderSales() {
   list.innerHTML = sales.slice(0,30).map((s,i)=>`
     <div class="sale-item">
       <div>
-        <div style="font-size:12px;color:var(--text)">${s.prod}</div>
+        <div style="font-size:12px;color:var(--text)">${escH(s.prod)}</div>
         <div class="sale-item-date">${new Date(s.date).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
@@ -5087,7 +6231,7 @@ async function runScan() {
   const sec = document.createElement('div');
   sec.className = 'scan-result';
   const id = Date.now();
-  sec.innerHTML = `<div class="scan-result-hdr"><span class="scan-result-target">${target.toUpperCase()}</span><span class="scan-result-date">scanning…</span></div>
+  sec.innerHTML = `<div class="scan-result-hdr"><span class="scan-result-target">${escH(target.toUpperCase())}</span><span class="scan-result-date">scanning…</span></div>
     <div class="scan-result-body" id="sr-${id}"><span class="cur"></span></div>
     <div class="scan-result-actions"><button class="copy-btn" onclick="cpTxt(document.getElementById('sr-${id}').innerText)">COPY</button><button class="scan-result-del" onclick="delScan(${id})">DELETE</button></div>`;
   const resultsEl = document.getElementById('scan-results');
@@ -5125,7 +6269,7 @@ function renderScans() {
   scanResults.forEach(s => {
     const card = document.createElement('div');
     card.className = 'scan-result';
-    card.innerHTML = `<div class="scan-result-hdr"><span class="scan-result-target">${s.target.toUpperCase()}</span><span class="scan-result-date">${new Date(s.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span></div>
+    card.innerHTML = `<div class="scan-result-hdr"><span class="scan-result-target">${escH(s.target.toUpperCase())}</span><span class="scan-result-date">${new Date(s.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span></div>
       <div class="scan-result-body" id="sr-${s.id}">${fmt(s.text)}</div>
       <div class="scan-result-actions"><button class="copy-btn" onclick="cpTxt(document.getElementById('sr-${s.id}').innerText)">COPY</button><button class="scan-result-del" onclick="delScan(${s.id})">DELETE</button></div>`;
     list.appendChild(card);
@@ -5407,7 +6551,9 @@ function saveBrainData() { localStorage.setItem('jv-brain', JSON.stringify(brain
 // auto-memory: after each exchange, pull durable facts and remember them (parity with terminal)
 function autoRemember(userText, full, target) {
   if (target !== 'jarvis' || !cfg.apikey || cfg.autoMem === false || !userText) return;
-  JARVIS_CORE.extractFacts({ provider:cfg.provider, apikey:cfg.apikey, url:cfg.url, model:cfg.model, userText, assistantText:full }).then(facts => {
+  // memory extraction always rides the cheap/fast model — never the smart one
+  const memModel = (cfg.provider === 'groq' || !cfg.provider) ? 'llama-3.1-8b-instant' : cfg.model;
+  JARVIS_CORE.extractFacts({ provider:cfg.provider, apikey:cfg.apikey, url:cfg.url, model:memModel, userText, assistantText:full }).then(facts => {
     let changed = false;
     const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
     for (const f of (facts||[])) {
@@ -6399,6 +7545,7 @@ async function blastSend(dest) {
   try {
     if (needsDiscord)  await sendDiscord(text);
     if (needsTelegram) await sendTelegram(text);
+    jvLog('send', 'blast → '+dest);
     blastLog.unshift({ dest, text, ts: Date.now() });
     saveBlastLog();
     renderBlastLog();
@@ -6427,7 +7574,7 @@ function renderBlastLog() {
       <span class="blast-log-dest ${item.dest}">${item.dest.toUpperCase()}</span>
       <span class="blast-log-time">${time}</span>
     </div>
-    <div class="blast-log-text">${item.text.slice(0,120)}${item.text.length>120?'…':''}</div>`;
+    <div class="blast-log-text">${escH(item.text.slice(0,120))}${item.text.length>120?'…':''}</div>`;
     list.appendChild(div);
   });
 }
@@ -6445,6 +7592,196 @@ function blastTemplate(type) {
   };
   const el = document.getElementById('blast-compose');
   if (el) el.value = templates[type] || '';
+}
+
+// AI-write a blast message straight into the composer
+async function blastAI() {
+  const topic = (document.getElementById('blast-ai-topic')?.value||'').trim() || ('a promo for my '+(getNiche()||'digital product')+' business');
+  const ready = cfg.apiUrl || (cfg.provider==='ollama' ? cfg.url : cfg.apikey);
+  if (!ready) { toast('Add API key in ⚙ first'); openCfg(); return; }
+  const btn = document.getElementById('blast-ai-btn');
+  const ta = document.getElementById('blast-compose');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try {
+    const sys = 'You write short, punchy broadcast messages for Telegram/Discord audiences. Emojis welcome, no markdown headers, under 120 words, end with one clear call to action. Output ONLY the message.';
+    const full = await callAPIWithPrompt(sys, [{role:'user',content:`Write a broadcast message about: ${topic}. My niche: ${getNiche()||'digital products'}.`}], t => { if (ta) ta.value = t; }, {smart:true});
+    if (ta) ta.value = full.trim();
+  } catch(e) { setBlastStatus('⚠ '+e.message, true); }
+  if (btn) { btn.disabled = false; btn.textContent = '✨ AI WRITE'; }
+}
+
+// ═══════════════════════════════════════════════
+// HUSTLE + TOOLS — AI generator panels
+// ═══════════════════════════════════════════════
+// shared runner: streams an AI answer into a panel output box
+async function toolGen(outId, btnId, copyId, sys, user) {
+  const out = document.getElementById(outId);
+  const btn = btnId ? document.getElementById(btnId) : null;
+  const ready = cfg.apiUrl || (cfg.provider==='ollama' ? cfg.url : cfg.apikey);
+  if (!ready) { toast('Add API key in ⚙ first'); openCfg(); return; }
+  if (btn) { btn.dataset.label = btn.dataset.label || btn.textContent; btn.disabled = true; btn.textContent = 'WORKING…'; }
+  out.style.display = 'block';
+  out.innerHTML = '<span class="cur"></span>';
+  try {
+    const full = await callAPIWithPrompt(sys, [{role:'user',content:user}], t => { out.innerHTML = fmt(t)+'<span class="cur"></span>'; }, {smart:true});
+    out.innerHTML = fmt(full);
+    if (copyId) { const c = document.getElementById(copyId); if (c) c.style.display = ''; }
+    sfx('recv');
+  } catch(e) { out.textContent = '⚠ '+e.message; }
+  if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label; }
+}
+
+function genScript() {
+  const format = document.getElementById('sg-format').value;
+  const topic  = document.getElementById('sg-topic').value.trim();
+  const hook   = document.getElementById('sg-hook').value.trim();
+  if (!topic) { toast('Enter a topic first'); return; }
+  const sys = 'You are a short-form content scriptwriter who writes scripts that hold attention and convert. Write the finished piece only — no preamble, no explanations.';
+  toolGen('sg-out','sg-btn','sg-copy', sys,
+    `Write a ${format} about: "${topic}".`
+    + (hook ? ` Open with this hook (or a sharper version of it): "${hook}".` : '')
+    + ` My niche: ${getNiche()||'digital products'}. Include delivery notes in [brackets] where useful and end with a call to action.`);
+}
+
+function repurpose() {
+  const src = document.getElementById('rp-in').value.trim();
+  if (!src) { toast('Paste some content first'); return; }
+  const formats = [...document.querySelectorAll('#p-repurpose .tool-check input:checked')].map(c => c.value);
+  if (!formats.length) { toast('Pick at least one output format'); return; }
+  const sys = 'You repurpose one piece of content into other formats without losing its core idea or voice. Output each format under a clear ## heading. Finished copy only.';
+  toolGen('rp-out','rp-btn','rp-copy', sys,
+    `Repurpose this content into: ${formats.join('; ')}.\n\n---\n${src.slice(0,6000)}\n---`);
+}
+
+function genSalesPage() {
+  const name  = document.getElementById('sp-name').value.trim();
+  const price = document.getElementById('sp-price').value.trim();
+  const aud   = document.getElementById('sp-aud').value.trim();
+  const pain  = document.getElementById('sp-pain').value.trim();
+  if (!name) { toast('Enter a product name'); return; }
+  const sys = 'You are a direct-response copywriter. Write complete, ready-to-paste sales pages: headline, subhead, pain, story, what is inside (bullets), social proof placeholder, price justification, guarantee, FAQ (3), final CTA. Finished copy only.';
+  toolGen('sp-out','sp-btn','sp-copy', sys,
+    `Write the full sales page for "${name}"${price?` at ${price}`:''}.`
+    + (aud?` Audience: ${aud}.`:'') + (pain?` Main pain solved: ${pain}.`:'')
+    + ` Niche: ${getNiche()||'digital products'}.`);
+}
+
+function genProposal() {
+  const client  = document.getElementById('pp-client').value.trim();
+  const service = document.getElementById('pp-service').value.trim();
+  const price   = document.getElementById('pp-price').value.trim();
+  const time    = document.getElementById('pp-time').value.trim();
+  if (!client || !service) { toast('Enter a client and a service'); return; }
+  const sys = 'You write concise, professional client proposals that close deals: overview, understanding of their problem, scope of work (numbered), deliverables, timeline, investment, terms, next step. Confident tone, no fluff. Finished document only.';
+  toolGen('pp-out','pp-btn','pp-copy', sys,
+    `Write a proposal to ${client} for: ${service}.${price?` Price: ${price}.`:''}${time?` Timeline: ${time}.`:''} From: ${cfg.name||'me'}${cfg.identity?` (${cfg.identity})`:''}.`);
+}
+
+// Offer Vault → "Build Page": prefill the Sales Page Builder from a saved offer and run it
+function vaultBuildPage(id) {
+  const p = vault.find(v => v.id === id);
+  if (!p) return;
+  switchTab('salespage');
+  document.getElementById('sp-name').value  = p.name || '';
+  document.getElementById('sp-price').value = p.price ? '$'+p.price : '';
+  document.getElementById('sp-aud').value   = p.niche ? 'people into '+p.niche : '';
+  document.getElementById('sp-pain').value  = '';
+  genSalesPage();
+}
+
+// ═══════════════════════════════════════════════
+// HOOK LIBRARY — 30 proven hooks, 5 categories, tap to load
+// ═══════════════════════════════════════════════
+const HOOKS = {
+  pain: { icon:'🩸', color:'#cc2244', items:[
+    "You're losing money every single day you don't know this.",
+    "Stop scrolling if you're sick of being broke.",
+    "The real reason you're stuck at $0? Nobody told you this.",
+    "You're working hard — on the wrong thing.",
+    "If your content gets 200 views and zero sales, this is why.",
+    "Being broke is expensive. Here's the math nobody shows you.",
+  ]},
+  story: { icon:'📖', color:'#dd8833', items:[
+    "I made my first $100 online with a laptop and zero followers. Here's exactly how.",
+    "A year ago I couldn't pay rent. Yesterday one product sold 14 times while I slept.",
+    "I posted the same offer for 27 days straight. Day 28 changed everything.",
+    "My first product flopped. My second paid my rent. The difference was one sentence.",
+    "Someone DM'd me 'this changed my life' — about a PDF I made in one afternoon.",
+    "I quit my job with $412 in the bank. This is the system that saved me.",
+  ]},
+  curiosity: { icon:'🕳', color:'#9966dd', items:[
+    "There's a $40 product hiding inside something you already know.",
+    "99% of people have never heard of this way to get paid.",
+    "This one-page Google Doc makes more than most salaries.",
+    "The weirdest thing about making money online? It gets easier after the first $1.",
+    "Nobody talks about what actually happens after you post 100 times.",
+    "I found a niche where buyers outnumber sellers 50 to 1.",
+  ]},
+  value: { icon:'💎', color:'#44bb88', items:[
+    "Here are 5 digital products you can build tonight and sell tomorrow.",
+    "Steal my exact launch checklist — it's 7 steps.",
+    "How to price a digital product so people actually buy: 3 rules.",
+    "The 3-line DM script that turns followers into buyers.",
+    "Copy this sales page structure — it converts at 4%.",
+    "Everything you need to make your first $100 online, in 60 seconds.",
+  ]},
+  contrarian: { icon:'⚔️', color:'#54b9e8', items:[
+    "You don't need more followers. You need one offer that converts.",
+    "Posting daily is killing your business. Do this instead.",
+    "Your niche isn't too crowded — you're just invisible in it.",
+    "Cheap products aren't easier to sell. They're harder.",
+    "Motivation is a scam. Systems make money while you feel nothing.",
+    "Stop learning. You already know enough to make your first sale.",
+  ]},
+};
+
+function renderHooks() {
+  const el = document.getElementById('hooks-list');
+  if (!el || el.dataset.built) return;
+  el.dataset.built = '1';
+  let html = '<div class="tool-sub" style="margin:0">30 proven hooks. Tap one — it loads into the Script Generator.</div>';
+  for (const [cat, def] of Object.entries(HOOKS)) {
+    html += `<div class="hook-cat-title" style="color:${def.color}">${def.icon} ${cat}</div>`;
+    html += def.items.map(h => `<div class="hook-item" data-hook="${escH(h)}">${escH(h)}</div>`).join('');
+  }
+  el.innerHTML = html;
+  el.querySelectorAll('.hook-item').forEach(item => item.onclick = () => useHook(item.dataset.hook));
+}
+
+function useHook(hook) {
+  const inp = document.getElementById('sg-hook');
+  if (inp) inp.value = hook;
+  switchTab('scripts');
+  toast('Hook loaded into Script Generator');
+}
+
+// ═══════════════════════════════════════════════
+// REVENUE PLANNER — price → sales/leads/views needed
+// ═══════════════════════════════════════════════
+function renderPlanner() {
+  const tiles = document.getElementById('pl-tiles');
+  if (!tiles) return;
+  const goalInp = document.getElementById('pl-goal');
+  if (goalInp && !goalInp.value && cfg.goal) goalInp.value = cfg.goal;
+  const price = parseFloat(document.getElementById('pl-price').value) || 0;
+  const goal  = parseFloat(goalInp.value) || 0;
+  const conv  = (parseFloat(document.getElementById('pl-conv').value) || 2) / 100;
+  const ctr   = (parseFloat(document.getElementById('pl-ctr').value)  || 3) / 100;
+  const note  = document.getElementById('pl-note');
+  if (!price || !goal) {
+    tiles.innerHTML = '<div class="sale-stat" style="grid-column:1/-1"><div class="sale-stat-l" style="margin:6px 0">Enter a price and a goal to see your numbers</div></div>';
+    if (note) note.textContent = '';
+    return;
+  }
+  const salesNeeded = Math.ceil(goal / price);
+  const leads = Math.ceil(salesNeeded / conv);
+  const views = Math.ceil(leads / ctr);
+  tiles.innerHTML = `
+    <div class="sale-stat"><div class="sale-stat-v">${salesNeeded.toLocaleString()}</div><div class="sale-stat-l">Sales / mo</div></div>
+    <div class="sale-stat"><div class="sale-stat-v">${leads.toLocaleString()}</div><div class="sale-stat-l">Leads / mo</div></div>
+    <div class="sale-stat"><div class="sale-stat-v">${views.toLocaleString()}</div><div class="sale-stat-l">Views / mo</div></div>`;
+  if (note) note.textContent =
+    `That's ~${Math.ceil(salesNeeded/30)} sale${salesNeeded>30?'s':''}/day, ${Math.ceil(leads/30).toLocaleString()} leads/day and ${Math.ceil(views/30).toLocaleString()} views/day at $${price} with ${(conv*100).toFixed(1)}% conversion and ${(ctr*100).toFixed(1)}% click-through.`;
 }
 
 // ═══════════════════════════════════════════════
@@ -7816,5 +9153,5 @@ function renderSection(key){
   .nx-x,.ac-x,.x-btn,.close-x,.biz-x{transition:transform .3s,color .3s}
   .nx-x:hover,.ac-x:hover,.x-btn:hover,.close-x:hover,.biz-x:hover{transform:rotate(90deg) scale(1.1);color:#ffe9a8}
 </style>
-<script>setTimeout(function(){try{enter3D();}catch(e){document.title="ERR:"+e.message;}},3500);</script></body>
+</body>
 </html>
