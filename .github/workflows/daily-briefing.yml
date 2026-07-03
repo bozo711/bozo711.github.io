@@ -1,0 +1,63 @@
+# ☀️ BAM 24/7 — daily briefing texted to your Telegram even when the app is closed.
+#
+# Setup (one time, all free):
+#   Repo → Settings → Secrets and variables → Actions → New repository secret:
+#     GROQ_API_KEY  — your Groq key (console.groq.com)
+#     TG_TOKEN      — your Telegram bot token (@BotFather)
+#     TG_CHAT       — your Telegram chat id (@userinfobot)
+#   Optional repo VARIABLES (same page, "Variables" tab):
+#     BAM_NICHE     — your niche (defaults to "digital products")
+#     BAM_GOAL      — monthly income goal in $ (defaults to 10000)
+#
+# Runs every day at 12:00 UTC (~7-8am US East). Change the cron below to taste.
+# You can also fire it manually: Actions → "Daily briefing" → Run workflow.
+
+name: Daily briefing
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate briefing with Groq → send to Telegram
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+          NICHE: ${{ vars.BAM_NICHE || 'digital products' }}
+          GOAL: ${{ vars.BAM_GOAL || '10000' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GROQ_API_KEY:-}" ] || [ -z "${TG_TOKEN:-}" ] || [ -z "${TG_CHAT:-}" ]; then
+            echo "::error::Missing secrets. Add GROQ_API_KEY, TG_TOKEN and TG_CHAT in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+          SYSTEM='You are Bam, an AI business partner for a solo digital-product creator. Write a tight morning briefing under 170 words, plain text (no markdown), with EXACTLY these labelled sections: STATUS (one grounding line) · #1 PRIORITY (the single most important move today) · FRESH IDEA (one specific new product or content angle) · PUSH (two sentences of raw motivation) · FIRST ACTION (one concrete 10-minute task to start right now) · MISSION (name one money mission to run in the BAM app today, e.g. build an ebook, launch sequence, cold email campaign).'
+          USERMSG="Morning briefing. Niche: ${NICHE}. Income goal: \$${GOAL}/mo. Today is $(date -u '+%A, %B %d %Y')."
+
+          PAYLOAD=$(jq -n --arg sys "$SYSTEM" --arg usr "$USERMSG" \
+            '{model:"llama-3.3-70b-versatile", messages:[{role:"system",content:$sys},{role:"user",content:$usr}], temperature:0.8}')
+
+          REPLY=$(curl -sS --max-time 120 https://api.groq.com/openai/v1/chat/completions \
+            -H "Authorization: Bearer $GROQ_API_KEY" -H 'Content-Type: application/json' \
+            -d "$PAYLOAD" | jq -r '.choices[0].message.content // empty')
+
+          if [ -z "$REPLY" ]; then
+            echo "::error::Groq returned no content (bad key or rate limit)."
+            exit 1
+          fi
+
+          TEXT=$(printf '☀️ DAILY BRIEFING\n\n%s' "$REPLY")
+
+          jq -n --arg chat "$TG_CHAT" --arg text "$TEXT" '{chat_id:$chat, text:$text, disable_web_page_preview:true}' \
+            | curl -sS --max-time 60 "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+                -H 'Content-Type: application/json' -d @- \
+            | jq -e '.ok' >/dev/null || { echo "::error::Telegram send failed (check TG_TOKEN / TG_CHAT)."; exit 1; }
+
+          echo "Briefing delivered ✓"

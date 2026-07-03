@@ -283,7 +283,15 @@ Commands: "status" · "list" · "add product X" · "set income X" · "[name] mod
         const pd = await pr.json().catch(() => ({}));
         if (pd.success) products = (pd.products || []).map(p => ({ name:p.name, price:(Number(p.price)||0)/100, sales:p.sales_count||0, published:!!p.published }));
       } catch (e) {}
-      return { ok:true, salesCount:sales.length, revenue, products };
+      // individual orders so the app can sync its ledger + audience list with reality
+      const orders = sales.slice(0, 200).map(s => ({
+        id: String(s.id || s.purchase_id || ''),
+        product: s.product_name || s.product || 'Product',
+        price: (Number(s.price) || 0) / 100,
+        date: s.created_at || s.timestamp || '',
+        email: s.email || s.purchaser_email || ''
+      }));
+      return { ok:true, salesCount:sales.length, revenue, products, orders };
     } catch (e) { return { ok:false, error:e.message }; }
   }
 

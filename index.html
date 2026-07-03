@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000814">
 <!-- Security: restrict where the app can load from and (critically) send data to -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://api.telegram.org https://r.jina.ai https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev https://nominatim.openstreetmap.org https://overpass-api.de https://places.googleapis.com; frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://openrouter.ai https://www.googleapis.com https://api.gumroad.com https://api.telegram.org https://r.jina.ai https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev https://nominatim.openstreetmap.org https://overpass-api.de https://places.googleapis.com; frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <link rel="manifest" href="manifest.json">
@@ -1487,6 +1487,16 @@ strong{color:#e8d4b0}
         <div class="hint">Used when routing decides a task is complex. The Model field above stays your fast default.</div>
       </div>
       <div class="field">
+        <label>Fallback API Key (OpenRouter — optional)</label>
+        <input type="password" id="c-fb-key" placeholder="sk-or-…" autocomplete="off">
+        <div class="hint">Free key at <strong>openrouter.ai</strong> → Keys. If Groq rate-limits or goes down mid-mission, Bam switches here automatically so nothing stalls.</div>
+      </div>
+      <div class="field">
+        <label>Fallback Model</label>
+        <input type="text" id="c-fb-model" placeholder="meta-llama/llama-3.3-70b-instruct:free">
+        <div class="hint">Any OpenRouter model id — the <code>:free</code> ones cost nothing.</div>
+      </div>
+      <div class="field">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="c-auto-mem" style="width:auto"> 🧠 Long-term memory (auto-remember)</label>
         <div class="hint">After each exchange Bam quietly saves 0–3 durable facts to his brain (uses the fast model).</div>
       </div>
@@ -1894,6 +1904,24 @@ strong{color:#e8d4b0}
           <div class="tool-sub">Bam runs any mission end-to-end on his own: research, write, package, price. Finished products save to your Offer Vault automatically — but <strong>nothing leaves this device without your approval</strong>. Publishing to Gumroad and sending blasts wait in the queue below.</div>
           <button class="tool-go" id="ap-btn" style="background:linear-gradient(135deg,#8a6800,#4a3800)" onclick="runAutopilot()">🤖 AUTOPILOT — PICK &amp; RUN THE BEST MISSION</button>
         </div>
+        <div class="tool-card" id="ms-score-card" style="display:none;border-left-color:#3fd07a">
+          <div class="tool-title" style="color:#3fd07a">🏆 Mission Scoreboard — what's actually earning</div>
+          <div id="ms-score" style="display:flex;flex-direction:column;gap:6px"></div>
+          <div class="tool-sub" style="margin:8px 0 0">Revenue per mission-built product (synced from Gumroad + your logs). Autopilot reads this to double down on winners.</div>
+        </div>
+        <div class="tool-card" id="ms-pipe-card">
+          <div class="tool-title">⛓ Pipelines — chained missions, one tap</div>
+          <div id="ms-pipes" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+        <div class="tool-card" id="ms-batch-card" style="display:none;border-left-color:#54b9e8">
+          <div class="tool-title" style="color:#54b9e8">🌙 Batch Queue — <span id="ms-batch-n">0</span> missions</div>
+          <div id="ms-batch-list" class="tool-sub" style="margin:0 0 8px"></div>
+          <div style="display:flex;gap:7px">
+            <button class="tool-go" style="margin:0;flex:2" onclick="runBatch()">🌙 RUN BATCH BACK-TO-BACK</button>
+            <button class="tool-go" style="margin:0;flex:1;background:none;border:1px solid var(--red-b)" onclick="batchClear()">CLEAR</button>
+          </div>
+          <div class="tool-sub" style="margin:8px 0 0">Queue missions with ＋, run them all in a row (overnight-friendly — the daily spend guard still applies). Approvals pile up for review.</div>
+        </div>
         <div class="tool-card" id="ms-appr-card" style="display:none;border-left-color:#e0b23c">
           <div class="tool-title" style="color:#e0b23c">🔔 Approval Queue — <span id="ms-appr-count">0</span> waiting</div>
           <div id="ms-approvals" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -1940,7 +1968,7 @@ strong{color:#e8d4b0}
           <div class="sale-stats" id="rev-tiles" style="margin-top:8px;grid-template-columns:1fr 1fr"></div>
         </div>
         <div class="tool-card">
-          <div class="tool-title">💸 Log a Sale</div>
+          <div class="tool-title">💸 Log a Sale <button class="copy-out-btn" style="float:right;margin:-4px 0 0" onclick="gumSync(true)" title="Pull real orders from your Gumroad account into this ledger">⟳ SYNC GUMROAD</button></div>
           <div class="log-sale-area">
             <input class="sale-amt" id="sale-amt-inp" type="number" inputmode="decimal" placeholder="$ amount">
             <input class="sale-amt" id="sale-prod-inp" type="text" placeholder="product (optional)">
@@ -1980,6 +2008,40 @@ strong{color:#e8d4b0}
         </div>
         <div id="vault-list" style="display:flex;flex-direction:column;gap:9px">
           <div class="ideas-empty" id="vault-empty">Vault is empty.<br>Add your first offer.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MONEY · AUDIENCE / EMAIL LIST ═══ -->
+    <div class="panel" id="p-audience">
+      <div class="tool-content">
+        <div class="tool-card" style="border-left-color:var(--gold)">
+          <div class="tool-title" style="color:var(--gold)">👥 Your List — <span id="aud-count">0</span> contacts</div>
+          <div class="tool-sub">The one channel you own. Every Gumroad buyer becomes a contact you can sell to again — free, no email service needed.</div>
+          <div style="display:flex;gap:7px">
+            <button class="tool-go" style="margin:0;flex:1.4" onclick="audImport()">🛒 IMPORT GUMROAD BUYERS</button>
+            <button class="tool-go" style="margin:0;flex:1;background:none;border:1px solid var(--gold-b);color:var(--gold)" onclick="audCSV()">⬇ CSV</button>
+          </div>
+          <div style="display:flex;gap:7px;margin-top:8px">
+            <input class="tool-inp" id="aud-email" type="email" placeholder="add an email manually…" style="flex:1">
+            <button class="tool-go" style="margin:0;width:auto;padding:9px 14px" onclick="audAdd()">＋</button>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-title">📧 Campaign Writer</div>
+          <div class="tool-fields">
+            <input class="tool-inp" id="aud-topic" placeholder="What's this email about? e.g. flash sale on my ebook">
+          </div>
+          <button class="tool-go" id="aud-btn" onclick="audCampaign()">✨ WRITE THE CAMPAIGN</button>
+          <div class="tool-out" id="aud-out"></div>
+          <div style="display:flex;gap:7px;margin-top:8px">
+            <button class="copy-out-btn" id="aud-copy" style="display:none" onclick="cpTxt(document.getElementById('aud-out').innerText)">⧉ COPY</button>
+            <button class="copy-out-btn" id="aud-mail" style="display:none" onclick="audMailto()">📧 OPEN IN MAIL APP (BCC)</button>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-title">Contacts</div>
+          <div id="aud-list" style="display:flex;flex-direction:column;gap:5px;max-height:300px;overflow-y:auto"></div>
         </div>
       </div>
     </div>
@@ -2141,7 +2203,8 @@ let cfg = {
   provider:'groq', apikey:'', url:'', model:'llama-3.1-8b-instant',
   name:'Commander', goal:10000, income:0, date:'', tasks:[], done:[], ctx:'',
   ytKey:'', ytChannel:'', gumKey:'', gmapsKey:'', tgToken:'', tgChat:'', discordWh:'', identity:'', style:'', autoMem:true,
-  aiCap:300, autoModel:true, smartModel:'llama-3.3-70b-versatile', briefTg:false, voiceName:'', voiceRate:1.05, voicePitch:0.85
+  aiCap:300, autoModel:true, smartModel:'llama-3.3-70b-versatile', briefTg:false, voiceName:'', voiceRate:1.05, voicePitch:0.85,
+  fbKey:'', fbModel:'meta-llama/llama-3.3-70b-instruct:free'
 };
 let convos = {};          // {agent:[{role,content}]}
 let busy = false;
@@ -2272,6 +2335,7 @@ function init() {
   loadBlastLog(); renderBlastLog();
   loadScans();
   loadApprovals(); renderApprovals();
+  loadAudience();
   initAttach();
   // spend-guard every direct core AI call too (academy, lessons, fact-extraction…)
   if (window.JARVIS_CORE && !JARVIS_CORE._guarded) {
@@ -2666,6 +2730,8 @@ function fillCfgForm() {
   if (document.getElementById('c-ai-cap'))      document.getElementById('c-ai-cap').value = cfg.aiCap||300;
   if (document.getElementById('c-auto-model'))  document.getElementById('c-auto-model').checked = cfg.autoModel !== false;
   if (document.getElementById('c-smart-model')) document.getElementById('c-smart-model').value = cfg.smartModel||'llama-3.3-70b-versatile';
+  if (document.getElementById('c-fb-key'))      document.getElementById('c-fb-key').value = cfg.fbKey||'';
+  if (document.getElementById('c-fb-model'))    document.getElementById('c-fb-model').value = cfg.fbModel||'meta-llama/llama-3.3-70b-instruct:free';
   if (document.getElementById('c-auto-mem'))    document.getElementById('c-auto-mem').checked = cfg.autoMem !== false;
   if (document.getElementById('c-brief-tg'))    document.getElementById('c-brief-tg').checked = !!cfg.briefTg;
   fillVoiceSelect();
@@ -2752,6 +2818,8 @@ function saveCfg() {
   cfg.aiCap      = parseInt(document.getElementById('c-ai-cap')?.value)||300;
   cfg.autoModel  = !!document.getElementById('c-auto-model')?.checked;
   cfg.smartModel = (document.getElementById('c-smart-model')?.value||'').trim()||'llama-3.3-70b-versatile';
+  cfg.fbKey      = (document.getElementById('c-fb-key')?.value||'').trim();
+  cfg.fbModel    = (document.getElementById('c-fb-model')?.value||'').trim()||'meta-llama/llama-3.3-70b-instruct:free';
   cfg.autoMem    = !!document.getElementById('c-auto-mem')?.checked;
   cfg.briefTg    = !!document.getElementById('c-brief-tg')?.checked;
   cfg.voiceName  = document.getElementById('c-voice-name')?.value||'';
@@ -4363,7 +4431,7 @@ function pushConvo(agent, role, content) {
 const CATEGORIES = {
   agents: [{tab:'jarvis',label:'Bam'}],
   hustle: [{tab:'scripts',label:'⚡ Scripts'},{tab:'repurpose',label:'♻ Repurpose'},{tab:'hooks',label:'🪝 Hooks'}],
-  money:  [{tab:'missions',label:'🚀 Missions'},{tab:'sales',label:'💸 Income'},{tab:'vault',label:'🗃 Offers'},{tab:'planner',label:'🎯 Planner'}],
+  money:  [{tab:'missions',label:'🚀 Missions'},{tab:'sales',label:'💸 Income'},{tab:'vault',label:'🗃 Offers'},{tab:'audience',label:'👥 List'},{tab:'planner',label:'🎯 Planner'}],
   tools:  [{tab:'blast',label:'📣 Blast'},{tab:'salespage',label:'📝 Sales Page'},{tab:'proposal',label:'🤝 Proposal'},{tab:'spy',label:'🕵 Spy'}],
 };
 let currentCat = 'agents';
@@ -4417,7 +4485,8 @@ function switchTab(t) {
   if (t === 'planner') renderPlanner();
   if (t === 'hooks') renderHooks();
   if (t === 'spy') renderScans();
-  if (t === 'missions') { renderMissions(); renderApprovals(); }
+  if (t === 'missions') { renderMissions(); renderApprovals(); renderPipelines(); renderBatch(); renderScoreboard(); }
+  if (t === 'audience') renderAudience();
 }
 
 // ═══════════════════════════════════════════════
@@ -4569,10 +4638,34 @@ function pickModel(messages, opts) {
   return fast;
 }
 
-// pull real Gumroad data so JARVIS quotes real numbers/products (parity with terminal)
-function refreshSales() {
-  if (!cfg.gumKey || !window.JARVIS_CORE) return;
-  JARVIS_CORE.fetchGumroad(cfg.gumKey).then(r => { if (r && r.ok) liveSales = r; }).catch(()=>{});
+// pull real Gumroad data: grounds the prompts AND syncs real orders into the income ledger,
+// so the chart, insight tiles and autopilot all run on actual revenue — not just manual logs
+function refreshSales() { gumSync(false); }
+function gumSync(manual) {
+  if (!cfg.gumKey || !window.JARVIS_CORE) { if (manual) { toast('Add your Gumroad token in ⚙ first'); openCfg(); } return; }
+  if (manual) toast('Syncing Gumroad…');
+  JARVIS_CORE.fetchGumroad(cfg.gumKey).then(r => {
+    if (!r || !r.ok) { if (manual) toast('⚠ Gumroad: ' + ((r && r.error) || 'failed')); return; }
+    liveSales = r;
+    window._gumOrders = r.orders || [];          // cached for the audience importer
+    let added = 0;
+    (r.orders || []).forEach(o => {
+      const gid = o.id || ('g' + o.date + o.product + o.price);
+      if (sales.some(s => s.gid === gid)) return;
+      const ts = new Date(o.date || Date.now()).getTime() || Date.now();
+      sales.push({ amt: o.price, prod: o.product, date: ts, gid, gum: true });
+      added++;
+    });
+    if (added) {
+      sales.sort((a,b) => b.date - a.date);
+      saveSalesData();
+      cfg.income = Math.round(sales.reduce((s,x)=>s+x.amt,0) * 100) / 100;
+      persistCfg(); updateStats(); renderSales(); renderChart();
+      jvLog('sync', 'gumroad: +' + added + ' sales');
+    }
+    if (typeof renderScoreboard === 'function') renderScoreboard();
+    if (manual) toast(added ? '✓ Synced ' + added + ' new sale' + (added>1?'s':'') + ' from Gumroad' : '✓ Up to date — no new Gumroad sales');
+  }).catch(e => { if (manual) toast('⚠ ' + e.message); });
 }
 
 // pull real YouTube channel stats so JARVIS knows your real numbers
@@ -4638,14 +4731,18 @@ async function callAPI(agent, messages, onToken) {
     return full;
   }
 
-  // OpenAI-compatible (Groq or OpenAI)
+  // OpenAI-compatible (Groq or OpenAI) — with automatic failover to the fallback provider
   if (!cfg.apikey) throw new Error('No API key. Tap ⚙ to add your key.');
-  const base = p==='openai' ? 'https://api.openai.com' : 'https://api.groq.com/openai';
-  const model = pickModel(messages);
-  const res = await fetch(`${base}/v1/chat/completions`, {
+  const base = p==='openai' ? 'https://api.openai.com/v1' : 'https://api.groq.com/openai/v1';
+  return oaiWithFallback(base, cfg.apikey, pickModel(messages), sysPrompt(agent), messages, onToken);
+}
+
+// one OpenAI-compatible SSE streamer for every provider (Groq / OpenAI / OpenRouter fallback)
+async function oaiSSE(base, key, model, sysP, messages, onToken){
+  const res = await fetch(`${base}/chat/completions`, {
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apikey}`},
-    body:JSON.stringify({model,messages:[{role:'system',content:sysPrompt(agent)},...messages],stream:true}),
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
+    body:JSON.stringify({model, messages:[{role:'system',content:sysP},...messages], stream:true}),
   });
   if (!res.ok) { const t=await res.text().catch(()=>''); throw new Error(`HTTP ${res.status}: ${t||res.statusText}`); }
   const reader=res.body.getReader(); const dec=new TextDecoder(); let full='';
@@ -4659,6 +4756,19 @@ async function callAPI(agent, messages, onToken) {
     }
   }
   return full;
+}
+
+// if the primary provider chokes (rate limit, outage), retry once on the free fallback
+// (OpenRouter key in ⚙ Settings) so autopilot runs never stall mid-mission
+async function oaiWithFallback(base, key, model, sysP, messages, onToken){
+  try {
+    return await oaiSSE(base, key, model, sysP, messages, onToken);
+  } catch(e) {
+    if (!cfg.fbKey) throw e;
+    jvLog('ai', 'fallback engaged: ' + String(e.message).slice(0,80));
+    if (window.toast) toast('Primary AI failed — switching to fallback');
+    return oaiSSE('https://openrouter.ai/api/v1', cfg.fbKey, cfg.fbModel || 'meta-llama/llama-3.3-70b-instruct:free', sysP, messages, onToken);
+  }
 }
 
 async function callAPIWithPrompt(sysP, messages, onToken, opts) {
@@ -4684,25 +4794,8 @@ async function callAPIWithPrompt(sysP, messages, onToken, opts) {
     return full;
   }
   if (!cfg.apikey) throw new Error('No API key. Tap ⚙ to add your key.');
-  const base = p==='openai' ? 'https://api.openai.com' : 'https://api.groq.com/openai';
-  const model = pickModel(messages, opts);
-  const res = await fetch(`${base}/v1/chat/completions`, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':`Bearer ${cfg.apikey}`},
-    body:JSON.stringify({model,messages:[{role:'system',content:sysP},...messages],stream:true}),
-  });
-  if (!res.ok) { const t=await res.text().catch(()=>''); throw new Error(`HTTP ${res.status}: ${t||res.statusText}`); }
-  const reader=res.body.getReader(); const dec=new TextDecoder(); let full='';
-  while(true){
-    const{done,value}=await reader.read(); if(done)break;
-    for(const line of dec.decode(value).split('\n')){
-      if(!line.startsWith('data:'))continue;
-      const raw=line.slice(5).trim();
-      if(raw==='[DONE]')return full;
-      try{const d=JSON.parse(raw);const tok=d.choices?.[0]?.delta?.content;if(tok){full+=tok;onToken(full);}}catch(e){}
-    }
-  }
-  return full;
+  const base = p==='openai' ? 'https://api.openai.com/v1' : 'https://api.groq.com/openai/v1';
+  return oaiWithFallback(base, cfg.apikey, pickModel(messages, opts), sysP, messages, onToken);
 }
 
 // ═══════════════════════════════════════════════
@@ -6207,7 +6300,7 @@ function renderSales() {
   list.innerHTML = sales.slice(0,30).map((s,i)=>`
     <div class="sale-item">
       <div>
-        <div style="font-size:12px;color:var(--text)">${escH(s.prod)}</div>
+        <div style="font-size:12px;color:var(--text)">${s.gum?'🛒 ':''}${escH(s.prod)}</div>
         <div class="sale-item-date">${new Date(s.date).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
@@ -8121,16 +8214,18 @@ function renderMissions(){
     if (m.c !== cat){ cat = m.c; html += `<div class="ms-cat">${catLabels[cat]||cat}</div>`; }
     html += `<div class="ms-row"><span class="ms-ic">${m.i}</span>
       <div class="ms-t"><div class="ms-name">${escH(m.t)}</div><div class="ms-desc">${escH(m.d)}</div></div>
+      <button class="ms-run" style="padding:7px 10px" onclick="batchAdd(${i})" title="Add to the batch queue">＋</button>
       <button class="ms-run" onclick="runMission(${i})">▶ RUN</button></div>`;
   });
   el.innerHTML = html;
 }
 
-// mission prompts — one generic runner, specialized by kind
-function missionPrompt(m){
+// mission prompts — one generic runner, specialized by kind; ctx carries pipeline state
+function missionPrompt(m, ctx){
   const niche = getNiche() || 'digital products / making money online';
   const base = `MISSION: ${m.t} — ${m.d}.\nNiche: ${niche}. Creator: ${cfg.name||'Commander'}${cfg.identity?' ('+cfg.identity+')':''}. Income goal: $${(cfg.goal||0).toLocaleString()}/mo.` +
     (cfg.style ? `\nWrite in this voice: ${cfg.style}` : '') +
+    (ctx && ctx.prod ? `\nThis mission supports the product just built in this pipeline: "${ctx.prod.name}" ($${ctx.prod.price}). Reference it directly — its name, its price, its promise.` : '') +
     (m.t==='Bundle Your Vault' && vault.length ? `\nExisting offers to bundle: ${vault.slice(0,8).map(v=>v.name+(v.price?' ($'+v.price+')':'')).join('; ')}.` : '');
   if (m.k === 'product') return {
     sys: 'You are Bam in product-factory mode. Produce the COMPLETE, finished, sellable digital product — full content, not an outline, no placeholders. After the product, append exactly one block: [PRODUCT]{"name":"","price":0,"description":"<p>…</p>","tags":""}[/PRODUCT] — name specific and benefit-driven, price realistic ($7 low / $17-27 mid / $37-97 high), description compelling HTML.',
@@ -8147,25 +8242,32 @@ async function runMission(idx, auto){
   if (!ready) { toast('Add API key in ⚙ first'); openCfg(); return; }
   if (msBusy) { toast('A mission is already running'); return; }
   msBusy = true;
-  jvLog('mission', (auto?'autopilot: ':'')+m.t);
+  try { await missionExec(m, null, auto ? 'autopilot' : ''); } catch(e) { toast('⚠ ' + e.message); }
+  msBusy = false;
+}
+
+// the core executor — shared by single runs, pipelines and the batch queue
+async function missionExec(m, ctx, label){
+  jvLog('mission', (label?label+': ':'')+m.t);
   const card = document.getElementById('ms-out-card'), out = document.getElementById('ms-out'), title = document.getElementById('ms-out-title');
-  card.style.display = ''; title.textContent = '⏳ ' + m.i + ' ' + m.t + ' — Bam is working…';
+  const head = (label ? label.toUpperCase() + ' · ' : '') + m.i + ' ' + m.t;
+  card.style.display = ''; title.textContent = '⏳ ' + head + ' — Bam is working…';
   out.innerHTML = '<span class="cur"></span>';
   card.scrollIntoView({behavior:'smooth', block:'start'});
   try {
-    const p = missionPrompt(m);
+    const p = missionPrompt(m, ctx);
     let full = await callAPIWithPrompt(p.sys, [{role:'user', content:p.user}], t => { out.innerHTML = fmt(t)+'<span class="cur"></span>'; }, {smart:true});
     // strip the machine blocks from what the human reads
     const prod = parseProductBlock(full);
     const blastM = full.match(/\[BLAST\]([\s\S]*?)\[\/BLAST\]/i);
     const clean = full.replace(/\[PRODUCT\][\s\S]*?\[\/PRODUCT\]/gi,'').replace(/\[BLAST\][\s\S]*?\[\/BLAST\]/gi,'').trim();
     out.innerHTML = fmt(clean);
-    title.textContent = '📦 ' + m.i + ' ' + m.t + ' — done';
+    title.textContent = '📦 ' + head + ' — done';
     msLastOut = { t:m.t, text: clean };
     // products: auto-save locally to the Offer Vault (reversible), queue the external steps
     if (m.k === 'product' && prod && prod.name) {
-      vault.unshift({ name:prod.name, price:Number(prod.price)||0, type:'Mission', niche:getNiche(), link:'', stage:0, date:Date.now(), id:Date.now() });
-      saveVaultData(); renderVault();
+      vault.unshift({ name:prod.name, price:Number(prod.price)||0, type:'Mission', mission:m.t, niche:getNiche(), link:'', stage:0, date:Date.now(), id:Date.now() });
+      saveVaultData(); renderVault(); renderScoreboard();
       queueApproval({ type:'gumroad', mission:m.t, title:prod.name, price:Number(prod.price)||0,
         desc: String(prod.description||'').slice(0,4000), body: clean.slice(0,60000) });
       queueApproval({ type:'blast', mission:m.t,
@@ -8174,8 +8276,107 @@ async function runMission(idx, auto){
     if (blastM) queueApproval({ type:'blast', mission:m.t, text: blastM[1].trim().slice(0,1500) });
     sfx('recv');
     toast(m.k==='product' ? '✓ Product built + vaulted — approvals waiting' : '✓ Mission complete');
-  } catch(e) { out.textContent = '⚠ ' + e.message; title.textContent = '📦 ' + m.t + ' — failed'; }
+    return { clean, prod };
+  } catch(e) { out.textContent = '⚠ ' + e.message; title.textContent = '📦 ' + m.t + ' — failed'; throw e; }
+}
+
+// ── 🏆 SCOREBOARD — revenue per mission-built product, feeding autopilot ──
+function missionPerformance(){
+  const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  return (vault||[]).filter(v => v.mission).map(v => ({
+    mission: v.mission, product: v.name,
+    rev: (sales||[]).filter(s => norm(s.prod) === norm(v.name)).reduce((a,s)=>a+s.amt,0)
+  }));
+}
+function renderScoreboard(){
+  const el = document.getElementById('ms-score'), card = document.getElementById('ms-score-card');
+  if (!el || !card) return;
+  const perf = missionPerformance();
+  if (!perf.length){ card.style.display='none'; return; }
+  card.style.display = '';
+  el.innerHTML = perf.slice().sort((a,b)=>b.rev-a.rev).slice(0,6).map(p =>
+    `<div class="nx-row"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escH(p.product)} <span style="color:var(--text-d);font-size:9px">· ${escH(p.mission)}</span></span>
+     <span class="nx-badge ${p.rev>0?'on':'plan'}">${p.rev>0?'$'+p.rev.toFixed(0):'no sales'}</span></div>`).join('');
+}
+
+// ── ⛓ PIPELINES — chained missions with shared context, one tap ──
+const PIPELINES = [
+  { i:'🚀', t:'Full Product Launch', d:'Autopilot builds the best product → writes its sales page → launch emails → promo blasts queued',
+    steps:['@product','@salespage','Launch Sequence'] },
+  { i:'📣', t:'Content Week', d:'7 faceless shorts + 10 threads + a cross-platform blitz pushing your latest offer',
+    steps:['7 Faceless Shorts','10 Viral Threads','Cross-Platform Blitz'] },
+  { i:'🤝', t:'Client Hunter', d:'Optimized gig listings → cold email campaign → a ready-to-send proposal',
+    steps:['5 Optimized Gig Listings','Cold Email Campaign','Freelance Proposal'] },
+];
+function renderPipelines(){
+  const el = document.getElementById('ms-pipes');
+  if (!el || el.dataset.built) return;
+  el.dataset.built = '1';
+  el.innerHTML = PIPELINES.map((p,i) =>
+    `<div class="ms-row"><span class="ms-ic">${p.i}</span>
+      <div class="ms-t"><div class="ms-name">${escH(p.t)} <span style="color:var(--text-d);font-weight:normal;font-size:9px">· ${p.steps.length} steps</span></div><div class="ms-desc">${escH(p.d)}</div></div>
+      <button class="ms-run" onclick="runPipeline(${i})">▶ RUN</button></div>`).join('');
+}
+async function runPipeline(pi){
+  const P = PIPELINES[pi]; if (!P) return;
+  const ready = cfg.apiUrl || (cfg.provider==='ollama' ? cfg.url : cfg.apikey);
+  if (!ready) { toast('Add API key in ⚙ first'); openCfg(); return; }
+  if (msBusy) { toast('A mission is already running'); return; }
+  msBusy = true;
+  jvLog('pipeline', P.t);
+  let ctx = null;
+  try {
+    for (let s = 0; s < P.steps.length; s++){
+      const name = P.steps[s];
+      let m;
+      if (name === '@product') m = MISSIONS[await autopilotPick(19)];                    // best sellable asset
+      else if (name === '@salespage') m = { i:'📝', k:'content', t:'Sales Page' + (ctx&&ctx.prod?' for '+ctx.prod.name:''), d:'a complete direct-response sales page: headline, pain, story, bullets, price justification, guarantee, FAQ, CTA' };
+      else m = MISSIONS.find(x => x.t === name) || { i:'📝', k:'content', t:name, d:name };
+      const r = await missionExec(m, ctx, 'pipeline ' + (s+1) + '/' + P.steps.length);
+      if (r && r.prod) ctx = { prod: r.prod };
+    }
+    toast('🏁 Pipeline complete — review the approval queue');
+    if (voiceOut) speak('Pipeline complete, ' + (cfg.name||'Commander') + '. The approval queue is waiting.');
+  } catch(e) { toast('⚠ Pipeline stopped: ' + e.message); }
   msBusy = false;
+}
+
+// ── 🌙 BATCH QUEUE — stack missions, run them back-to-back (overnight-friendly) ──
+let msBatch = [];
+try { msBatch = JSON.parse(localStorage.getItem('jv-batch')||'[]'); } catch(e){ msBatch = []; }
+function saveBatch(){ try { localStorage.setItem('jv-batch', JSON.stringify(msBatch)); } catch(e){} }
+function batchAdd(i){
+  if (msBatch.includes(i)) { toast('Already queued'); return; }
+  msBatch.push(i); saveBatch(); renderBatch();
+  toast('🌙 Queued: ' + MISSIONS[i].t + ' (' + msBatch.length + ' in batch)');
+}
+function batchClear(){ msBatch = []; saveBatch(); renderBatch(); }
+function renderBatch(){
+  const card = document.getElementById('ms-batch-card'), n = document.getElementById('ms-batch-n'), list = document.getElementById('ms-batch-list');
+  if (!card) return;
+  if (!msBatch.length){ card.style.display='none'; return; }
+  card.style.display = '';
+  if (n) n.textContent = msBatch.length;
+  if (list) list.textContent = msBatch.map(i => MISSIONS[i] ? MISSIONS[i].t : '').filter(Boolean).join(' → ');
+}
+async function runBatch(){
+  const ready = cfg.apiUrl || (cfg.provider==='ollama' ? cfg.url : cfg.apikey);
+  if (!ready) { toast('Add API key in ⚙ first'); openCfg(); return; }
+  if (msBusy) { toast('A mission is already running'); return; }
+  if (!msBatch.length) return;
+  msBusy = true;
+  const list = msBatch.slice();
+  msBatch = []; saveBatch(); renderBatch();
+  jvLog('batch', list.length + ' missions');
+  let done = 0;
+  for (let k = 0; k < list.length; k++){
+    const m = MISSIONS[list[k]]; if (!m) continue;
+    try { await missionExec(m, null, 'batch ' + (k+1) + '/' + list.length); done++; }
+    catch(e){ if (/limit reached/i.test(e.message)) { toast(e.message); break; } }   // spend guard stops the train
+  }
+  msBusy = false;
+  toast('🌙 Batch finished — ' + done + '/' + list.length + ' missions done. Review approvals.');
+  if (voiceOut) speak('Batch run finished, ' + (cfg.name||'Commander') + '. ' + done + ' missions completed.');
 }
 
 function msDownload(){
@@ -8188,25 +8389,137 @@ function msDownload(){
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 3000);
 }
 
-// 🤖 AUTOPILOT — Bam picks the highest-leverage mission for the niche, then runs it
+// 🤖 AUTOPILOT — Bam picks the highest-leverage mission, informed by real revenue data
+async function autopilotPick(maxIdx){
+  const limit = (maxIdx != null) ? Math.min(maxIdx, MISSIONS.length-1) : MISSIONS.length-1;
+  let pick = -1;
+  try {
+    const list = MISSIONS.slice(0, limit+1).map((m,i)=>i+' '+m.t+' — '+m.d).join('\n');
+    const totalRev = (sales||[]).reduce((a,s)=>a+s.amt,0);
+    // the scoreboard makes this a feedback loop: double down on what earns, kill what doesn't
+    const perf = missionPerformance();
+    const winners = perf.filter(p=>p.rev>0).sort((a,b)=>b.rev-a.rev).slice(0,5).map(p=>`"${p.product}" via ${p.mission} → $${p.rev.toFixed(0)}`).join('; ');
+    const duds = perf.filter(p=>p.rev===0).slice(0,6).map(p=>p.mission).join('; ');
+    const ans = await callAPIWithPrompt('You pick the single highest-leverage money mission. Double down on mission types that already produced revenue; avoid repeating types that produced products with zero sales unless nothing has sold yet. Reply with ONLY the number.',
+      [{role:'user',content:`Niche: ${getNiche()||'not set — pick something broadly sellable'}. Goal $${(cfg.goal||0)}/mo, revenue so far $${totalRev.toFixed(0)}, offers in vault: ${vault.length}.`
+        + (winners ? `\nPROVEN EARNERS: ${winners}.` : '') + (duds ? `\nZERO-SALE SO FAR: ${duds}.` : '')
+        + `\nMissions:\n${list}`}], ()=>{});
+    pick = parseInt((ans.match(/\d+/)||[])[0]);
+  } catch(e){}
+  if (!(pick >= 0 && pick <= limit)) pick = Math.floor(Math.random()*Math.min(20, limit+1));   // fallback: any product play
+  return pick;
+}
 async function runAutopilot(){
   const ready = cfg.apiUrl || (cfg.provider==='ollama' ? cfg.url : cfg.apikey);
   if (!ready) { toast('Add API key in ⚙ first'); openCfg(); return; }
   if (msBusy) { toast('A mission is already running'); return; }
   const btn = document.getElementById('ap-btn');
   if (btn){ btn.disabled = true; btn.textContent = '🤖 CHOOSING THE BEST MISSION…'; }
-  let pick = -1;
-  try {
-    const list = MISSIONS.map((m,i)=>i+' '+m.t+' — '+m.d).join('\n');
-    const totalRev = (sales||[]).reduce((a,s)=>a+s.amt,0);
-    const ans = await callAPIWithPrompt('You pick the single highest-leverage money mission. Reply with ONLY its number.',
-      [{role:'user',content:`Niche: ${getNiche()||'not set — pick something broadly sellable'}. Goal $${cfg.goal||0}/mo, revenue so far $${totalRev.toFixed(0)}, offers in vault: ${vault.length}. Missions:\n${list}`}], ()=>{});
-    pick = parseInt((ans.match(/\d+/)||[])[0]);
-  } catch(e){}
-  if (!(pick >= 0 && pick < MISSIONS.length)) pick = Math.floor(Math.random()*20);   // fallback: any product play
+  const pick = await autopilotPick();
   if (btn){ btn.disabled = false; btn.textContent = '🤖 AUTOPILOT — PICK & RUN THE BEST MISSION'; }
   toast('🤖 Autopilot chose: ' + MISSIONS[pick].t);
   runMission(pick, true);
+}
+
+// ═══════════════════════════════════════════════
+// 👥 AUDIENCE — the email list you own (buyers synced from Gumroad, campaigns via your mail app)
+// ═══════════════════════════════════════════════
+let audience = [];
+function loadAudience(){ try { audience = JSON.parse(localStorage.getItem('jv-audience')||'[]'); } catch(e){ audience = []; } }
+function saveAudience(){ try { localStorage.setItem('jv-audience', JSON.stringify(audience.slice(0,2000))); } catch(e){} }
+
+function audAddEntry(email, name, src){
+  email = String(email||'').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return false;
+  if (audience.some(a => a.email === email)) return false;
+  audience.unshift({ email, name: String(name||'').slice(0,80), src: src||'manual', date: Date.now() });
+  return true;
+}
+
+function audImport(){
+  if (!cfg.gumKey){ toast('Add your Gumroad token in ⚙ first'); openCfg(); return; }
+  toast('Pulling buyers from Gumroad…');
+  JARVIS_CORE.fetchGumroad(cfg.gumKey).then(r => {
+    if (!r || !r.ok){ toast('⚠ Gumroad: ' + ((r&&r.error)||'failed')); return; }
+    window._gumOrders = r.orders || [];
+    let added = 0;
+    (r.orders||[]).forEach(o => { if (o.email && audAddEntry(o.email, '', 'gumroad · ' + (o.product||''))) added++; });
+    if (added){ saveAudience(); jvLog('sync', 'audience: +' + added + ' buyers'); }
+    renderAudience();
+    toast(added ? '✓ ' + added + ' buyer' + (added>1?'s':'') + ' added to your list' : 'No new buyer emails found');
+  }).catch(e => toast('⚠ ' + e.message));
+}
+
+function audAdd(){
+  const inp = document.getElementById('aud-email');
+  if (!audAddEntry(inp.value, '', 'manual')){ toast('Enter a valid new email'); return; }
+  saveAudience(); renderAudience();
+  inp.value = '';
+  toast('✓ Added to your list');
+}
+
+function audDel(email){
+  audience = audience.filter(a => a.email !== email);
+  saveAudience(); renderAudience();
+}
+
+function audCSV(){
+  if (!audience.length){ toast('No contacts yet'); return; }
+  const csv = 'email,name,source,date\n' + audience.map(a =>
+    `${a.email},"${String(a.name||'').replace(/"/g,'""')}","${String(a.src||'').replace(/"/g,'""')}",${new Date(a.date).toISOString().slice(0,10)}`).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'bam-audience-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+  jvLog('export', 'audience csv (' + audience.length + ')');
+}
+
+function renderAudience(){
+  const cnt = document.getElementById('aud-count'), list = document.getElementById('aud-list');
+  if (cnt) cnt.textContent = audience.length;
+  if (!list) return;
+  list.innerHTML = audience.length
+    ? audience.slice(0,200).map(a => `<div class="sale-item"><div>
+        <div style="font-size:12px;color:var(--text)">${escH(a.email)}</div>
+        <div class="sale-item-date">${escH(a.src)} · ${new Date(a.date).toLocaleDateString()}</div></div>
+        <button class="sale-del" onclick="audDel('${escH(a.email)}')">✕</button></div>`).join('')
+    : '<div class="ideas-empty">No contacts yet.<br>Import your Gumroad buyers or add emails manually.</div>';
+}
+
+let audLastCampaign = null;
+async function audCampaign(){
+  const topic = (document.getElementById('aud-topic')?.value||'').trim();
+  if (!topic){ toast('Say what the email is about first'); return; }
+  const sys = 'You write high-converting broadcast emails for a small list. Output EXACTLY this format:\nSUBJECT: <the subject line>\n\n<the email body — personal tone, short paragraphs, one clear CTA, under 220 words, plain text only>';
+  await toolGen('aud-out','aud-btn','aud-copy', sys,
+    `Write a broadcast email about: ${topic}. Niche: ${getNiche()||'digital products'}. From: ${cfg.name||'me'}.` + (cfg.style?` My voice: ${cfg.style}`:''));
+  const raw = document.getElementById('aud-out')?.innerText || '';
+  const m = raw.match(/SUBJECT:\s*(.+)/i);
+  audLastCampaign = { subject: m ? m[1].trim() : (getNiche()||'Update'), body: raw.replace(/SUBJECT:.*\n?/i,'').trim() };
+  const mailBtn = document.getElementById('aud-mail');
+  if (mailBtn) mailBtn.style.display = audience.length ? '' : 'none';
+}
+
+// send through YOUR mail app — BCC batches of 30 (mailto has URL length limits)
+let audMailIdx = 0;
+function audMailto(){
+  if (!audLastCampaign){ toast('Write the campaign first'); return; }
+  if (!audience.length){ toast('No contacts on the list yet'); return; }
+  const batches = [];
+  for (let i = 0; i < audience.length; i += 30) batches.push(audience.slice(i, i+30).map(a=>a.email));
+  if (audMailIdx >= batches.length) audMailIdx = 0;
+  const bcc = batches[audMailIdx].join(',');
+  location.href = 'mailto:?bcc=' + encodeURIComponent(bcc)
+    + '&subject=' + encodeURIComponent(audLastCampaign.subject)
+    + '&body=' + encodeURIComponent(audLastCampaign.body.slice(0,1500));
+  jvLog('send', 'campaign mailto batch ' + (audMailIdx+1) + '/' + batches.length);
+  audMailIdx++;
+  const btn = document.getElementById('aud-mail');
+  if (btn) btn.textContent = audMailIdx < batches.length
+    ? '📧 NEXT BATCH (' + (audMailIdx+1) + '/' + batches.length + ')'
+    : '📧 OPEN IN MAIL APP (BCC)';
+  if (audMailIdx >= batches.length) audMailIdx = 0;
 }
 
 // ── APPROVAL QUEUE — the human firewall in front of every external action ──
