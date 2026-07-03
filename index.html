@@ -369,6 +369,31 @@ textarea.inp::placeholder{color:rgba(190,150,160,.2)}
 .tool-check input{width:auto;margin:0}
 .copy-out-btn{margin-top:8px;padding:6px 14px;background:var(--gold-d);border:1px solid var(--gold-b);border-radius:5px;color:var(--gold);font-family:inherit;font-size:9px;letter-spacing:2px;cursor:pointer}
 
+/* ── MONEY MISSIONS ── */
+.ms-cat{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin:14px 0 7px;font-weight:bold}
+.ms-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--red-b);border-radius:8px;padding:9px 11px;margin-bottom:6px;border-left:2px solid transparent;transition:all .15s}
+.ms-row:hover{border-left-color:var(--gold)}
+.ms-ic{font-size:15px;flex-shrink:0}
+.ms-t{flex:1;min-width:0}
+.ms-name{font-size:12px;color:var(--text);font-weight:bold;letter-spacing:.5px}
+.ms-desc{font-size:10px;color:var(--text-d);line-height:1.45;margin-top:1px}
+.ms-run{flex-shrink:0;padding:7px 13px;background:var(--gold-d);border:1px solid var(--gold-b);border-radius:6px;color:var(--gold);font-family:inherit;font-size:9px;font-weight:bold;letter-spacing:2px;cursor:pointer;transition:all .15s}
+.ms-run:hover{background:rgba(138,104,0,.28)}
+.ms-run:disabled{opacity:.35;cursor:default}
+.appr-item{background:rgba(20,14,0,.55);border:1px solid rgba(150,110,0,.4);border-radius:9px;padding:10px 12px;border-left:3px solid #e0b23c}
+.appr-hdr{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.appr-type{font-size:8px;letter-spacing:2px;font-weight:bold;padding:2px 8px;border-radius:4px;text-transform:uppercase}
+.appr-type.gumroad{background:rgba(255,144,232,.14);color:#ff90e8;border:1px solid rgba(255,144,232,.35)}
+.appr-type.blast{background:rgba(0,136,204,.14);color:#54b9e8;border:1px solid rgba(0,136,204,.3)}
+.appr-mission{font-size:10px;color:var(--text-d);letter-spacing:.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.appr-preview{font-size:11px;color:var(--text);line-height:1.5;max-height:76px;overflow-y:auto;background:rgba(0,0,0,.35);border-radius:6px;padding:7px 9px;margin:6px 0}
+.appr-actions{display:flex;gap:6px;flex-wrap:wrap}
+.appr-actions button{padding:7px 12px;border-radius:6px;font-family:inherit;font-size:9px;font-weight:bold;letter-spacing:1.5px;cursor:pointer;border:1px solid}
+.appr-ok{background:rgba(20,140,70,.2);color:#5fd38a;border-color:rgba(20,140,70,.5)}
+.appr-no{background:none;color:rgba(200,120,120,.7);border-color:rgba(150,50,50,.35)}
+.appr-done{font-size:10px;color:#5fd38a;letter-spacing:1px}
+.appr-item.resolved{opacity:.5;border-left-color:rgba(120,120,120,.4)}
+
 /* ── HOOK LIBRARY ── */
 .hook-cat-title{font-size:9px;letter-spacing:3px;text-transform:uppercase;margin:4px 0 2px;font-weight:bold}
 .hook-item{background:var(--panel);border:1px solid var(--red-b);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.5;color:var(--text);cursor:pointer;transition:all .15s;border-left:2px solid transparent}
@@ -1861,6 +1886,30 @@ strong{color:#e8d4b0}
       <div class="tool-content" id="hooks-list"></div>
     </div>
 
+    <!-- ═══ MONEY · 50 MONEY MISSIONS (autonomous + approval-gated) ═══ -->
+    <div class="panel" id="p-missions">
+      <div class="tool-content">
+        <div class="tool-card" style="border-left-color:var(--gold)">
+          <div class="tool-title" style="color:var(--gold)">🚀 Money Missions — 50 digital plays</div>
+          <div class="tool-sub">Bam runs any mission end-to-end on his own: research, write, package, price. Finished products save to your Offer Vault automatically — but <strong>nothing leaves this device without your approval</strong>. Publishing to Gumroad and sending blasts wait in the queue below.</div>
+          <button class="tool-go" id="ap-btn" style="background:linear-gradient(135deg,#8a6800,#4a3800)" onclick="runAutopilot()">🤖 AUTOPILOT — PICK &amp; RUN THE BEST MISSION</button>
+        </div>
+        <div class="tool-card" id="ms-appr-card" style="display:none;border-left-color:#e0b23c">
+          <div class="tool-title" style="color:#e0b23c">🔔 Approval Queue — <span id="ms-appr-count">0</span> waiting</div>
+          <div id="ms-approvals" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+        <div class="tool-card" id="ms-out-card" style="display:none">
+          <div class="tool-title" id="ms-out-title">📦 Mission Output</div>
+          <div class="tool-out" id="ms-out" style="display:block"></div>
+          <div style="display:flex;gap:7px">
+            <button class="copy-out-btn" onclick="cpTxt(document.getElementById('ms-out').innerText)">⧉ COPY</button>
+            <button class="copy-out-btn" onclick="msDownload()">⬇ EXPORT .MD</button>
+          </div>
+        </div>
+        <div id="ms-list"></div>
+      </div>
+    </div>
+
     <!-- ═══ MONEY · INCOME DASHBOARD ═══ -->
     <div class="panel" id="p-sales">
       <div class="sales-content">
@@ -2222,6 +2271,7 @@ function init() {
   setChartRange(chartDays);
   loadBlastLog(); renderBlastLog();
   loadScans();
+  loadApprovals(); renderApprovals();
   initAttach();
   // spend-guard every direct core AI call too (academy, lessons, fact-extraction…)
   if (window.JARVIS_CORE && !JARVIS_CORE._guarded) {
@@ -4313,7 +4363,7 @@ function pushConvo(agent, role, content) {
 const CATEGORIES = {
   agents: [{tab:'jarvis',label:'Bam'}],
   hustle: [{tab:'scripts',label:'⚡ Scripts'},{tab:'repurpose',label:'♻ Repurpose'},{tab:'hooks',label:'🪝 Hooks'}],
-  money:  [{tab:'sales',label:'💸 Income'},{tab:'vault',label:'🗃 Offers'},{tab:'planner',label:'🎯 Planner'}],
+  money:  [{tab:'missions',label:'🚀 Missions'},{tab:'sales',label:'💸 Income'},{tab:'vault',label:'🗃 Offers'},{tab:'planner',label:'🎯 Planner'}],
   tools:  [{tab:'blast',label:'📣 Blast'},{tab:'salespage',label:'📝 Sales Page'},{tab:'proposal',label:'🤝 Proposal'},{tab:'spy',label:'🕵 Spy'}],
 };
 let currentCat = 'agents';
@@ -4367,6 +4417,7 @@ function switchTab(t) {
   if (t === 'planner') renderPlanner();
   if (t === 'hooks') renderHooks();
   if (t === 'spy') renderScans();
+  if (t === 'missions') { renderMissions(); renderApprovals(); }
 }
 
 // ═══════════════════════════════════════════════
@@ -7987,6 +8038,248 @@ function renderPlanner() {
     <div class="sale-stat"><div class="sale-stat-v">${views.toLocaleString()}</div><div class="sale-stat-l">Views / mo</div></div>`;
   if (note) note.textContent =
     `That's ~${Math.ceil(salesNeeded/30)} sale${salesNeeded>30?'s':''}/day, ${Math.ceil(leads/30).toLocaleString()} leads/day and ${Math.ceil(views/30).toLocaleString()} views/day at $${price} with ${(conv*100).toFixed(1)}% conversion and ${(ctr*100).toFixed(1)}% click-through.`;
+}
+
+// ═══════════════════════════════════════════════
+// 🚀 MONEY MISSIONS — 50 digital income plays.
+// Bam executes each end-to-end by himself; anything that leaves the
+// device (Gumroad publish, Telegram/Discord sends) waits for approval.
+// k: 'product' → sellable asset (auto-vaulted, Gumroad on approval)
+//    'content' → finished deliverable (copy/export)
+// blast:true  → also queues a promo blast for approval
+// ═══════════════════════════════════════════════
+const MISSIONS = [
+  // ── PRODUCTS — sellable digital assets ──
+  {i:'📕',c:'PRODUCTS',k:'product',t:'Niche Ebook',d:'A complete 25–30 page ebook: title, every chapter written, sales angle'},
+  {i:'🗂',c:'PRODUCTS',k:'product',t:'Notion Template Pack',d:'5 Notion templates — full structures, properties and a setup guide'},
+  {i:'🧠',c:'PRODUCTS',k:'product',t:'AI Prompt Pack',d:'100 tested prompts for the niche, organized by outcome'},
+  {i:'✅',c:'PRODUCTS',k:'product',t:'Checklist Bundle',d:'10 printable checklists that each solve one painful problem'},
+  {i:'📓',c:'PRODUCTS',k:'product',t:'30-Day Workbook',d:'A day-by-day guided workbook with exercises and trackers'},
+  {i:'✉️',c:'PRODUCTS',k:'product',t:'Email Swipe File',d:'50 fill-in-the-blank emails: sales, launch, nurture, win-back'},
+  {i:'📱',c:'PRODUCTS',k:'product',t:'Caption + Hashtag Pack',d:'200 captions with hashtag sets, sorted by post type'},
+  {i:'🗓',c:'PRODUCTS',k:'product',t:'Digital Planner',d:'A printable planner: page layouts, trackers, habit systems'},
+  {i:'📄',c:'PRODUCTS',k:'product',t:'Resume + Cover Kit',d:'ATS-safe resume and cover-letter templates + interview cheat sheet'},
+  {i:'📆',c:'PRODUCTS',k:'product',t:'90-Day Content Calendar',d:'Every post planned: hooks, formats and CTAs for 90 days'},
+  {i:'🎬',c:'PRODUCTS',k:'product',t:'50 Viral Scripts Pack',d:'50 word-for-word short-form scripts, sorted by goal'},
+  {i:'💬',c:'PRODUCTS',k:'product',t:'Cold DM Playbook',d:'Outreach scripts and follow-up trees that book calls'},
+  {i:'🛒',c:'PRODUCTS',k:'product',t:'Sales Page Skeletons',d:'5 proven sales-page templates with fill-in prompts'},
+  {i:'📊',c:'PRODUCTS',k:'product',t:'Budget Tracker System',d:'A spreadsheet money system: sheets, formulas, setup guide'},
+  {i:'🏋️',c:'PRODUCTS',k:'product',t:'30-Day Niche Plan',d:'A structured 30-day transformation plan for the niche'},
+  {i:'🎓',c:'PRODUCTS',k:'product',t:'Cheat-Sheet Pack',d:'Dense one-page cheat sheets beginners happily pay for'},
+  {i:'🧲',c:'PRODUCTS',k:'product',t:'Lead Magnet + $7 Tripwire',d:'A free magnet plus a $7 tripwire that upsells your main offer'},
+  {i:'🏫',c:'PRODUCTS',k:'product',t:'Mini-Course (5 lessons)',d:'A sellable 5-lesson course: full lesson text + worksheets'},
+  {i:'❓',c:'PRODUCTS',k:'product',t:'Quiz Funnel Pack',d:'A niche quiz + results pages that route people to your offer'},
+  {i:'🗣',c:'PRODUCTS',k:'product',t:'Close-a-Client Kit',d:'Discovery-call scripts, objection answers, close lines'},
+  // ── CONTENT — audience builders that drive traffic to offers ──
+  {i:'🧵',c:'CONTENT',k:'content',t:'10 Viral Threads',d:'Ten complete X/Twitter threads engineered to grow + funnel'},
+  {i:'📅',c:'CONTENT',k:'content',t:'30-Day Content Plan',d:'A month of daily posts mapped to one product push'},
+  {i:'📹',c:'CONTENT',k:'content',t:'YouTube Video Package',d:'Full script, 5 titles, thumbnail text, description, tags'},
+  {i:'📲',c:'CONTENT',k:'content',t:'7 Faceless Shorts',d:'A week of faceless short scripts with b-roll cues'},
+  {i:'🔎',c:'CONTENT',k:'content',t:'SEO Blog Post',d:'A 1500-word ranked-to-sell article with affiliate slots'},
+  {i:'📰',c:'CONTENT',k:'content',t:'Newsletter Issue + Bribe',d:'One polished issue plus an opt-in bribe to grow the list'},
+  {i:'🎠',c:'CONTENT',k:'content',t:'10 IG Carousels',d:'Ten carousel posts: slide-by-slide text + design notes'},
+  {i:'📌',c:'CONTENT',k:'content',t:'Pinterest Pin Batch',d:'20 pin titles + descriptions targeting buyer searches'},
+  {i:'👽',c:'CONTENT',k:'content',t:'Reddit Value Plan',d:'5 genuinely useful posts for niche subreddits (no spam) that build authority'},
+  {i:'🎙',c:'CONTENT',k:'content',t:'Podcast Episode Kit',d:'A full episode script + show notes + 5 clip moments'},
+  // ── CLIENTS — service money ──
+  {i:'🤝',c:'CLIENTS',k:'content',t:'Freelance Proposal',d:'A ready-to-send proposal for a service in your niche'},
+  {i:'📧',c:'CLIENTS',k:'content',t:'Cold Email Campaign',d:'A 25-prospect outreach campaign: 3-touch sequence + targeting list criteria'},
+  {i:'🏪',c:'CLIENTS',k:'content',t:'Local-Biz Website Copy',d:'Complete website copy package you can sell to a local business'},
+  {i:'📣',c:'CLIENTS',k:'content',t:'SMM Package Pitch',d:'A social-media management offer: deliverables, pricing, pitch'},
+  {i:'✍️',c:'CLIENTS',k:'content',t:'Ghostwriting Sample + Pitch',d:'A spec sample plus the DM/email pitch to land the client'},
+  {i:'🧰',c:'CLIENTS',k:'content',t:'5 Optimized Gig Listings',d:'Fiverr/Upwork gigs: titles, descriptions, packages, pricing'},
+  {i:'🔬',c:'CLIENTS',k:'content',t:'Sellable Audit Template',d:'A social/SEO audit template you deliver as a paid service'},
+  {i:'🗓',c:'CLIENTS',k:'content',t:'Consulting Offer Kit',d:'A 1-hour session framework, pricing and booking pitch'},
+  {i:'🎥',c:'CLIENTS',k:'content',t:'UGC Pitch + 5 Ad Scripts',d:'A UGC creator pitch plus five ready ad scripts for brands'},
+  {i:'📈',c:'CLIENTS',k:'content',t:'Email Setup Package',d:'A done-for-you email marketing setup offer: scope + pitch'},
+  // ── MARKETING — monetization pushes on what you already have ──
+  {i:'🚀',c:'MARKETING',k:'content',blast:true,t:'Launch Sequence',d:'A 5-email launch sequence + announcement blast'},
+  {i:'⭐',c:'MARKETING',k:'content',t:'Affiliate Review Article',d:'A conversion-focused review of a product with your link slots'},
+  {i:'🎁',c:'MARKETING',k:'product',t:'Bundle Your Vault',d:'Packages your existing offers into one premium bundle'},
+  {i:'⚡',c:'MARKETING',k:'content',blast:true,t:'48h Flash Sale',d:'Flash-sale page copy + countdown blasts for both channels'},
+  {i:'➕',c:'MARKETING',k:'content',t:'Upsell + Order Bump Copy',d:'Upsell page and order-bump copy for an existing product'},
+  {i:'🪜',c:'MARKETING',k:'content',t:'Value Ladder Map',d:'Your full offer ladder: free → $7 → $27 → $97 with copy angles'},
+  {i:'💬',c:'MARKETING',k:'content',t:'Social-Proof Kit',d:'Testimonial capture questions + proof-post templates'},
+  {i:'🏷',c:'MARKETING',k:'content',t:'Listing Relaunch Rewrite',d:'Rewrites an existing product listing with price anchoring'},
+  {i:'📡',c:'MARKETING',k:'content',blast:true,t:'Cross-Platform Blitz',d:'One promo rewritten for every channel + blasts queued'},
+  {i:'🕵',c:'MARKETING',k:'product',t:'Competitor Gap Product',d:'Finds a competitor\'s weakness and builds the counter-product'},
+];
+
+let approvals = [], msBusy = false, msLastOut = null;
+
+function loadApprovals(){ try { approvals = JSON.parse(localStorage.getItem('jv-approvals')||'[]'); } catch(e){ approvals = []; } }
+function saveApprovals(){ try { localStorage.setItem('jv-approvals', JSON.stringify(approvals.slice(0,30))); } catch(e){} }
+
+function renderMissions(){
+  const el = document.getElementById('ms-list');
+  if (!el || el.dataset.built) return;
+  el.dataset.built = '1';
+  let html = '';
+  let cat = '';
+  const catLabels = { PRODUCTS:'📦 Products — sellable assets', CONTENT:'📣 Content — grow the audience', CLIENTS:'🤝 Clients — service money', MARKETING:'📈 Marketing — squeeze what you have' };
+  MISSIONS.forEach((m,i)=>{
+    if (m.c !== cat){ cat = m.c; html += `<div class="ms-cat">${catLabels[cat]||cat}</div>`; }
+    html += `<div class="ms-row"><span class="ms-ic">${m.i}</span>
+      <div class="ms-t"><div class="ms-name">${escH(m.t)}</div><div class="ms-desc">${escH(m.d)}</div></div>
+      <button class="ms-run" onclick="runMission(${i})">▶ RUN</button></div>`;
+  });
+  el.innerHTML = html;
+}
+
+// mission prompts — one generic runner, specialized by kind
+function missionPrompt(m){
+  const niche = getNiche() || 'digital products / making money online';
+  const base = `MISSION: ${m.t} — ${m.d}.\nNiche: ${niche}. Creator: ${cfg.name||'Commander'}${cfg.identity?' ('+cfg.identity+')':''}. Income goal: $${(cfg.goal||0).toLocaleString()}/mo.` +
+    (cfg.style ? `\nWrite in this voice: ${cfg.style}` : '') +
+    (m.t==='Bundle Your Vault' && vault.length ? `\nExisting offers to bundle: ${vault.slice(0,8).map(v=>v.name+(v.price?' ($'+v.price+')':'')).join('; ')}.` : '');
+  if (m.k === 'product') return {
+    sys: 'You are Bam in product-factory mode. Produce the COMPLETE, finished, sellable digital product — full content, not an outline, no placeholders. After the product, append exactly one block: [PRODUCT]{"name":"","price":0,"description":"<p>…</p>","tags":""}[/PRODUCT] — name specific and benefit-driven, price realistic ($7 low / $17-27 mid / $37-97 high), description compelling HTML.',
+    user: base + '\n\nBuild the entire product now, ready to sell today.' };
+  return {
+    sys: 'You are Bam in execution mode. Deliver the finished work directly — complete, specific, ready to use, no meta-commentary.' +
+      (m.blast ? ' After the deliverable, append exactly one block: [BLAST]a punchy broadcast message under 110 words with one clear CTA[/BLAST].' : ''),
+    user: base + '\n\nExecute the full mission now.' };
+}
+
+async function runMission(idx, auto){
+  const m = MISSIONS[idx]; if (!m) return;
+  const ready = cfg.apiUrl || (cfg.provider==='ollama' ? cfg.url : cfg.apikey);
+  if (!ready) { toast('Add API key in ⚙ first'); openCfg(); return; }
+  if (msBusy) { toast('A mission is already running'); return; }
+  msBusy = true;
+  jvLog('mission', (auto?'autopilot: ':'')+m.t);
+  const card = document.getElementById('ms-out-card'), out = document.getElementById('ms-out'), title = document.getElementById('ms-out-title');
+  card.style.display = ''; title.textContent = '⏳ ' + m.i + ' ' + m.t + ' — Bam is working…';
+  out.innerHTML = '<span class="cur"></span>';
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+  try {
+    const p = missionPrompt(m);
+    let full = await callAPIWithPrompt(p.sys, [{role:'user', content:p.user}], t => { out.innerHTML = fmt(t)+'<span class="cur"></span>'; }, {smart:true});
+    // strip the machine blocks from what the human reads
+    const prod = parseProductBlock(full);
+    const blastM = full.match(/\[BLAST\]([\s\S]*?)\[\/BLAST\]/i);
+    const clean = full.replace(/\[PRODUCT\][\s\S]*?\[\/PRODUCT\]/gi,'').replace(/\[BLAST\][\s\S]*?\[\/BLAST\]/gi,'').trim();
+    out.innerHTML = fmt(clean);
+    title.textContent = '📦 ' + m.i + ' ' + m.t + ' — done';
+    msLastOut = { t:m.t, text: clean };
+    // products: auto-save locally to the Offer Vault (reversible), queue the external steps
+    if (m.k === 'product' && prod && prod.name) {
+      vault.unshift({ name:prod.name, price:Number(prod.price)||0, type:'Mission', niche:getNiche(), link:'', stage:0, date:Date.now(), id:Date.now() });
+      saveVaultData(); renderVault();
+      queueApproval({ type:'gumroad', mission:m.t, title:prod.name, price:Number(prod.price)||0,
+        desc: String(prod.description||'').slice(0,4000), body: clean.slice(0,60000) });
+      queueApproval({ type:'blast', mission:m.t,
+        text: `🔥 NEW DROP: ${prod.name} — $${Number(prod.price)||0}\n\n${String(prod.description||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,180)}\n\nLink in bio — grab it before the price goes up.` });
+    }
+    if (blastM) queueApproval({ type:'blast', mission:m.t, text: blastM[1].trim().slice(0,1500) });
+    sfx('recv');
+    toast(m.k==='product' ? '✓ Product built + vaulted — approvals waiting' : '✓ Mission complete');
+  } catch(e) { out.textContent = '⚠ ' + e.message; title.textContent = '📦 ' + m.t + ' — failed'; }
+  msBusy = false;
+}
+
+function msDownload(){
+  if (!msLastOut) return;
+  const blob = new Blob([msLastOut.text], {type:'text/markdown'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = msLastOut.t.toLowerCase().replace(/[^a-z0-9]+/g,'-') + '.md';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+}
+
+// 🤖 AUTOPILOT — Bam picks the highest-leverage mission for the niche, then runs it
+async function runAutopilot(){
+  const ready = cfg.apiUrl || (cfg.provider==='ollama' ? cfg.url : cfg.apikey);
+  if (!ready) { toast('Add API key in ⚙ first'); openCfg(); return; }
+  if (msBusy) { toast('A mission is already running'); return; }
+  const btn = document.getElementById('ap-btn');
+  if (btn){ btn.disabled = true; btn.textContent = '🤖 CHOOSING THE BEST MISSION…'; }
+  let pick = -1;
+  try {
+    const list = MISSIONS.map((m,i)=>i+' '+m.t+' — '+m.d).join('\n');
+    const totalRev = (sales||[]).reduce((a,s)=>a+s.amt,0);
+    const ans = await callAPIWithPrompt('You pick the single highest-leverage money mission. Reply with ONLY its number.',
+      [{role:'user',content:`Niche: ${getNiche()||'not set — pick something broadly sellable'}. Goal $${cfg.goal||0}/mo, revenue so far $${totalRev.toFixed(0)}, offers in vault: ${vault.length}. Missions:\n${list}`}], ()=>{});
+    pick = parseInt((ans.match(/\d+/)||[])[0]);
+  } catch(e){}
+  if (!(pick >= 0 && pick < MISSIONS.length)) pick = Math.floor(Math.random()*20);   // fallback: any product play
+  if (btn){ btn.disabled = false; btn.textContent = '🤖 AUTOPILOT — PICK & RUN THE BEST MISSION'; }
+  toast('🤖 Autopilot chose: ' + MISSIONS[pick].t);
+  runMission(pick, true);
+}
+
+// ── APPROVAL QUEUE — the human firewall in front of every external action ──
+function queueApproval(a){
+  approvals.unshift(Object.assign({ id: Date.now() + Math.floor(Math.random()*1000), status:'pending', date: Date.now() }, a));
+  saveApprovals(); renderApprovals();
+  jvLog('approval', 'queued ' + a.type + (a.title ? ': '+a.title : ''));
+}
+
+function renderApprovals(){
+  const card = document.getElementById('ms-appr-card'), el = document.getElementById('ms-approvals'), cnt = document.getElementById('ms-appr-count');
+  if (!el) return;
+  const pending = approvals.filter(a=>a.status==='pending');
+  const resolved = approvals.filter(a=>a.status!=='pending').slice(0,3);
+  if (cnt) cnt.textContent = pending.length;
+  if (!pending.length && !resolved.length){ card.style.display='none'; return; }
+  card.style.display = '';
+  el.innerHTML = pending.map(a=>{
+    const preview = a.type==='gumroad'
+      ? `<strong>${escH(a.title)}</strong> · $${escH(a.price)}<br>${escH(String(a.desc||'').replace(/<[^>]*>/g,' ').slice(0,200))}`
+      : escH(a.text||'').replace(/\n/g,'<br>');
+    const buttons = a.type==='gumroad'
+      ? `<button class="appr-ok" onclick="approveItem(${a.id},'gumroad')">✓ PUBLISH TO GUMROAD</button>`
+      : `<button class="appr-ok" onclick="approveItem(${a.id},'telegram')">✓ ✈ TELEGRAM</button>
+         <button class="appr-ok" onclick="approveItem(${a.id},'discord')">✓ 🎮 DISCORD</button>
+         <button class="appr-ok" onclick="approveItem(${a.id},'both')">✓ ⚡ BOTH</button>`;
+    return `<div class="appr-item">
+      <div class="appr-hdr"><span class="appr-type ${a.type}">${a.type==='gumroad'?'🛒 PUBLISH':'📣 BLAST'}</span><span class="appr-mission">${escH(a.mission||'')}</span></div>
+      <div class="appr-preview">${preview}</div>
+      <div class="appr-actions">${buttons}<button class="appr-no" onclick="rejectItem(${a.id})">✕ REJECT</button></div>
+    </div>`;
+  }).join('') + resolved.map(a=>`<div class="appr-item resolved">
+      <div class="appr-hdr"><span class="appr-type ${a.type}">${a.type==='gumroad'?'🛒':'📣'}</span><span class="appr-mission">${escH(a.title||a.mission||'')}</span>
+      <span class="appr-done">${a.status==='done'?'✓ '+escH(a.result||'sent'):'✕ rejected'}</span></div>
+    </div>`).join('');
+}
+
+async function approveItem(id, dest){
+  const a = approvals.find(x=>x.id===id && x.status==='pending');
+  if (!a) return;
+  try {
+    if (a.type === 'gumroad'){
+      if (!cfg.gumKey){ toast('Add your Gumroad token in ⚙ Settings first'); openCfg(); return; }
+      toast('Publishing to Gumroad…');
+      const res = await JARVIS_CORE.publishGumroad(cfg.gumKey, { name:a.title, priceCents:Math.round((a.price||0)*100), descriptionHTML:a.desc, bodyText:a.body, currency:'usd' });
+      if (!res || !res.ok) throw new Error((res && res.error) || 'Gumroad rejected it');
+      a.result = res.url ? 'live on Gumroad' : 'published';
+      // stamp the vault entry with the live link
+      const v = vault.find(v=>v.name===a.title);
+      if (v && res.url){ v.link = safeUrl(res.url); v.stage = Math.max(v.stage,1); saveVaultData(); renderVault(); }
+      jvLog('send', 'gumroad publish approved: ' + a.title);
+    } else {
+      const wantTg = dest==='telegram'||dest==='both', wantDc = dest==='discord'||dest==='both';
+      if (wantTg && !(cfg.tgToken && cfg.tgChat)){ toast('Add Telegram token + chat ID in ⚙ first'); openCfg(); return; }
+      if (wantDc && !cfg.discordWh){ toast('Add a Discord webhook in ⚙ first'); openCfg(); return; }
+      if (wantTg) await sendTelegram(a.text.replace(/[<>&]/g,' '));
+      if (wantDc) await sendDiscord(a.text);
+      a.result = 'sent → ' + dest;
+      blastLog.unshift({ dest: dest==='both'?'both':dest, text:a.text, ts:Date.now() }); saveBlastLog();
+      jvLog('send', 'blast approved → ' + dest);
+    }
+    a.status = 'done';
+    saveApprovals(); renderApprovals(); sfx('recv');
+    toast('✓ Approved & executed');
+  } catch(e){ toast('⚠ ' + e.message); }
+}
+
+function rejectItem(id){
+  const a = approvals.find(x=>x.id===id);
+  if (!a) return;
+  a.status = 'rejected';
+  saveApprovals(); renderApprovals();
+  jvLog('approval', 'rejected ' + a.type + (a.title?': '+a.title:''));
 }
 
 // ═══════════════════════════════════════════════
