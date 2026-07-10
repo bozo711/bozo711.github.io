@@ -1,6 +1,6 @@
 {
-  "name": "JARVIS — Business Co-Pilot",
-  "short_name": "JARVIS",
+  "name": "BAM — Business Co-Pilot",
+  "short_name": "BAM",
   "description": "Your digital-product business co-pilot: research, write, launch, sell, beats, code.",
   "start_url": "./index.html",
   "scope": "./",
