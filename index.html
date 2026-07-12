@@ -8,14 +8,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000814">
 <!-- Security: restrict where the app can load from and (critically) send data to -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://api.gumroad.com https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev https://nominatim.openstreetmap.org https://overpass-api.de https://places.googleapis.com; frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data: https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev; connect-src 'self' blob: https://api.groq.com https://api.openai.com https://www.googleapis.com https://gamma-api.polymarket.com https://data-api.polymarket.com https://api.coinbase.com https://api.gumroad.com https://discord.com https://discordapp.com https://*.trycloudflare.com https://*.onrender.com https://*.fly.dev https://nominatim.openstreetmap.org https://overpass-api.de https://places.googleapis.com; frame-src 'self' blob: https://www.youtube.com https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <link rel="manifest" href="manifest.json">
 <script type="importmap">
 { "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/jsm/" } }
 </script>
-<title>B.A.M.</title>
+<title>J.A.R.V.I.S.</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -1024,7 +1024,7 @@ strong{color:#e8d4b0}
   .inp-area{padding-left:calc((100% - 1000px)/2);padding-right:calc((100% - 1000px)/2)}
 }
 /* ── ACADEMY / TEACHER MODE ── */
-#academy{position:fixed;inset:0;z-index:420;background:radial-gradient(1200px 620px at 50% -12%, #1a0822, #0a0410 58%, #06030c);display:none;flex-direction:column}
+#academy{position:fixed;inset:0;z-index:420;background:radial-gradient(1100px 520px at 50% -12%, rgba(212,175,55,.09), transparent 62%),radial-gradient(900px 700px at 88% 112%, rgba(120,80,30,.10), transparent 55%),linear-gradient(180deg,#14110c,#0b0a08 46%,#080706);display:none;flex-direction:column}
 #academy.open{display:flex}
 #iqtest{position:fixed;inset:0;z-index:430;background:radial-gradient(1200px 620px at 50% -12%, #081826, #050a14 58%, #03060c);display:none;flex-direction:column}
 #iqtest.open{display:flex}
@@ -1113,75 +1113,94 @@ strong{color:#e8d4b0}
 .iq-facet .bar{flex:1;height:12px;border-radius:7px;background:rgba(255,255,255,.08);overflow:hidden}
 .iq-facet .bar>i{display:block;height:100%;border-radius:7px;background:linear-gradient(90deg,#6ad1ff,#1f8fd6);transition:width .6s}
 .iq-facet .val{width:104px;text-align:right;font-size:12px;color:#fff}
-.pt-wrap{border:1px solid rgba(106,209,255,.3);border-radius:16px;padding:16px 18px;margin-bottom:14px;background:linear-gradient(135deg,rgba(31,143,214,.16),rgba(106,209,255,.05))}
-.pt-wrap h3{margin:0 0 4px;font-family:'Cinzel',serif;color:#cfe8ff;font-size:16px;letter-spacing:1px}
-.pt-wrap p{margin:0 0 10px;color:var(--text-d);font-size:12px}
-.pt-step{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:.14s}
-.pt-step:hover{background:rgba(106,209,255,.08)}
-.pt-step .n{width:24px;height:24px;border-radius:50%;background:rgba(106,209,255,.18);color:#cfe8ff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
-.pt-step.done .n{background:#1f8fd6;color:#fff}
-.pt-step .ti{flex:1;font-size:13px;color:var(--text)}
-.pt-step .pc{font-size:11px;color:#9fc7e6}
-.pt-btn{display:inline-block;margin-top:10px;padding:10px 16px;border-radius:10px;background:linear-gradient(90deg,#6ad1ff,#1f8fd6);color:#04121d;font-weight:700;font-size:13px;border:none;cursor:pointer}
-.iq-card{display:flex;align-items:center;gap:14px;padding:15px 16px;margin-bottom:14px;border:1px solid rgba(180,120,255,.3);border-radius:15px;background:linear-gradient(135deg,rgba(154,107,255,.16),rgba(0,0,0,.18));cursor:pointer}
-.iq-card .ic{font-size:26px}
+.pt-wrap{border:1px solid rgba(127,194,221,.20);border-radius:14px;padding:18px 20px;margin:14px 0;background:linear-gradient(160deg,rgba(127,194,221,.06),rgba(0,0,0,.18));box-shadow:0 16px 40px -24px rgba(0,0,0,.9)}
+.pt-wrap h3{margin:0 0 5px;font-family:'Cinzel',serif;color:#dcecf4;font-size:15px;letter-spacing:1.2px}
+.pt-wrap p{margin:0 0 10px;color:rgba(220,236,244,.5);font-size:12px;line-height:1.5}
+.pt-step{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:.14s;border:1px solid transparent}
+.pt-step:hover{background:rgba(127,194,221,.06);border-color:rgba(127,194,221,.25)}
+.pt-step .n{width:25px;height:25px;border-radius:50%;border:1px solid rgba(127,194,221,.4);background:rgba(127,194,221,.08);color:#bcdcea;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.pt-step.done .n{background:linear-gradient(150deg,#7fc2dd,#3d7f9e);color:#0a1a22;border-color:transparent}
+.pt-step .ti{flex:1;font-size:13px;color:rgba(238,232,219,.85)}
+.pt-step .pc{font-size:11px;color:#7fc2dd;font-weight:600}
+.pt-btn{display:inline-block;margin-top:12px;padding:11px 18px;border-radius:10px;background:linear-gradient(160deg,#8ecbe2,#3d7f9e);color:#081820;font-weight:700;font-size:11.5px;letter-spacing:2px;text-transform:uppercase;border:none;cursor:pointer;box-shadow:0 10px 24px -12px rgba(127,194,221,.5)}
+.iq-card{display:flex;align-items:center;gap:15px;padding:16px 18px;margin:14px 0;border:1px solid rgba(156,143,216,.22);border-radius:13px;background:linear-gradient(160deg,rgba(156,143,216,.07),rgba(0,0,0,.2));cursor:pointer;transition:border-color .15s,transform .15s;box-shadow:0 16px 40px -24px rgba(0,0,0,.9)}
+.iq-card:hover{border-color:rgba(156,143,216,.5);transform:translateY(-1px)}
+.iq-card .ic{font-size:22px;width:46px;height:46px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:12px;background:linear-gradient(150deg,rgba(255,255,255,.06),rgba(0,0,0,.3));border:1px solid rgba(255,255,255,.09);box-shadow:inset 0 0 18px -6px #9c8fd8}
 
-.ac-top{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--red-b);background:rgba(8,2,12,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);position:sticky;top:0;z-index:5}
-.ac-top h2{font-size:16px;color:#fff;margin:0;flex:1;letter-spacing:1px;font-weight:bold}
-.ac-back,.ac-x{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1}
-.ac-body{flex:1;overflow-y:auto;padding:18px 16px 44px;scrollbar-width:none}
+.ac-top{display:flex;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid rgba(212,175,55,.16);background:rgba(12,10,7,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);position:sticky;top:0;z-index:5}
+.ac-top h2{font-size:15px;color:#e9e2d2;margin:0;flex:1;letter-spacing:4px;font-weight:600;font-family:'Cinzel',serif;text-transform:uppercase}
+.ac-back,.ac-x{background:none;border:none;color:rgba(233,226,210,.7);font-size:22px;cursor:pointer;line-height:1;transition:color .15s}
+.ac-back:hover,.ac-x:hover{color:#e8c24a}
+.ac-body{flex:1;overflow-y:auto;padding:22px 18px 52px;scrollbar-width:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif}
 .ac-body::-webkit-scrollbar{display:none}
 .ac-wrap{max-width:760px;margin:0 auto}
-.ac-hero{border-radius:18px;padding:20px 22px;margin-bottom:14px;background:linear-gradient(135deg, rgba(154,107,255,.20), rgba(184,134,11,.12));border:1px solid rgba(154,107,255,.32);position:relative;overflow:hidden}
-.ac-hero h1{margin:0 0 4px;font-family:'Cinzel',serif;font-size:22px;color:#fff;letter-spacing:1px}
-.ac-hero p{margin:0 0 14px;color:var(--text-d);font-size:13px}
-.ac-hero .big{font-size:32px;font-weight:800;color:#fff;line-height:1}
-.ac-pb{height:7px;border-radius:6px;background:rgba(255,255,255,.10);overflow:hidden}
-.ac-pb>i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--a1,#c89400),var(--a2,#b8860b));box-shadow:0 0 10px var(--a1,#c89400);transition:width .5s}
-.ac-sech{display:flex;align-items:center;gap:9px;margin:24px 4px 12px;color:#fff;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:700;opacity:.93}
-.ac-sech::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--a1),transparent)}
-.ac-course{display:flex;align-items:center;gap:15px;padding:15px 16px;margin-bottom:12px;border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--a1,#c89400);border-radius:15px;background:linear-gradient(135deg, rgba(255,255,255,.05), rgba(0,0,0,.18));cursor:pointer;transition:transform .14s, box-shadow .14s, border-color .14s}
-.ac-course:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(0,0,0,.42);border-color:var(--a1)}
-.ac-course .ic{font-size:25px;width:50px;height:50px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:13px;background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 0 18px -3px var(--a1)}
+/* masthead — glass panel, serif headline, real progress ring */
+.ac-hero{display:flex;align-items:center;gap:22px;border-radius:16px;padding:26px 26px;margin-bottom:8px;background:linear-gradient(160deg,rgba(255,251,240,.045),rgba(0,0,0,.22));border:1px solid rgba(212,175,55,.20);box-shadow:0 24px 60px -28px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05);position:relative;overflow:hidden}
+.ac-hero::before{content:'';position:absolute;inset:-40% -20% auto;height:120%;background:radial-gradient(560px 200px at 28% 0%,rgba(212,175,55,.10),transparent 70%);pointer-events:none}
+.ac-hero-l{flex:1;min-width:0;position:relative}
+.ac-kicker{font-size:10px;letter-spacing:3.5px;text-transform:uppercase;color:#b8945a;margin-bottom:7px;font-weight:600}
+.ac-hero h1{margin:0 0 6px;font-family:'Cinzel',serif;font-size:26px;font-weight:700;color:#f2ecdd;letter-spacing:1.5px}
+.ac-hero p{margin:0 0 14px;color:rgba(233,226,210,.55);font-size:13px;line-height:1.5}
+.ac-chips{display:flex;flex-wrap:wrap;gap:7px}
+.ac-chip{font-size:10.5px;letter-spacing:1px;color:rgba(233,226,210,.75);border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:5px 11px;background:rgba(255,255,255,.03)}
+.ac-ring{--p:0;width:104px;height:104px;flex-shrink:0;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:conic-gradient(#d4af37 calc(var(--p)*1%), rgba(255,255,255,.06) 0);box-shadow:0 0 34px -8px rgba(212,175,55,.4)}
+.ac-ring::before{content:'';position:absolute;inset:7px;border-radius:50%;background:#12100b;border:1px solid rgba(255,255,255,.05)}
+.ac-ring b{position:relative;font-size:24px;color:#f2ecdd;font-weight:700;line-height:1}
+.ac-ring span{position:relative;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(233,226,210,.45);margin-top:3px}
+.ac-pb{height:3px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.ac-pb>i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--a1,#d4af37),var(--a2,#8f6a1e));transition:width .5s}
+.ac-sech{display:flex;align-items:center;gap:12px;margin:30px 4px 14px;color:rgba(233,226,210,.85);font-size:11px;letter-spacing:3.5px;text-transform:uppercase;font-weight:600}
+.ac-sech::before{content:'';width:22px;height:1px;background:var(--a1)}
+.ac-sech::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.14),transparent)}
+.ac-course{display:flex;align-items:center;gap:16px;padding:15px 18px;margin-bottom:10px;border:1px solid rgba(255,255,255,.07);border-radius:13px;background:linear-gradient(160deg,rgba(255,251,240,.030),rgba(0,0,0,.16));cursor:pointer;position:relative;overflow:hidden;transition:transform .16s,box-shadow .16s,border-color .16s;box-shadow:0 10px 28px -18px rgba(0,0,0,.9)}
+.ac-course::before{content:'';position:absolute;left:0;top:12%;bottom:12%;width:2px;border-radius:2px;background:linear-gradient(180deg,var(--a1),transparent)}
+.ac-course:hover{transform:translateY(-2px);box-shadow:0 18px 40px -18px rgba(0,0,0,.9),0 0 0 1px var(--a1) inset;border-color:transparent}
+.ac-course .ic{font-size:21px;width:46px;height:46px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:12px;background:linear-gradient(150deg,rgba(255,255,255,.06),rgba(0,0,0,.3));border:1px solid rgba(255,255,255,.09);box-shadow:inset 0 0 18px -6px var(--a1)}
 .ac-course .t{flex:1;min-width:0}
-.ac-course .t b{color:#fff;font-size:15px;display:block;margin-bottom:6px}
-.ac-course .ac-meta{display:flex;align-items:center;gap:9px;color:var(--text-d);font-size:11px;margin-bottom:7px}
+.ac-course .t b{color:#efe9db;font-size:14.5px;display:block;margin-bottom:6px;font-weight:600;letter-spacing:.2px}
+.ac-course .ac-meta{display:flex;align-items:center;gap:9px;color:rgba(233,226,210,.42);font-size:11px;margin-bottom:8px;letter-spacing:.4px}
 .ac-course .ac-pct{color:var(--a1);font-weight:700}
-.ac-course .chev{color:var(--text-d);font-size:22px;flex-shrink:0}
-.ac-chead{display:flex;align-items:center;gap:15px;padding:18px;border-radius:16px;margin-bottom:18px;background:linear-gradient(135deg,var(--a1),var(--a2));position:relative;overflow:hidden;box-shadow:0 10px 34px -10px var(--a1)}
-.ac-chead .ic{font-size:34px}
-.ac-chead .t{flex:1;color:#fff;min-width:0}
-.ac-chead .t b{font-size:18px;display:block;margin-bottom:3px;font-family:'Cinzel',serif}
-.ac-chead .t span{font-size:12px;opacity:.93}
-.ac-chead .ring{font-size:22px;font-weight:800;color:#fff;flex-shrink:0}
-.ac-lesson{display:flex;align-items:center;gap:12px;padding:13px 15px;margin-bottom:9px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.025);cursor:pointer;transition:background .14s, transform .12s}
-.ac-lesson:hover{background:rgba(255,255,255,.07);transform:translateX(3px)}
-.ac-lesson .n{width:26px;height:26px;border-radius:50%;border:1px solid var(--gold-b);color:#c89400;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
-.ac-lesson.done{border-color:rgba(200,148,0,.25)}
-.ac-lesson.done .n{background:linear-gradient(135deg,#e8c24a,#b8860b);color:#000;border-color:#c89400;box-shadow:0 0 10px -2px #c89400}
-.ac-lesson.done .lt{color:var(--text-d)}
-.ac-lesson .lt{flex:1;color:var(--text);font-size:14px}
-.ac-lesson-content{color:var(--text);font-size:16px;line-height:1.75;max-width:680px;margin:0 auto;background:rgba(255,255,255,.022);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:22px 24px}
-.ac-lesson-content h3{color:#fff;font-size:19px;margin:22px 0 8px;font-family:'Cinzel',serif}
+.ac-course .chev{color:rgba(233,226,210,.3);font-size:20px;flex-shrink:0;transition:transform .16s,color .16s}
+.ac-course:hover .chev{transform:translateX(3px);color:var(--a1)}
+/* course header — dark panel lit by the discipline's accent, not a candy gradient */
+.ac-chead{display:flex;align-items:center;gap:18px;padding:24px 22px;border-radius:15px;margin-bottom:20px;background:linear-gradient(160deg,rgba(255,251,240,.04),rgba(0,0,0,.28));border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden;box-shadow:0 24px 54px -24px rgba(0,0,0,.9)}
+.ac-chead::before{content:'';position:absolute;inset:0;background:radial-gradient(420px 150px at 12% 0%,rgba(212,175,55,.14),transparent 72%);background:radial-gradient(420px 150px at 12% 0%,color-mix(in srgb,var(--a1) 22%,transparent),transparent 72%);pointer-events:none}
+.ac-chead .ic{font-size:30px;width:60px;height:60px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:14px;background:linear-gradient(150deg,rgba(255,255,255,.07),rgba(0,0,0,.35));border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 0 24px -8px var(--a1);position:relative}
+.ac-chead .t{flex:1;color:#f2ecdd;min-width:0;position:relative}
+.ac-chead .t b{font-size:19px;display:block;margin-bottom:4px;font-family:'Cinzel',serif;letter-spacing:.8px}
+.ac-chead .t span{font-size:11.5px;color:rgba(233,226,210,.55);letter-spacing:.6px}
+.ac-chead .ring{font-size:21px;font-weight:700;color:var(--a1);flex-shrink:0;position:relative}
+.ac-lesson{display:flex;align-items:center;gap:13px;padding:12px 15px;margin-bottom:7px;border:1px solid rgba(255,255,255,.055);border-radius:11px;background:rgba(255,251,240,.018);cursor:pointer;transition:background .14s,border-color .14s,transform .12s}
+.ac-lesson:hover{background:rgba(255,251,240,.05);border-color:rgba(212,175,55,.30);transform:translateX(3px)}
+.ac-lesson .n{width:27px;height:27px;border-radius:50%;border:1px solid rgba(212,175,55,.35);color:#c9a244;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;font-weight:600}
+.ac-lesson.done{border-color:rgba(212,175,55,.16);background:rgba(212,175,55,.03)}
+.ac-lesson.done .n{background:linear-gradient(150deg,#e2c05c,#9a7420);color:#171106;border-color:transparent;box-shadow:0 2px 10px -3px rgba(212,175,55,.6)}
+.ac-lesson.done .lt{color:rgba(233,226,210,.42)}
+.ac-lesson .lt{flex:1;color:rgba(238,232,219,.88);font-size:13.5px;line-height:1.45}
+/* the lesson reads like a page from a real book */
+.ac-lesson-content{color:rgba(240,234,222,.92);font-family:Georgia,'Times New Roman',serif;font-size:17px;line-height:1.85;max-width:680px;margin:0 auto;background:linear-gradient(170deg,rgba(255,251,240,.035),rgba(0,0,0,.14));border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:30px 32px;box-shadow:0 26px 60px -30px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.04)}
+.ac-lesson-content h3{color:#f2ecdd;font-size:20px;margin:26px 0 10px;font-family:'Cinzel',serif;letter-spacing:.6px;padding-bottom:8px;border-bottom:1px solid rgba(212,175,55,.18)}
 .ac-lesson-content h3:first-child{margin-top:0}
-.ac-lesson-content b{color:#fff}
-.ac-takeaways{max-width:680px;margin:16px auto 0;background:linear-gradient(135deg,rgba(184,134,11,.16),rgba(184,134,11,.04));border:1px solid var(--gold-b);border-radius:14px;padding:16px 20px;color:var(--text);line-height:1.75}
-.ac-takeaways h4{margin:0 0 8px;color:#e8c24a;font-size:12px;letter-spacing:1.5px;text-transform:uppercase}
-.ac-take{display:block;width:100%;max-width:680px;margin:22px auto;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#e8c24a,#b8860b);color:#1a1000;font-family:inherit;font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer;box-shadow:0 6px 20px -6px #b8860b}
-.ac-take:hover{filter:brightness(1.08)}
-.ac-q{max-width:680px;margin:0 auto 14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;background:rgba(255,255,255,.025)}
-.ac-q .qt{color:#fff;font-size:15px;margin-bottom:11px;line-height:1.4;font-weight:600}
-.ac-opt{display:block;width:100%;text-align:left;padding:12px 14px;margin-bottom:8px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:rgba(255,255,255,.03);color:var(--text);font-family:inherit;font-size:14px;cursor:pointer;transition:.12s}
-.ac-opt:hover{background:rgba(255,255,255,.07)}
-.ac-opt.right{background:rgba(10,125,44,.32);border-color:#0a7d2c;color:#fff}
-.ac-opt.wrong{background:rgba(150,20,40,.3);border-color:#a02030}
-.ac-module{display:flex;align-items:center;gap:11px;padding:13px 15px;margin:16px 0 10px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(0,0,0,.15));cursor:pointer}
-.ac-module .mt{flex:1;color:#fff;font-size:14px;font-weight:bold;letter-spacing:.3px}
-.ac-module.done .mt{color:var(--text-d)}
+.ac-lesson-content b{color:#ecd9a0;font-weight:600}
+.ac-takeaways{max-width:680px;margin:16px auto 0;font-family:Georgia,serif;background:linear-gradient(160deg,rgba(212,175,55,.09),rgba(212,175,55,.015));border:1px solid rgba(212,175,55,.22);border-left:3px solid rgba(212,175,55,.55);border-radius:13px;padding:18px 22px;color:rgba(240,234,222,.9);line-height:1.8;font-size:15px}
+.ac-takeaways h4{margin:0 0 9px;color:#d8b95c;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;font-family:-apple-system,'Segoe UI',sans-serif}
+.ac-take{display:block;width:100%;max-width:680px;margin:22px auto;padding:15px;border:none;border-radius:11px;background:linear-gradient(160deg,#e2c05c,#a37a1e);color:#191204;font-family:-apple-system,'Segoe UI',sans-serif;font-weight:700;font-size:13px;letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;box-shadow:0 12px 28px -12px rgba(212,175,55,.55);transition:filter .15s,transform .12s}
+.ac-take:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.ac-q{max-width:680px;margin:0 auto 14px;border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:18px;background:rgba(255,251,240,.025)}
+.ac-q .qt{color:#f0ead9;font-size:15px;margin-bottom:12px;line-height:1.45;font-weight:600}
+.ac-opt{display:block;width:100%;text-align:left;padding:12px 15px;margin-bottom:8px;border:1px solid rgba(255,255,255,.09);border-radius:10px;background:rgba(255,255,255,.025);color:rgba(238,232,219,.88);font-family:inherit;font-size:14px;cursor:pointer;transition:.14s}
+.ac-opt:hover{background:rgba(212,175,55,.07);border-color:rgba(212,175,55,.35)}
+.ac-opt.right{background:rgba(48,120,60,.22);border-color:rgba(90,190,110,.55);color:#dcf5e2}
+.ac-opt.wrong{background:rgba(150,40,50,.20);border-color:rgba(200,80,90,.5)}
+.ac-module{display:flex;align-items:center;gap:12px;padding:13px 16px;margin:18px 0 9px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:linear-gradient(160deg,rgba(255,251,240,.045),rgba(0,0,0,.2));cursor:pointer;transition:border-color .15s}
+.ac-module:hover{border-color:rgba(212,175,55,.30)}
+.ac-module .mt{flex:1;color:#efe9db;font-size:13.5px;font-weight:600;letter-spacing:.4px}
+.ac-module.done .mt{color:rgba(233,226,210,.42)}
 .ac-module .mmid{width:84px;flex-shrink:0}
-.ac-module .mc{color:#c89400;font-size:10px;font-weight:bold;white-space:nowrap;margin-top:4px;display:block;text-align:right}
-.ac-module .mch{color:var(--text-d);font-size:13px;width:14px;text-align:center}
-.ac-mod-lessons{margin-left:4px;padding-left:9px;border-left:1px dashed rgba(255,255,255,.09)}
+.ac-module .mc{color:#c9a244;font-size:10px;font-weight:700;white-space:nowrap;margin-top:5px;display:block;text-align:right;letter-spacing:.6px}
+.ac-module .mch{color:rgba(233,226,210,.4);font-size:13px;width:14px;text-align:center}
+.ac-mod-lessons{margin-left:4px;padding-left:11px;border-left:1px solid rgba(212,175,55,.14)}
+@media (max-width:560px){ .ac-hero{flex-direction:column-reverse;align-items:flex-start;gap:16px} .ac-ring{width:88px;height:88px} .ac-hero h1{font-size:22px} }
 </style>
 <style id="immersive-css">
 /* IMMERSIVE — the whole window becomes Bam's 3D world; the UI floats on top as a HUD */
@@ -1205,7 +1224,7 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
 <!-- Boot -->
 <div id="boot">
   <div class="boot-ring"></div>
-  <div class="boot-title">B.A.M.</div>
+  <div class="boot-title">J.A.R.V.I.S.</div>
   <div class="boot-log" id="boot-log"></div>
 </div>
 
@@ -1476,6 +1495,7 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
     <button id="yttab-thumb" class="biz-tab" onclick="ytTab('thumb')">Thumbnail</button>
     <button id="yttab-cal" class="biz-tab" onclick="ytTab('cal')">Content calendar</button>
     <button id="yttab-make" class="biz-tab" onclick="ytTab('make')">Make video 🎬</button>
+    <button id="yttab-bam" class="biz-tab" onclick="ytTab('bam')">From Bam 🛰</button>
   </div>
   <div class="biz-body" id="yt-plan">
     <div class="biz-search">
@@ -1517,6 +1537,10 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
     <canvas id="bm-canvas" style="display:none;width:100%;max-width:260px;border-radius:10px;margin-top:10px;background:#000"></canvas>
     <video id="bm-bgvid" playsinline muted loop style="position:fixed;left:-10000px;top:0;width:140px;pointer-events:none"></video>
     <div id="bm-out"></div>
+  </div>
+  <div class="biz-body" id="yt-bam" style="display:none">
+    <div id="yt-bam-status">The videos Bam's daemon renders on your Mac, watchable from any device.</div>
+    <div id="yt-bam-out"></div>
   </div>
 </div>
 <div id="phys">
@@ -1566,6 +1590,7 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
       <button class="icon-btn" onclick="visionLook()" id="vision-btn" title="Let Bam see your screen/camera (once)">👁</button>
       <button class="icon-btn" onclick="toggleWatch()" id="watch-btn" title="Watch my screen/camera continuously">📡</button>
       <button class="icon-btn" onclick="enter3D()" id="b3d-btn" title="3D interface (holographic)" style="font-size:13px;font-weight:bold;letter-spacing:1px">3D</button>
+      <button class="icon-btn" onclick="openBlood()" id="blood-btn" title="BLOOD TERMINAL — smart-money convergence (real Polymarket odds + live spot, simulated fills)">🩸</button>
       <button class="icon-btn" onclick="openDeck()" id="deck-btn" title="Command Deck — all panels at once" style="font-size:16px">⌸</button>
       <button class="icon-btn" onclick="openNeuro()" title="NEUROLINK — Bam's cortex, tools & agents">🧠</button>
       <button class="icon-btn" onclick="openAcademy()" title="Teacher mode — structured lessons">🎓</button>
@@ -2294,13 +2319,21 @@ function doomPickTopic(){
 }
 
 // next unseen clip — rotates topics (For You) and deepens with use
+async function doomFetchVideos(q){
+  if(cfg.ytKey && window.JARVIS_CORE) return await JARVIS_CORE.fetchYouTubeSearch(cfg.ytKey, q, 6) || [];
+  // no local key → the server vault searches with ITS key (works on phone)
+  const r = await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/videos?q='+encodeURIComponent(q), {headers:{'x-jarvis-token':cfg.apiToken||''}});
+  if(!r.ok) return [];
+  const d = await r.json();
+  return Array.isArray(d) ? d : [];
+}
 async function nextVideo(){
-  if(!cfg.ytKey || !window.JARVIS_CORE) return null;
+  if(!cfg.ytKey && !cfg.apiUrl) return null;
   for(let tries=0; tries < DOOM_TOPICS.length + 1; tries++){
     const t = doomPickTopic();
     const key = t.key + '|' + Math.min(doomDepth, 4);
     if(!doomCache[key] || !doomCache[key].length){
-      try { doomCache[key] = await JARVIS_CORE.fetchYouTubeSearch(cfg.ytKey, t.vq + doomDepthSuffix(), 6) || []; }
+      try { doomCache[key] = await doomFetchVideos(t.vq + doomDepthSuffix()); }
       catch(e){ doomCache[key] = []; }
     }
     while(doomCache[key].length){
@@ -2356,7 +2389,7 @@ async function appendLesson(){
 async function appendBreak(){
   const feed = document.getElementById('doom-feed'), sentinel = document.getElementById('doom-sentinel');
   let node = null;
-  if(cfg.ytKey && Math.random() < 0.6){ const v = await nextVideo(); if(v) node = videoCard(v); }
+  if((cfg.ytKey || cfg.apiUrl) && Math.random() < 0.6){ const v = await nextVideo(); if(v) node = videoCard(v); }
   if(!node) node = (Math.random() < 0.5 ? breathingCard() : reactionCard());
   feed.insertBefore(node, sentinel); if(doomProgObs) doomProgObs.observe(node);
 }
@@ -2654,12 +2687,12 @@ ACADEMY.forEach(c => {
 });
 let acCourse = null, acView = 'grid', acCollapsed = {};
 const AC_ARCH = {
-  mind:  {label:'Mind & Reality',   c1:'#9a6bff', c2:'#5a2bd6'},
-  psych: {label:'Psychology & Dark Psychology', c1:'#35d0c0', c2:'#1b8f86'},
-  wealth:{label:'Wealth',           c1:'#e8c24a', c2:'#b8860b'},
-  tech:  {label:'Tech & Systems',   c1:'#4fb8ff', c2:'#1f6bd6'},
-  law:   {label:'Law & Protection', c1:'#ff8f5a', c2:'#c0502a'},
-  sci:   {label:'Advanced Sciences', c1:'#6ad1ff', c2:'#1f8fd6'},
+  mind:  {label:'Mind & Reality',   c1:'#9c8fd8', c2:'#5a4da8'},
+  psych: {label:'Psychology & Dark Psychology', c1:'#5fb8ab', c2:'#2e7a70'},
+  wealth:{label:'Wealth',           c1:'#d4af37', c2:'#8f6a1e'},
+  tech:  {label:'Tech & Systems',   c1:'#6da8d8', c2:'#33628f'},
+  law:   {label:'Law & Protection', c1:'#c98d5f', c2:'#8a552e'},
+  sci:   {label:'Advanced Sciences', c1:'#7fc2dd', c2:'#3d7f9e'},
 };
 const AC_ARCH_ORDER = ['mind','psych','wealth','tech','law','sci'];
 function acPct(done,total){ return total? Math.round(done/total*100):0; }
@@ -3056,7 +3089,30 @@ function bizOpenSite(){ try{ var w=window.open(); w.document.open(); w.document.
 // ════════ FACELESS YOUTUBE STUDIO — packages, thumbnails, content calendar ════════
 function openYT(){ document.getElementById("yt").classList.add("open"); ytDrawThumb(); ytStats(); var sc=document.getElementById("bm-script"); if(sc&&!sc.value&&window._ytScript) sc.value=window._ytScript; }
 function closeYT(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); document.getElementById("yt").classList.remove("open"); }
-function ytTab(t){ ["plan","thumb","cal","make"].forEach(function(k){ document.getElementById("yt-"+k).style.display=(k===t)?"":"none"; document.getElementById("yttab-"+k).classList.toggle("on",k===t); }); if(t==="thumb") ytDrawThumb(); }
+function ytTab(t){ ["plan","thumb","cal","make","bam"].forEach(function(k){ document.getElementById("yt-"+k).style.display=(k===t)?"":"none"; document.getElementById("yttab-"+k).classList.toggle("on",k===t); }); if(t==="thumb") ytDrawThumb(); if(t==="bam") ytBamLoad(); }
+
+// ── FROM BAM — the daemon's rendered batches, streamed from the Mac via the server vault ──
+async function ytBamLoad(){
+  var st=document.getElementById("yt-bam-status"), out=document.getElementById("yt-bam-out");
+  if(!cfg.apiUrl){ st.textContent="Connect the Server Vault in ⚙ Settings (your Mac publishes its URL automatically) to see the videos Bam made for you."; out.innerHTML=""; return; }
+  st.textContent="Loading Bam's latest batch…";
+  var base=cfg.apiUrl.replace(/\/+$/,''), tok=encodeURIComponent(cfg.apiToken||'');
+  var d=null;
+  try{ var r=await fetch(base+'/api/batch',{headers:{'x-jarvis-token':cfg.apiToken||''}}); if(r.ok) d=await r.json(); }catch(e){}
+  if(!d || !d.idea || !(d.items||[]).length){ st.textContent="No batch yet — the daemon drops fresh videos here automatically. Check back soon."; out.innerHTML=""; return; }
+  st.textContent="";
+  var when=d.ts?new Date(d.ts).toLocaleString():'';
+  var h='<div class="ac-hero"><div class="ac-hero-l"><div class="ac-kicker">Rendered on your Mac</div><h1 style="font-size:19px">🎬 '+doomEsc(d.idea)+'</h1><p style="margin:0">'+d.items.length+' variations, rendered by your daemon'+(when?' · '+when:'')+'</p></div></div>';
+  d.items.forEach(function(it){
+    h+='<div class="biz-card" style="flex-direction:column;align-items:stretch"><b style="color:#fff">'+it.n+'. '+doomEsc(it.title)+'</b>';
+    if(it.hasVideo) h+='<video controls playsinline preload="metadata" src="'+base+'/api/batch/video/'+it.n+'?token='+tok+'" style="width:100%;max-width:560px;border-radius:10px;background:#000;margin:8px 0"></video>';
+    if(it.script) h+='<div class="yt-pre" style="margin-top:6px">'+doomEsc(it.script)+'</div>'
+      +'<div class="yt-actions"><button onclick="copySecure(this.closest(\'.biz-card\').querySelector(\'.yt-pre\').textContent)">📋 Copy script</button>'
+      +(it.hasVideo?'<a href="'+base+'/api/batch/video/'+it.n+'?token='+tok+'" download><button>⬇ Download</button></a>':'')+'</div>';
+    h+='</div>';
+  });
+  out.innerHTML=h;
+}
 function ytNiche(v){ v=(v||"").trim(); if(v) return v; try{ return (typeof getNiche==="function"?getNiche():cfg.niche)||"my niche"; }catch(e){ return "my niche"; } }
 async function ytPlan(){
   var topic=ytNiche(document.getElementById("yt-topic").value), style=document.getElementById("yt-style").value, len=+document.getElementById("yt-len").value;
@@ -3331,10 +3387,10 @@ function acRenderGrid(){
   const tp=acPct(totDone,totAll);
   const wrap=document.createElement('div'); wrap.className='ac-wrap';
   const hero=document.createElement('div'); hero.className='ac-hero';
-  hero.innerHTML='<h1>Your Curriculum</h1><p>'+ACADEMY.length+' courses · '+totAll+' lessons on the path to mastery</p>'
-    +'<div class="big">'+tp+'%</div>'
-    +'<div style="color:var(--text-d);font-size:12px;margin:3px 0 11px">'+totDone+' of '+totAll+' lessons complete</div>'
-    +'<div class="ac-pb" style="--a1:#9a6bff;--a2:#e8c24a"><i style="width:'+tp+'%"></i></div>';
+  hero.innerHTML='<div class="ac-hero-l"><div class="ac-kicker">Private curriculum</div><h1>The Academy</h1>'
+    +'<p>'+ACADEMY.length+' disciplines · '+totAll+' lessons on the path to mastery</p>'
+    +'<div class="ac-chips"><span class="ac-chip">'+totDone+' lessons complete</span><span class="ac-chip">'+(totAll-totDone)+' remaining</span></div></div>'
+    +'<div class="ac-ring" style="--p:'+tp+'"><b>'+tp+'%</b><span>mastery</span></div>';
   wrap.appendChild(hero);
   wrap.insertAdjacentHTML('beforeend', iqCardHTML()+portalTrackHTML(p));
   AC_ARCH_ORDER.forEach(arch=>{
@@ -3400,7 +3456,7 @@ async function acOpenLesson(key, idx){
   const c=ACADEMY.find(x=>x.key===key), lt=c.lessons[idx];
   document.getElementById('ac-title').textContent='Lesson '+(idx+1)+' / '+c.lessons.length;
   const body=document.getElementById('ac-body'); body.scrollTop=0;
-  if(!cfg.apikey){ body.innerHTML='<div class="ac-lesson-content">Add your API key in ⚙ Settings to start lessons.</div>'; return; }
+  if(!(cfg.apikey||cfg.apiUrl)){ body.innerHTML='<div class="ac-lesson-content">Add your API key or Server Vault URL in ⚙ Settings to start lessons.</div>'; return; }
   body.innerHTML='<div class="ac-lesson-content">📖 Preparing your full lesson on “'+doomEsc(lt)+'”…</div>';
   const sys='You are a world-class teacher writing a COMPLETE, self-contained lesson. The student must be able to fully LEARN this topic from your text alone — the quiz is only an optional self-check afterward, never the main event. Course: "'+c.title+'". Lesson: "'+lt+'". '
     +'Return JSON only: {"lesson":"<rich markdown>","keyterms":[{"term":"","def":""}],"takeaways":["","",""],"quiz":[{"q":"","options":["","",""],"answer":0}]}. '
@@ -3408,7 +3464,7 @@ async function acOpenLesson(key, idx){
     +'Give 3-5 "keyterms" with plain-English definitions, 3-5 "takeaways", and exactly 3 quiz questions (answer = 0-based index of the correct option). Be factually accurate and name a real book, person, or study when relevant.';
   let d;
   try{
-    const out=await JARVIS_CORE.streamChat({provider:cfg.provider,apikey:cfg.apikey,url:cfg.url,model:cfg.model,system:sys,messages:[{role:'user',content:'Teach me: '+lt}],json:true});
+    const out=await callAPIWithPrompt(sys,[{role:'user',content:'Teach me: '+lt}],()=>{});   // vault-aware: works on phone with no local key
     d=JSON.parse((out.match(/\{[\s\S]*\}/)||[out])[0]);
   }catch(e){ body.innerHTML='<div class="ac-lesson-content">Lesson failed to load — tap back and try again.</div>'; return; }
   acRenderLesson(key,idx,lt,d);
@@ -7620,6 +7676,12 @@ window.BamStage = (function(){
   let universe=null, GX=null, NAV={state:'idle'};    // the galaxy + the ship's autopilot
   let roomGrp=null, doorParts=[], warpFx=null, eventGrp=null, savedBg=null, savedFog=null, MKLBL=null, entryClouds=null;
   let hullGrp=null, hullEng=[];                      // the spacecraft exterior + its engine-glow materials
+  let portalTapWired=false;                          // venue tap-select (course portals) wired once
+  // ── MANUAL FLIGHT: WASD thrust — the galaxy becomes a place you fly, not a menu ──
+  const MKEY={}, MFLY={vel:null, hint:0};
+  addEventListener('keydown', e=>{ MKEY[e.key.toLowerCase()]=true; });
+  addEventListener('keyup',   e=>{ MKEY[e.key.toLowerCase()]=false; });
+  addEventListener('blur',   ()=>{ for(const k in MKEY) MKEY[k]=false; });
   function navStatus(t){ const el=document.getElementById('bam-nav-st'); if(el) el.textContent=t; }
   function flyTo(key){
     if(!loaded || !universe || NAV.state!=='idle') return;
@@ -7671,7 +7733,12 @@ window.BamStage = (function(){
     if(roomGrp) roomGrp.visible=true;
     if(universe) universe.visible=true;
     if(stars) stars.visible=true;
-    if(GX) for(const P of GX){ if(P._lb) P._lb.visible=true; }
+    if(GX) for(const Q of GX){ if(Q._lb) Q._lb.visible=true; }
+    // lift back to a clean parking ORBIT — the planet hangs out the window, not under the hull
+    if(universe && P){
+      const APPR=new THREE.Vector3(0.55,0.105,-0.83).normalize();
+      universe.position.copy(APPR.multiplyScalar(P.r*4.6+18).sub(P.grp.position));
+    }
     setDoors(0);
     cam.position.set(0,2.7,8.6); cam.fov=50; cam.updateProjectionMatrix();
     if(controls){ controls.enabled=true; controls.target.set(0,2.1,0); controls.update(); }
@@ -7723,12 +7790,94 @@ window.BamStage = (function(){
       const bars=[]; for(let i=0;i<24;i++){ const b=new THREE.Mesh(new THREE.BoxGeometry(0.45,1,0.3), glow(P.hex,0.8)); b.position.set(-5.75+i*0.5, 1.9, -1.4); eventGrp.add(b); bars.push(b); }
       const beams=[]; for(let i=0;i<6;i++){ const bm=new THREE.Mesh(new THREE.ConeGeometry(1.6,14,20,1,true), glow(i%2?0xff3b2e:0xf7c14b,0.10)); bm.position.set(-7.5+i*3, 8.2, -6); bm.rotation.x=Math.PI; eventGrp.add(bm); beams.push(bm); }
       upd.push((dt,tt)=>{ for(let i=0;i<bars.length;i++){ const v=0.3+Math.abs(Math.sin(tt*6+i*0.7))*2.6; bars[i].scale.y=v; bars[i].position.y=1.3+v/2*1; } for(let i=0;i<beams.length;i++){ beams[i].rotation.z=Math.sin(tt*0.9+i)*0.5; } });
+      // ── THE CROWD: silhouettes packed in front of the stage, bobbing to the beat ──
+      { const bodyG=new THREE.CylinderGeometry(0.16,0.22,1.15,7), headG=new THREE.SphereGeometry(0.14,8,7);
+        const skin=std(0x08060b,0.95,0.05), skin2=std(0x0d0912,0.95,0.05);
+        const phoneMat=glow(0xfff2cc,0.9);
+        const crowd=[];
+        for(let i=0;i<52;i++){
+          const fig=new THREE.Group();
+          const s2=0.86+Math.random()*0.3;                       // height variance
+          const body=new THREE.Mesh(bodyG, Math.random()<0.5?skin:skin2); body.position.y=0.575; fig.add(body);
+          const head=new THREE.Mesh(headG, body.material); head.position.y=1.29; fig.add(head);
+          if(Math.random()<0.28){                                 // some hold their phone light up to the stage
+            const ph=new THREE.Mesh(new THREE.PlaneGeometry(0.09,0.15), phoneMat);
+            ph.position.set(0.22,1.55,-0.08); ph.rotation.x=-0.5; fig.add(ph); fig.userData.ph=ph;
+          }
+          // packed loose fan in front of the stage, denser near the front
+          const row=Math.pow(Math.random(),1.6), zz=0.6+row*9.5, xx=(Math.random()-0.5)*(7+row*13);
+          fig.position.set(xx, 0, zz); fig.scale.setScalar(s2);
+          fig.rotation.y=Math.PI+(Math.random()-0.5)*0.5;         // facing the stage
+          fig.userData.a=Math.random()*Math.PI*2;                 // personal beat phase
+          fig.userData.j=Math.random()<0.18 ? 1.9 : 1;            // the jumpers
+          eventGrp.add(fig); crowd.push(fig);
+        }
+        upd.push((dt,tt)=>{ for(const f of crowd){
+          f.position.y=Math.abs(Math.sin(tt*3+f.userData.a))*0.09*f.userData.j;
+          f.rotation.z=Math.sin(tt*1.5+f.userData.a)*0.045;
+          if(f.userData.ph) f.userData.ph.rotation.z=Math.sin(tt*0.9+f.userData.a)*0.35;
+        } });
+      }
     } else if(P.key==='academy'){
       for(let i=0;i<10;i++){ const a=i/10*Math.PI*2, p=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.65,8,18), std(0xcfc4ae,0.55,0.1)); p.position.set(Math.cos(a)*13, 4, Math.sin(a)*13-2); eventGrp.add(p); }
       const ring=new THREE.Mesh(new THREE.TorusGeometry(13,0.5,10,64), std(0xcfc4ae,0.5,0.1)); ring.rotation.x=Math.PI/2; ring.position.set(0,8.2,-2); eventGrp.add(ring);
       const scr=new THREE.Mesh(new THREE.PlaneGeometry(9,5.5), glow(P.hex,0.3)); scr.position.set(0,4.4,-8); eventGrp.add(scr);
       const books=[]; for(let i=0;i<10;i++){ const b=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.95,0.16), std(i%2?0x8a2a20:0xb08030,0.6,0.1)); b.userData={a:Math.random()*7, r:5+Math.random()*4, h:2.5+Math.random()*3, sp:0.15+Math.random()*0.2}; eventGrp.add(b); books.push(b); }
       upd.push((dt,tt)=>{ for(const b of books){ b.userData.a+=dt*b.userData.sp; b.position.set(Math.cos(b.userData.a)*b.userData.r, b.userData.h+Math.sin(tt+b.userData.r)*0.4, Math.sin(b.userData.a)*b.userData.r-2); b.rotation.y+=dt*0.4; } });
+      // ── REAL COURSE PORTALS: one gate per portal-track course — tap a gate to open that
+      //    actual course in the Academy. Ring shows live progress (gold = completed). ──
+      try{ if(typeof ACADEMY!=='undefined' && typeof PORTAL_TRACK!=='undefined'){
+        const prog=(typeof acProgress==='function')?acProgress():{};
+        const gates=[];
+        const courseLbl=(c,pct)=>{ const cv2=document.createElement('canvas'); cv2.width=512; cv2.height=160; const x2=cv2.getContext('2d');
+          const A=pct>=100?'#f7c14b':'#30d0a8';
+          x2.textAlign='center'; x2.fillStyle=A; x2.shadowColor=A; x2.shadowBlur=18;
+          x2.font='700 44px -apple-system,Segoe UI,sans-serif'; x2.fillText(c.icon||'🎓',256,52);
+          x2.font='700 30px ui-monospace,Menlo,monospace'; x2.fillText((c.title||'').slice(0,24),256,98);
+          x2.font='600 24px ui-monospace,Menlo,monospace'; x2.fillStyle='#fff2dd'; x2.shadowBlur=8;
+          x2.fillText(pct>=100?'✓ MASTERED':(pct+'% COMPLETE'),256,136);
+          const t2=new THREE.CanvasTexture(cv2); t2.colorSpace=THREE.SRGBColorSpace;
+          return new THREE.Sprite(new THREE.SpriteMaterial({map:t2, transparent:true, depthWrite:false, toneMapped:false})); };
+        PORTAL_TRACK.forEach((k,i)=>{
+          const c=ACADEMY.find(x=>x.key===k); if(!c) return;
+          const done=(prog[k]||[]).length, tot=(c.lessons&&c.lessons.length)||1, pct=Math.min(100,Math.round(done/tot*100));
+          const a=(i/PORTAL_TRACK.length)*Math.PI*1.30 - Math.PI*0.65 + Math.PI;   // arc behind the plaza
+          const px=Math.cos(a)*22, pz=Math.sin(a)*22-2;
+          const gate=new THREE.Group(); gate.position.set(px,0,pz); gate.lookAt(0,0,-2);
+          const col=pct>=100?0xf7c14b:P.hex;
+          const arch=new THREE.Mesh(new THREE.TorusGeometry(1.7,0.09,10,42), std(col,0.35,0.9)); arch.position.y=2.0; gate.add(arch);
+          const fill=new THREE.Mesh(new THREE.CircleGeometry(1.58,40), glow(col, 0.10+pct*0.0012)); fill.position.y=2.0; gate.add(fill);
+          // progress arc wrapped around the gate
+          if(pct>0){ const pr=new THREE.Mesh(new THREE.TorusGeometry(1.86,0.045,8,40,Math.max(0.05,pct/100)*Math.PI*2), glow(0xf7c14b,0.85)); pr.position.y=2.0; pr.rotation.z=Math.PI/2; gate.add(pr); }
+          const base=new THREE.Mesh(new THREE.CylinderGeometry(1.9,2.1,0.18,24), std(0x0e2018,0.7,0.3)); base.position.y=0.09; gate.add(base);
+          const lb=courseLbl(c,pct); lb.scale.set(5.2,1.6,1); lb.position.y=4.35; gate.add(lb);
+          gate.traverse(o=>{ o.userData.portalKey=k; o.userData.portalTitle=c.title; });
+          gate.userData.fill=fill; gate.userData.ph2=Math.random()*7;
+          eventGrp.add(gate); gates.push(gate);
+        });
+        upd.push((dt,tt)=>{ for(const g2 of gates){ if(g2.userData.fill) g2.userData.fill.material.opacity=0.10+Math.abs(Math.sin(tt*0.8+g2.userData.ph2))*0.14; } });
+        // tap a portal → open that exact course (wired once, lives for the whole session)
+        if(!portalTapWired && R && R.domElement){
+          portalTapWired=true;
+          let pd=null;
+          R.domElement.addEventListener('pointerdown', e=>{ pd={x:e.clientX,y:e.clientY}; });
+          R.domElement.addEventListener('pointerup', e=>{
+            if(!pd || Math.abs(e.clientX-pd.x)+Math.abs(e.clientY-pd.y)>9) return;
+            if(!NAV || NAV.state!=='landed' || !eventGrp) return;
+            try{
+              const rc=new THREE.Raycaster();
+              rc.setFromCamera(new THREE.Vector2((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1), cam);
+              const hits=rc.intersectObjects(eventGrp.children, true);
+              for(const ht of hits){ let o=ht.object, key=null, ttl='';
+                while(o){ if(o.userData&&o.userData.portalKey){ key=o.userData.portalKey; ttl=o.userData.portalTitle||''; break; } o=o.parent; }
+                if(key){ try{ window.toast&&toast('🎓 '+ttl); }catch(err){}
+                  try{ openAcademy(); if(typeof acRenderCourse==='function') acRenderCourse(key); }catch(err){}
+                  break; }
+              }
+            }catch(err){}
+          });
+        }
+      } }catch(e){ console.warn('portals', e); }
     } else if(P.key==='minds'){
       const dome=new THREE.Mesh(new THREE.IcosahedronGeometry(15,2), new THREE.MeshBasicMaterial({color:P.hex, wireframe:true, transparent:true, opacity:0.16, blending:THREE.AdditiveBlending, toneMapped:false})); dome.position.set(0,0,-2); eventGrp.add(dome);
       const core=new THREE.Mesh(new THREE.IcosahedronGeometry(2.2,1), glow(P.hex,0.7)); core.position.set(0,5,-2); eventGrp.add(core);
@@ -7989,29 +8138,91 @@ window.BamStage = (function(){
       // ── THE GALAXY: this room is a SHIP. The planets out there are real destinations —
       //    the ship "flies" by moving the whole universe past the windows (ship stays at origin).
       universe=new THREE.Group(); S.add(universe);
-      // real planet surfaces: gas giants = turbulent blurred bands + storm ovals; rocky = continents + ice caps
-      const mkPlanetMaps=(P)=>{
-        const W=1024, Hc=512, c=document.createElement('canvas'); c.width=W; c.height=Hc; const x=c.getContext('2d');
-        if(P.type==='gas'){
-          for(let y=0;y<Hc;y++){ x.fillStyle=P.pal[Math.floor(y/18+Math.sin(y*0.045)*2.8+P.pal.length*9)%P.pal.length]; x.fillRect(0,y,W,1); }
-          x.filter='blur(3px)';
-          for(let i=0;i<70;i++){ x.fillStyle=P.pal[i%P.pal.length]; x.globalAlpha=0.25; x.beginPath(); x.ellipse(Math.random()*W, Math.random()*Hc, 60+Math.random()*160, 5+Math.random()*10, 0, 0, 7); x.fill(); }
-          x.globalAlpha=0.5; x.fillStyle='#ffe8d0'; x.beginPath(); x.ellipse(W*0.3, Hc*0.62, 46, 20, 0.3, 0, 7); x.fill();   // the great storm
-          x.filter='none'; x.globalAlpha=1;
-        } else {
-          x.fillStyle=P.pal[0]; x.fillRect(0,0,W,Hc);
-          x.filter='blur(7px)';
-          for(let i=0;i<52;i++){ x.fillStyle=P.pal[1+Math.floor(Math.random()*(P.pal.length-1))]; x.globalAlpha=0.85; const r2=26+Math.random()*90; x.beginPath(); x.ellipse(Math.random()*W, Hc*0.18+Math.random()*Hc*0.64, r2, r2*(0.5+Math.random()*0.6), Math.random()*3, 0, 7); x.fill(); }
-          x.filter='blur(10px)'; x.fillStyle='#e8f0f4'; x.globalAlpha=0.9; x.fillRect(0,0,W,26); x.fillRect(0,Hc-26,W,26);   // polar ice
-          x.filter='none'; x.globalAlpha=1;
+      // ─── PLANET FORGE v2 — per-pixel procedural worlds: real terrain ramps, shiny
+      //     oceans vs rough land (roughnessMap), relief normals, city night-lights on
+      //     the dark side, domain-warped gas bands with vortex storms. ───
+      const hex2rgb=h=>{ const n=parseInt(h.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255]; };
+      const mixc=(a,b,t)=>[a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t];
+      function noiseField(W,H,seed){                      // seamless multi-octave blob noise → 0..1 heights
+        const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+        x.fillStyle='#000'; x.fillRect(0,0,W,H);
+        x.globalCompositeOperation='lighter';
+        let s=seed||1;
+        const rnd=()=>{ s=(s*16807)%2147483647; return s/2147483647; };
+        for(const [n,r0,r1,a] of [[26,90,220,0.30],[70,30,90,0.22],[220,8,30,0.16]]){
+          for(let i=0;i<n;i++){
+            const px=rnd()*W, py=H*0.06+rnd()*H*0.88, rr=r0+rnd()*(r1-r0);
+            const g=x.createRadialGradient(px,py,0,px,py,rr);
+            g.addColorStop(0,'rgba(255,255,255,'+a+')'); g.addColorStop(1,'rgba(255,255,255,0)');
+            x.fillStyle=g;
+            for(const ox of [-W,0,W]){ x.beginPath(); x.arc(px+ox,py,rr,0,7); x.fill(); }   // draw wrapped = no seam
+          }
         }
-        // lift the whole surface — sRGB→linear crushes dark palettes into coal; sunlit planets are BRIGHT
-        x.globalCompositeOperation='screen'; x.fillStyle='rgba(120,100,80,0.55)'; x.fillRect(0,0,W,Hc); x.globalCompositeOperation='source-over';
-        const map=new THREE.CanvasTexture(c); map.colorSpace=THREE.SRGBColorSpace;
-        const cc=document.createElement('canvas'); cc.width=512; cc.height=256; const cx2=cc.getContext('2d');      // cloud alpha
-        cx2.fillStyle='#000'; cx2.fillRect(0,0,512,256); cx2.filter='blur(5px)'; cx2.fillStyle='#fff';
-        for(let i=0;i<46;i++){ cx2.globalAlpha=0.3+Math.random()*0.4; cx2.beginPath(); cx2.ellipse(Math.random()*512, 30+Math.random()*196, 22+Math.random()*70, 5+Math.random()*12, Math.random()*3, 0, 7); cx2.fill(); }
-        return { map, cl:new THREE.CanvasTexture(cc) };
+        const d=x.getImageData(0,0,W,H).data, f=new Float32Array(W*H);
+        let mx=1; for(let i=0;i<W*H;i++){ f[i]=d[i*4]; if(f[i]>mx) mx=f[i]; }
+        for(let i=0;i<W*H;i++) f[i]/=mx;
+        return f;
+      }
+      const mkPlanetMaps=(P)=>{
+        const W=1024, H=512, N=W*H;
+        const hgt=noiseField(W,H,(P.key.charCodeAt(0)*131)%9999+7);
+        const alb=new Uint8ClampedArray(N*4), rgh=new Uint8ClampedArray(N*4), nrm=new Uint8ClampedArray(N*4), nit=new Uint8ClampedArray(N*4);
+        const pal=P.pal.map(hex2rgb);
+        if(P.type==='gas'){
+          const warp=noiseField(W,H,(P.key.charCodeAt(1)*97)%9999+3);
+          const storms=[[W*0.30,H*0.62,74,26],[W*0.72,H*0.38,46,17]];
+          for(let y=0;y<H;y++) for(let x2=0;x2<W;x2++){ const i=y*W+x2;
+            const yy=y + (warp[i]-0.5)*95;                                 // domain warp — the swirls
+            let bi=(yy/H*pal.length*2.2 + Math.sin(yy*0.05)*0.5); bi=((bi%pal.length)+pal.length)%pal.length;
+            let c=mixc(pal[Math.floor(bi)], pal[(Math.floor(bi)+1)%pal.length], bi%1);
+            const br=0.75+hgt[i]*0.55;                                     // fine turbulence
+            c=[c[0]*br, c[1]*br, c[2]*br];
+            for(const st of storms){ let dx=Math.abs(x2-st[0]); dx=Math.min(dx,W-dx); const dy=y-st[1];
+              const dd=(dx*dx)/(st[2]*st[2])+(dy*dy)/(st[3]*st[3]);
+              if(dd<1) c=mixc(c,[255,232,205],(1-dd)*0.75); }              // vortex storms
+            alb[i*4]=c[0]+42; alb[i*4+1]=c[1]+34; alb[i*4+2]=c[2]+26; alb[i*4+3]=255;   // sRGB-crush lift
+            rgh[i*4]=rgh[i*4+1]=rgh[i*4+2]=150; rgh[i*4+3]=255;
+          }
+        } else {
+          const ocean=pal[0], land0=pal[1], land1=pal[2]||pal[1], rock=[122,110,98], snow=[236,240,244];
+          const SEA=0.52;
+          for(let y=0;y<H;y++) for(let x2=0;x2<W;x2++){ const i=y*W+x2;
+            const t=hgt[i], lat=Math.abs(y/H-0.5)*2;
+            let c, rv;
+            if(t<SEA){ const d2=t/SEA; c=mixc([ocean[0]*0.25,ocean[1]*0.25,ocean[2]*0.4], ocean, Math.pow(d2,1.6)); rv=52; }  // deep→shelf, GLOSSY
+            else{ const e=(t-SEA)/(1-SEA);
+              if(e<0.14) c=mixc([214,196,150], land0, e/0.14);             // coastal sand
+              else if(e<0.55) c=mixc(land0, land1, (e-0.14)/0.41);
+              else if(e<0.8) c=mixc(land1, rock, (e-0.55)/0.25);
+              else c=mixc(rock, snow, (e-0.8)/0.2);                        // peaks → snow
+              rv=205;
+            }
+            if(lat>0.8){ const k2=Math.min(1,(lat-0.8)/0.14); c=mixc(c,snow,k2); rv=rv*(1-k2)+120*k2; }   // ice caps
+            alb[i*4]=c[0]+26; alb[i*4+1]=c[1]+22; alb[i*4+2]=c[2]+20; alb[i*4+3]=255;
+            rgh[i*4]=rgh[i*4+1]=rgh[i*4+2]=rv; rgh[i*4+3]=255;
+            if(t>SEA && lat<0.7 && Math.random()<0.0022){                  // civilisation — night lights on the dark side
+              nit[i*4]=255; nit[i*4+1]=190; nit[i*4+2]=120; nit[i*4+3]=255;
+              if(x2+1<W){ nit[i*4+4]=200; nit[i*4+5]=150; nit[i*4+6]=90; nit[i*4+7]=255; }
+            }
+          }
+        }
+        const ns=P.type==='gas'?55:150;                                    // relief normals from the height field
+        for(let y=0;y<H;y++) for(let x2=0;x2<W;x2++){ const i=y*W+x2;
+          const xr=(x2+1)%W, xl=(x2-1+W)%W, yu=Math.max(0,y-1), yd=Math.min(H-1,y+1);
+          const gx=(hgt[y*W+xr]-hgt[y*W+xl])*ns, gy=(hgt[yd*W+x2]-hgt[yu*W+x2])*ns;
+          const l=Math.sqrt(gx*gx+gy*gy+10000);
+          nrm[i*4]=(-gx/l)*127+127; nrm[i*4+1]=(-gy/l)*127+127; nrm[i*4+2]=(100/l)*127+128; nrm[i*4+3]=255;
+        }
+        const toTex=(arr,srgb)=>{ const c=document.createElement('canvas'); c.width=W; c.height=H;
+          c.getContext('2d').putImageData(new ImageData(arr,W,H),0,0);
+          const t=new THREE.CanvasTexture(c); if(srgb) t.colorSpace=THREE.SRGBColorSpace; return t; };
+        // fractal cloud deck (threshold of a second noise field = broken cloud masses)
+        const cl=(()=>{ const f=noiseField(512,256,((P.key.charCodeAt(2)||9)*577)%9999+11);
+          const a=new Uint8ClampedArray(512*256*4);
+          for(let i=0;i<512*256;i++){ const v=Math.max(0,(f[i]-0.55))*3.2*255; a[i*4]=a[i*4+1]=a[i*4+2]=Math.min(255,v); a[i*4+3]=255; }
+          const c=document.createElement('canvas'); c.width=512; c.height=256; c.getContext('2d').putImageData(new ImageData(a,512,256),0,0);
+          return new THREE.CanvasTexture(c); })();
+        return { map:toTex(alb,true), rough:toTex(rgh), norm:toTex(nrm), night:toTex(nit,true), cl };
       };
       // soft fresnel limb glow — a real atmosphere edge, not a flat glowing shell
       const ATMO_VS='varying vec3 vN;varying vec3 vW;void main(){vN=normalize(normalMatrix*normal);vec4 wp=modelMatrix*vec4(position,1.0);vW=wp.xyz;gl_Position=projectionMatrix*viewMatrix*wp;}';
@@ -8035,16 +8246,32 @@ window.BamStage = (function(){
           skyTop:'#060a10', skyHor:'#2a3a4c', gnd:0x101820, fogc:0x0a1016, ev:'Enter the fortress', open:()=>{ try{ openSecCenter(); }catch(e){} }}
       ];
       for(const P of GX){
+        await new Promise(r=>setTimeout(r,0));                             // yield — the forge is per-pixel work
         const grp=new THREE.Group(); grp.position.set(P.pos[0],P.pos[1],P.pos[2]);
         const maps=mkPlanetMaps(P);
-        // barely self-lit: the SUN shades them (lit side / dark side terminator = reads 3D at any distance)
-        P.mesh=new THREE.Mesh(new THREE.SphereGeometry(P.r,64,64), new THREE.MeshStandardMaterial({map:maps.map, roughness:1, metalness:0, emissive:0xffffff, emissiveMap:maps.map, emissiveIntensity:0.18}));
+        // sun-shaded, glossy oceans, terrain relief, night lights glowing on the dark side
+        P.mesh=new THREE.Mesh(new THREE.SphereGeometry(P.r,64,64), new THREE.MeshStandardMaterial({
+          map:maps.map, roughnessMap:maps.rough, roughness:1.0, metalness:0,
+          normalMap:maps.norm, normalScale:new THREE.Vector2(0.8,0.8),
+          emissive:0xffc890, emissiveMap:maps.night, emissiveIntensity:1.1 }));
         P.mesh.rotation.z=(Math.random()-0.5)*0.35;                                   // axial tilt
         grp.add(P.mesh);
         P._cl=new THREE.Mesh(new THREE.SphereGeometry(P.r*1.025,48,48), new THREE.MeshStandardMaterial({color:0xffffff, alphaMap:maps.cl, transparent:true, depthWrite:false, roughness:1}));
         P._cl.rotation.z=P.mesh.rotation.z; grp.add(P._cl);                           // drifting cloud deck
         const atmo=new THREE.Mesh(new THREE.SphereGeometry(P.r*1.12,48,48), new THREE.ShaderMaterial({uniforms:{col:{value:new THREE.Color(P.hex)}}, vertexShader:ATMO_VS, fragmentShader:ATMO_FS, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.BackSide})); grp.add(atmo);
-        if(P.ring){ const rg=new THREE.Mesh(new THREE.RingGeometry(P.r*1.35, P.r*2.1, 72), new THREE.MeshBasicMaterial({color:P.hex, transparent:true, opacity:0.28, side:THREE.DoubleSide, blending:THREE.AdditiveBlending, toneMapped:false})); rg.rotation.x=Math.PI/2.2; grp.add(rg); }
+        if(P.ring){
+          // BANDED ring: concentric density bands + Cassini-style gaps, sunlit like real ice rings
+          const rc=document.createElement('canvas'); rc.width=256; rc.height=8; const rx2=rc.getContext('2d');
+          for(let i=0;i<256;i++){ const v=Math.random()*0.5+0.3, gap=((i>70&&i<84)||(i>150&&i<158)||i<6||i>250)?0:1;
+            rx2.fillStyle='rgba('+Math.floor(200*v+55)+','+Math.floor(172*v+42)+','+Math.floor(135*v+32)+','+(gap*(0.30+v*0.55))+')';
+            rx2.fillRect(i,0,1,8); }
+          const rt=new THREE.CanvasTexture(rc); rt.colorSpace=THREE.SRGBColorSpace;
+          const rgeo=new THREE.RingGeometry(P.r*1.35, P.r*2.2, 96, 1);
+          const posA=rgeo.attributes.position, uvA=rgeo.attributes.uv;              // remap UV radially so the bands ring the planet
+          for(let i=0;i<uvA.count;i++){ const vx=posA.getX(i), vy=posA.getY(i); uvA.setXY(i, (Math.hypot(vx,vy)-P.r*1.35)/(P.r*0.85), 0.5); }
+          const rg=new THREE.Mesh(rgeo, new THREE.MeshStandardMaterial({map:rt, transparent:true, side:THREE.DoubleSide, roughness:0.85, metalness:0.1, depthWrite:false}));
+          rg.rotation.x=Math.PI/2.2; grp.add(rg);
+        }
         if(P.moon){ P.moons=[]; for(let i=0;i<P.moon;i++){ const mo=new THREE.Mesh(new THREE.SphereGeometry(P.r*0.16,20,20), new THREE.MeshStandardMaterial({color:0x8a8a92, roughness:1})); mo.userData={d:P.r*(2.1+i*0.7), ph:Math.random()*7, sp:0.14+i*0.06}; grp.add(mo); P.moons.push(mo); } }
         const lb=mkLabel(P.name, P.hex); lb.scale.set(P.r*1.6, P.r*0.4, 1); lb.position.y=P.r*1.55; lb.material.opacity=0.75; grp.add(lb); P._lb=lb;
         P.grp=grp; universe.add(grp);
@@ -8141,6 +8368,66 @@ window.BamStage = (function(){
     if(mixer) mixer.update(dt); if(window.LipSync) LipSync.update(dt);
     if(cine){ cine.uniforms.t.value = tt%37; cine.uniforms.shake.value=0; }   // live film grain; states set rumble below
     if(stars) stars.rotation.y += dt*0.005;
+    /* ── MANUAL FLIGHT: WASD = thrust along the camera's gaze (Q/E strafe, R/F lift, Shift burn).
+          Fly at a planet and its atmosphere grabs you — same entry cinematic as the autopilot. ── */
+    if((NAV.state==='idle'||NAV.state==='manual') && universe && loaded){
+      const ae=document.activeElement, typing=ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.isContentEditable);
+      let f=0,s=0,u=0;
+      if(!typing){ f=(MKEY.w?1:0)-(MKEY.s?1:0); s=(MKEY.d?1:0)-(MKEY.a?1:0); u=(MKEY.r?1:0)-(MKEY.f?1:0); }
+      const thrusting=f||s||u;
+      if(NAV.state==='idle' && thrusting){
+        NAV={state:'manual', t:0, dest:null};
+        if(!MFLY.vel) MFLY.vel=new THREE.Vector3();
+        if(!MFLY.hint){ MFLY.hint=1; try{ window.toast&&toast('🕹 Manual flight — WASD thrust · R/F lift · Shift burn. Fly into a planet\'s glow to land.'); }catch(e){} }
+      }
+      if(NAV.state==='manual'){
+        NAV.t+=dt;
+        const dir=new THREE.Vector3(); cam.getWorldDirection(dir);
+        const right=new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0,1,0)).normalize();
+        const acc=(MKEY.shift?95:38);
+        MFLY.vel.addScaledVector(dir, f*acc*dt).addScaledVector(right, s*acc*dt);
+        MFLY.vel.y+=u*acc*0.7*dt;
+        MFLY.vel.multiplyScalar(Math.pow(0.35, dt));                    // drag — she coasts, then settles
+        const spd=MFLY.vel.length(); NAV.spd=spd;
+        universe.position.addScaledVector(MFLY.vel, -dt);               // ship at origin: the universe streams past
+        // warp streaks + star slide + rumble scale with real speed
+        const rush=Math.min(1, spd/70);
+        cam.fov=50+rush*3.5; cam.updateProjectionMatrix();
+        if(warpFx){
+          if(spd>4){ const d2=MFLY.vel.clone().normalize(); warpFx.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), d2); }
+          warpFx.visible=rush>0.06; warpFx.material.opacity=Math.min(0.85, rush*1.1);
+          const pa=warpFx.geometry.attributes.position, sp2=dt*(30+rush*260), span=warpFx.userData.span;
+          for(let li=0; li<pa.count/2; li++){ const a2=li*6+2, b2=li*6+5;
+            pa.array[a2]+=sp2; pa.array[b2]+=sp2;
+            if(pa.array[a2]>span/2){ const L=pa.array[b2]-pa.array[a2]; pa.array[a2]-=span; pa.array[b2]=pa.array[a2]+L; } }
+          pa.needsUpdate=true;
+        }
+        if(stars) stars.rotation.y += dt*rush*0.05;
+        if(cine) cine.uniforms.shake.value=rush*0.005;
+        navStatus('MANUAL · '+Math.round(spd)+' u/s'+(MKEY.shift?' · BURN':''));
+        // close enough that a world fills the sky → its atmosphere takes the ship
+        if(GX) for(const P of GX){
+          const dw=P.grp.position.clone().add(universe.position).length();
+          if(dw < P.r*3.4+9){
+            MFLY.vel.set(0,0,0);
+            navStatus('ENTRY · '+P.name+' atmosphere');
+            if(controls) controls.enabled=false;
+            if(flashEl) flashEl.style.background=P.skyHor;
+            if(warpFx){ warpFx.visible=false; warpFx.material.color.setHex(P.hex); }
+            if(entryClouds) for(const sp of entryClouds.children){ sp.material.color.set(P.skyHor); sp.userData.ok=0; }
+            if(hullGrp) hullGrp.visible=true;
+            NAV={state:'entry', t:0, dest:P, u0:universe.position.clone(), p0:cam.position.clone()};
+            break;
+          }
+        }
+        // hands off and drifting slow → settle back to the deck
+        if(NAV.state==='manual' && !thrusting && spd<0.5){
+          MFLY.vel.set(0,0,0); cam.fov=50; cam.updateProjectionMatrix();
+          if(warpFx) warpFx.visible=false;
+          NAV={state:'idle'}; navStatus('HOME · deck idle');
+        }
+      }
+    }
     /* ── ship in flight: the sky outside moves at LIGHT SPEED (streaks), no blinding flash ── */
     if(NAV.state==='fly' && universe){
       NAV.t+=dt; const k=Math.min(1,NAV.t/NAV.dur);
@@ -8664,5 +8951,503 @@ function renderSection(key){
   .nx-x,.ac-x,.x-btn,.close-x,.biz-x{transition:transform .3s,color .3s}
   .nx-x:hover,.ac-x:hover,.x-btn:hover,.close-x:hover,.biz-x:hover{transform:rotate(90deg) scale(1.1);color:#ffe9a8}
 </style>
+<style id="blood-css">
+#bloodterm{position:fixed;inset:0;z-index:370;display:none;flex-direction:column;background:#070102;color:#e8c8c8;font-family:ui-monospace,Menlo,monospace;overflow-y:auto}
+#bloodterm.open{display:flex}
+#bloodterm::after{content:'';position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,30,30,.022) 0 1px,transparent 1px 3px)}
+.bt-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #3a0a0a;position:sticky;top:0;background:#0a0203;z-index:2}
+.bt-title{font-size:13px;letter-spacing:3px;color:#ff2a2a;font-weight:700}
+.bt-sub{font-size:9px;letter-spacing:2px;color:#8a4a4a}
+.bt-live{margin-left:auto;font-size:9px;letter-spacing:2px;color:#ff2a2a}
+.bt-live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff2a2a;margin-right:5px;animation:btp 1.1s infinite}
+@keyframes btp{50%{opacity:.25}}
+.bt-x{background:none;border:1px solid #5a1010;color:#ff6a6a;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:12px}
+.bt-tick{display:flex;gap:0;border-bottom:1px solid #2a0808;overflow-x:auto}
+.bt-tick div{flex:1;min-width:100px;padding:8px 12px;border-right:1px solid #2a0808}
+.bt-tick .k{font-size:8px;letter-spacing:2px;color:#7a3a3a}
+.bt-tick .v{font-size:14px;font-weight:700;color:#ff4a4a;margin-top:2px}
+.bt-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:12px;padding:12px 16px 40px}
+@media(max-width:900px){.bt-grid{grid-template-columns:1fr}}
+.bt-card{border:1px solid #3a0a0a;border-radius:10px;background:linear-gradient(180deg,#12040577,#08010266);padding:12px}
+.bt-card h4{margin:0 0 8px;font-size:9px;letter-spacing:3px;color:#c05050;font-weight:700}
+#bt-pnl{font-size:44px;font-weight:800;letter-spacing:1px;color:#ff2a2a;text-shadow:0 0 22px #ff2a2a55;line-height:1}
+#bt-pnl.up{color:#ff5a5a}
+.bt-cards3{display:flex;gap:8px;margin-top:10px}
+.bt-cards3 div{flex:1;border:1px solid #2a0808;border-radius:8px;padding:8px}
+.bt-cards3 .k{font-size:8px;letter-spacing:2px;color:#7a3a3a}
+.bt-cards3 .v{font-size:15px;font-weight:700;color:#ffb0a0;margin-top:2px}
+#bt-fills{display:flex;gap:5px;margin-top:10px}
+#bt-fills i{flex:1;height:16px;border-radius:3px;background:#2a0808}
+#bt-fills i.w{background:#e03030;box-shadow:0 0 8px #ff2a2a66}
+#bt-fills i.l{background:#4a1010}
+#bt-log{height:210px;overflow-y:auto;font-size:10px;line-height:1.75}
+#bt-log .t{color:#6a3030;margin-right:7px}
+#bt-log .ok{color:#ff7a5a}.bt-log-w{color:#ffd0a0}
+#bt-mkts{font-size:10px}
+#bt-mkts .m{display:flex;gap:8px;align-items:baseline;padding:5px 0;border-bottom:1px dashed #2a0808}
+#bt-mkts .q{flex:1;color:#e8b0b0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#bt-mkts .o{color:#ff4a4a;font-weight:700}
+#bt-mkts .vol{color:#6a3030;font-size:9px}
+#bt-pos{width:100%;border-collapse:collapse;font-size:10px}
+#bt-pos td,#bt-pos th{padding:4px 6px;border-bottom:1px dashed #2a0808;text-align:left}
+#bt-pos th{font-size:8px;letter-spacing:2px;color:#7a3a3a}
+#bt-pos .pl-up{color:#ff8a6a}#bt-pos .pl-dn{color:#8a3030}
+canvas.bt-cv{width:100%;display:block}
+.bt-sim{font-size:8px;letter-spacing:2px;color:#7a3a3a;border:1px solid #3a0a0a;border-radius:5px;padding:2px 6px}
+</style>
+<div id="bloodterm" role="dialog" aria-label="Blood Terminal">
+  <div class="bt-head">
+    <span class="bt-title">🩸 BLOOD TERMINAL</span>
+    <span class="bt-sub">SMART-MONEY CONVERGENCE · POLYMARKET FEED</span>
+    <span class="bt-sim">PAPER SIM — NOT REAL MONEY</span>
+    <span class="bt-live"><i></i>LIVE</span>
+    <button class="bt-x" onclick="closeBlood()">✕</button>
+  </div>
+  <div class="bt-tick">
+    <div><div class="k">BTC SPOT</div><div class="v" id="bt-btc">—</div></div>
+    <div><div class="k">ETH SPOT</div><div class="v" id="bt-eth">—</div></div>
+    <div><div class="k">SOL SPOT</div><div class="v" id="bt-sol">—</div></div>
+    <div><div class="k">WIN RATE</div><div class="v" id="bt-wr">—</div></div>
+    <div><div class="k">TRADES/HR</div><div class="v" id="bt-tph">0</div></div>
+  </div>
+  <div class="bt-grid">
+    <div>
+      <div class="bt-card">
+        <h4>SESSION P&L · COMPOUNDING</h4>
+        <div id="bt-pnl">$0.00</div>
+        <canvas id="bt-eq" class="bt-cv" height="90"></canvas>
+        <div class="bt-cards3">
+          <div><div class="k">EQUITY</div><div class="v" id="bt-equity">$10,000</div></div>
+          <div><div class="k">TODAY</div><div class="v" id="bt-today">+$0</div></div>
+          <div><div class="k">AVG TRADE</div><div class="v" id="bt-avg">$0</div></div>
+        </div>
+        <h4 style="margin-top:12px">LAST 12 FILLS</h4>
+        <div id="bt-fills"></div>
+      </div>
+      <div class="bt-card" style="margin-top:12px">
+        <h4>NEURAL MESH · LIVE FLOW — L1 FEED → L2 CLUSTER → L3 CONVERGENCE</h4>
+        <canvas id="bt-mesh" class="bt-cv" height="190"></canvas>
+      </div>
+      <div class="bt-card" style="margin-top:12px">
+        <h4>TRADE LOG · LIVE STREAM</h4>
+        <div id="bt-log"></div>
+      </div>
+    </div>
+    <div>
+      <div class="bt-card">
+        <h4>🐋 WHALE TAPE · REAL FILLS ≥ $5K (READ-ONLY, LIVE)</h4>
+        <div id="bt-whales">watching the tape…</div>
+      </div>
+      <div class="bt-card" style="margin-top:12px">
+        <h4>TRACKED WALLETS · REAL POSITIONS + P&L (READ-ONLY)</h4>
+        <div id="bt-wallets">tracking the biggest movers this session…</div>
+      </div>
+      <div class="bt-card" style="margin-top:12px">
+        <h4>MARKETS · POLYMARKET 24H VOLUME (REAL ODDS)</h4>
+        <div id="bt-mkts">loading feed…</div>
+      </div>
+      <div class="bt-card" style="margin-top:12px">
+        <h4>OPEN POSITIONS · EVERY TRADE TRACKED</h4>
+        <table id="bt-pos"><thead><tr><th>MARKET</th><th>SIDE</th><th>STAKE</th><th>ODDS</th><th>P&L</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+/* ═══ BLOOD TERMINAL — red smart-money terminal. REAL Polymarket odds + live spot prices;
+       the convergence engine + fills are a PAPER SIMULATION (labelled). ═══ */
+(function(){
+  const $=id=>document.getElementById(id);
+  const ST=(()=>{ try{ return JSON.parse(localStorage.getItem('jv-blood'))||{}; }catch(e){ return {}; } })();
+  const S={ equity:ST.equity||10000, day0:ST.day0||ST.equity||10000, fills:ST.fills||[], trades:ST.trades||0, wins:ST.wins||0,
+            eq:[], pos:[], mkts:[], t0:Date.now(), raf:0, open:false, meshN:[], pulses:[] };
+  const save=()=>{ try{ localStorage.setItem('jv-blood', JSON.stringify({equity:S.equity, day0:S.day0, fills:S.fills.slice(-12), trades:S.trades, wins:S.wins})); }catch(e){} };
+  const log=(msg,cls)=>{ const el=$('bt-log'); if(!el) return; const d=new Date(), t=d.toTimeString().slice(0,8);
+    const row=document.createElement('div'); row.innerHTML='<span class="t">'+t+'</span><span class="'+(cls||'')+'">'+msg+'</span>';
+    el.appendChild(row); while(el.children.length>90) el.removeChild(el.firstChild); el.scrollTop=el.scrollHeight; };
+  /* ── real data: spot prices + polymarket markets ── */
+  async function spot(){
+    for(const [sym,id] of [['BTC','bt-btc'],['ETH','bt-eth'],['SOL','bt-sol']]){
+      try{ const r=await fetch('https://api.coinbase.com/v2/prices/'+sym+'-USD/spot'); const j=await r.json();
+        $(id).textContent='$'+parseFloat(j.data.amount).toLocaleString(undefined,{maximumFractionDigits:sym==='SOL'?2:0}); }catch(e){}
+    }
+  }
+  async function markets(){
+    try{
+      const r=await fetch('https://gamma-api.polymarket.com/markets?limit=12&active=true&closed=false&order=volume24hr&ascending=false');
+      const j=await r.json();
+      S.mkts=(j||[]).map(m=>{ let yes=0.5; try{ const p=JSON.parse(m.outcomePrices||'[]'); yes=parseFloat(p[0])||0.5; }catch(e){}
+        return { q:(m.question||'?').slice(0,64), yes, vol:parseFloat(m.volume24hr||0) }; }).filter(m=>m.q!=='?');
+      const el=$('bt-mkts'); el.innerHTML='';
+      for(const m of S.mkts){ const d=document.createElement('div'); d.className='m';
+        d.innerHTML='<span class="q">'+m.q+'</span><span class="o">YES '+m.yes.toFixed(2)+'</span><span class="vol">$'+(m.vol>1e6?(m.vol/1e6).toFixed(1)+'M':(m.vol/1e3).toFixed(0)+'K')+'</span>';
+        el.appendChild(d); }
+      log('feed sync · '+S.mkts.length+' markets · gamma-api','ok');
+    }catch(e){ $('bt-mkts').textContent='feed unreachable — engine runs on cached odds'; if(!S.mkts.length) S.mkts=[{q:'BTC above $120k Jul 31?',yes:.46,vol:2e6},{q:'Rate hold July?',yes:.83,vol:9e5},{q:'Solana ETF approved this year?',yes:.61,vol:1.4e6}]; }
+  }
+  /* ── REAL SMART MONEY (read-only): whale tape → tracked wallets → convergence signals.
+        Public data-api endpoints; nothing is ever traded. Paper engine stays a labelled SIM. ── */
+  const W={ seen:{}, tape:[], wallets:{}, sigs:{} };
+  const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  async function whaleTape(){
+    try{
+      const r=await fetch('https://data-api.polymarket.com/trades?limit=25&takerOnly=true&filterType=CASH&filterAmount=5000');
+      const j=await r.json(); if(!Array.isArray(j)) return;
+      let fresh=0;
+      for(const t of j.reverse()){
+        const id=t.transactionHash||JSON.stringify([t.proxyWallet,t.timestamp,t.asset]);
+        if(W.seen[id]) continue; W.seen[id]=1; fresh++;
+        const usd=Math.round((t.size||0)*(t.price||0));
+        const row={ id, w:t.proxyWallet, who:t.pseudonym||((t.proxyWallet||'').slice(0,8)+'…'), side:t.side, usd,
+                    q:(t.title||'?').slice(0,60), out:t.outcome||'', px:t.price, ts:(t.timestamp||0)*1000 };
+        W.tape.push(row); if(W.tape.length>40) W.tape.shift();
+        // aggregate per-wallet session flow
+        const wl=W.wallets[row.w]=W.wallets[row.w]||{ who:row.who, usd:0, n:0, pos:[], lastPosAt:0 };
+        wl.usd+=usd; wl.n++;
+        if(fresh<=4) log('🐋 whale fill · <span class="bt-log-w">'+esc(row.who)+'</span> '+row.side+' $'+usd.toLocaleString()+' · '+esc(row.q.slice(0,38)),'');
+        // convergence: 2+ distinct whales, same market + same direction, inside 30 min → REAL signal
+        const key=row.q+'§'+row.side+'§'+row.out;
+        const sg=W.sigs[key]=W.sigs[key]||{ ws:{}, fired:0 };
+        sg.ws[row.w]=Date.now();
+        for(const k2 in sg.ws) if(Date.now()-sg.ws[k2]>18e5) delete sg.ws[k2];
+        if(Object.keys(sg.ws).length>=2 && Date.now()-sg.fired>6e5){
+          sg.fired=Date.now();
+          log('⚡ <span class="ok">SMART-MONEY CONVERGENCE</span> · '+Object.keys(sg.ws).length+' whales '+row.side+' '+esc(row.out)+' · '+esc(row.q.slice(0,40)),'ok');
+          tradeSignal(row);                                    // route a PAPER order off the REAL signal
+        }
+      }
+      if(fresh) renderWhales();
+      await trackWallets();
+    }catch(e){ const el=$('bt-whales'); if(el&&!W.tape.length) el.textContent='tape unreachable — retrying'; }
+  }
+  function renderWhales(){
+    const el=$('bt-whales'); if(!el) return; el.innerHTML='';
+    for(const t of W.tape.slice(-8).reverse()){
+      const d=document.createElement('div'); d.className='m';
+      d.innerHTML='<span class="q"><b style="color:'+(t.side==='BUY'?'#5aff8a':'#ff5a5a')+'">'+t.side+'</b> $'+t.usd.toLocaleString()+' · '+esc(t.who)+'</span><span class="o">'+esc(t.out)+' @ '+(t.px||0).toFixed(2)+'</span><span class="vol">'+esc(t.q.slice(0,44))+'</span>';
+      el.appendChild(d);
+    }
+  }
+  async function trackWallets(){
+    const top=Object.entries(W.wallets).sort((a,b)=>b[1].usd-a[1].usd).slice(0,3);
+    for(const [addr,wl] of top){
+      if(Date.now()-wl.lastPosAt<12e4) continue; wl.lastPosAt=Date.now();
+      try{
+        const r=await fetch('https://data-api.polymarket.com/positions?user='+addr+'&limit=4&sortBy=CURRENT');
+        const j=await r.json(); if(Array.isArray(j)) wl.pos=j.map(p=>({ q:(p.title||'?').slice(0,44), out:p.outcome||'', val:p.currentValue||0, pnl:p.cashPnl||0 }));
+      }catch(e){}
+    }
+    const el=$('bt-wallets'); if(!el || !top.length) return; el.innerHTML='';
+    for(const [addr,wl] of top){
+      const card=document.createElement('div'); card.style.cssText='margin-bottom:9px;padding-bottom:7px;border-bottom:1px solid rgba(255,42,42,.15)';
+      let h='<div style="display:flex;justify-content:space-between"><b style="color:#ffd0c0">'+esc(wl.who)+'</b><span style="color:#a03030">$'+wl.usd.toLocaleString()+' flow · '+wl.n+' fills</span></div>';
+      for(const p of wl.pos.slice(0,3)) h+='<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:3px"><span style="color:#c8b0a8">'+esc(p.q)+' · '+esc(p.out)+'</span><span style="color:'+(p.pnl>=0?'#5aff8a':'#ff5a5a')+'">'+(p.pnl>=0?'+':'−')+'$'+Math.abs(p.pnl).toFixed(0)+'</span></div>';
+      if(!wl.pos.length) h+='<div style="font-size:11px;color:#7a5048;margin-top:3px">positions loading…</div>';
+      card.innerHTML=h; el.appendChild(card);
+    }
+  }
+  /* paper order routed off a REAL whale-convergence signal (still a SIM — labelled) */
+  function tradeSignal(row){
+    const p={ q:row.q, side:row.side==='BUY'?'YES':'NO', stake:Math.max(5,S.equity*0.015), odds:Math.max(0.05,Math.min(0.95,row.px||0.5)), t:Date.now() };
+    S.pos.push(p); if(S.pos.length>9) settle(S.pos.shift());
+    log('order routed (paper) off real signal → '+esc(row.q.slice(0,40))+' · '+p.side+' @ '+p.odds.toFixed(2));
+    setTimeout(()=>{ const i=S.pos.indexOf(p); if(i>=0){ S.pos.splice(i,1); settle(p); } }, 9000+Math.random()*22000);
+    renderPos();
+  }
+  /* ── the paper engine: mesh convergence fires → route → fill → settle ── */
+  function trade(){
+    if(!S.mkts.length) return;
+    const m=S.mkts[Math.floor(Math.random()*S.mkts.length)];
+    const side=Math.random()<m.yes?'YES':'NO', odds=side==='YES'?m.yes:1-m.yes;
+    const stake=Math.max(5, S.equity*(0.008+Math.random()*0.02));
+    const p={ q:m.q, side, stake, odds, t:Date.now() };
+    S.pos.push(p); if(S.pos.length>9) settle(S.pos.shift());
+    log('order routed → <span class="bt-log-w">'+m.q.slice(0,42)+'</span> · '+side+' @ '+odds.toFixed(2));
+    setTimeout(()=>log('OrderFilled · block '+(76e6+Math.floor(Math.random()*1e5)).toLocaleString(),''), 700+Math.random()*900);
+    setTimeout(()=>{ const i=S.pos.indexOf(p); if(i>=0){ S.pos.splice(i,1); settle(p); } }, 9000+Math.random()*22000);
+    renderPos();
+  }
+  function settle(p){
+    const win=Math.random()<0.55;                        // the "edge" — this is a SIM
+    const pl=win? p.stake*(1/Math.max(0.08,p.odds)-1)*(0.25+Math.random()*0.4) : -p.stake*(0.5+Math.random()*0.5);
+    S.equity+=pl; S.trades++; if(win) S.wins++;
+    S.fills.push(win?1:0); S.fills=S.fills.slice(-12);
+    log((win?'settled · <span class="ok">WIN</span> ':'settled · LOSS ')+(pl>=0?'+':'−')+'$'+Math.abs(pl).toFixed(2), win?'ok':'');
+    save(); renderTop(); renderPos();
+  }
+  function renderTop(){
+    const pnl=S.equity-S.day0;
+    const el=$('bt-pnl'); el.textContent=(pnl<0?'-':'+')+'$'+Math.abs(pnl).toFixed(2); el.className=pnl>=0?'up':'';
+    $('bt-equity').textContent='$'+S.equity.toLocaleString(undefined,{maximumFractionDigits:0});
+    $('bt-today').textContent=(pnl<0?'-':'+')+'$'+Math.abs(pnl).toFixed(0);
+    $('bt-avg').textContent='$'+(S.trades?Math.abs(pnl)/S.trades:0).toFixed(2);
+    $('bt-wr').textContent=S.trades?Math.round(S.wins/S.trades*100)+'%':'—';
+    $('bt-tph').textContent=Math.round(S.trades/Math.max(0.02,(Date.now()-S.t0)/36e5));
+    const f=$('bt-fills'); f.innerHTML=''; for(let i=0;i<12;i++){ const b=document.createElement('i'); const v=S.fills[S.fills.length-12+i]; if(v===1)b.className='w'; else if(v===0)b.className='l'; f.appendChild(b); }
+    S.eq.push(S.equity); if(S.eq.length>240) S.eq.shift();
+  }
+  function renderPos(){
+    const tb=$('bt-pos').tBodies[0]; tb.innerHTML='';
+    for(const p of S.pos){ const tr=document.createElement('tr'); const mtm=(Math.random()-0.45)*p.stake*0.3;
+      tr.innerHTML='<td>'+p.q.slice(0,34)+'</td><td>'+p.side+'</td><td>$'+p.stake.toFixed(0)+'</td><td>'+p.odds.toFixed(2)+'</td><td class="'+(mtm>=0?'pl-up':'pl-dn')+'">'+(mtm>=0?'+':'−')+'$'+Math.abs(mtm).toFixed(2)+'</td>';
+      tb.appendChild(tr); }
+  }
+  /* ── canvases: equity spark + neural mesh ── */
+  function drawEq(){
+    const cv=$('bt-eq'); if(!cv) return; const w=cv.width=cv.clientWidth, h=cv.height; const x=cv.getContext('2d');
+    x.clearRect(0,0,w,h); if(S.eq.length<2) return;
+    const mn=Math.min(...S.eq), mx=Math.max(...S.eq), rg=(mx-mn)||1;
+    x.beginPath(); S.eq.forEach((v,i)=>{ const px=i/(S.eq.length-1)*w, py=h-8-((v-mn)/rg)*(h-18); i?x.lineTo(px,py):x.moveTo(px,py); });
+    x.strokeStyle='#ff2a2a'; x.lineWidth=2; x.shadowColor='#ff2a2a'; x.shadowBlur=9; x.stroke(); x.shadowBlur=0;
+    x.lineTo(w,h); x.lineTo(0,h); x.closePath(); x.fillStyle='rgba(255,42,42,0.07)'; x.fill();
+  }
+  function meshInit(){
+    S.meshN=[]; const cv=$('bt-mesh'); const w=cv.width=cv.clientWidth, h=cv.height;
+    const L=[6,9,4];
+    L.forEach((n,li)=>{ for(let i=0;i<n;i++) S.meshN.push({x:40+li*(w-80)/2, y:24+(i+0.5)*(h-48)/n, l:li}); });
+  }
+  function drawMesh(tt){
+    const cv=$('bt-mesh'); if(!cv) return; const w=cv.width=cv.clientWidth, h=cv.height; const x=cv.getContext('2d');
+    if(!S.meshN.length || Math.abs(S.meshN[S.meshN.length-1].x-(w-40))>4) meshInit();
+    x.clearRect(0,0,w,h);
+    const Ls=[S.meshN.filter(n=>n.l===0), S.meshN.filter(n=>n.l===1), S.meshN.filter(n=>n.l===2)];
+    x.strokeStyle='rgba(255,42,42,0.10)'; x.lineWidth=1;
+    for(let li=0; li<2; li++) for(const a of Ls[li]) for(const b of Ls[li+1]){ x.beginPath(); x.moveTo(a.x,a.y); x.lineTo(b.x,b.y); x.stroke(); }
+    for(const n of S.meshN){ x.beginPath(); x.arc(n.x, n.y+Math.sin(tt*1.7+n.y)*2, n.l===2?4:2.6, 0, 7); x.fillStyle=n.l===2?'#ff4a4a':'#a03030'; x.shadowColor='#ff2a2a'; x.shadowBlur=n.l===2?10:4; x.fill(); } x.shadowBlur=0;
+    if(Math.random()<0.05 && S.pulses.length<7){ const a=Ls[0][Math.floor(Math.random()*Ls[0].length)], b=Ls[1][Math.floor(Math.random()*Ls[1].length)], c=Ls[2][Math.floor(Math.random()*Ls[2].length)]; S.pulses.push({p:[a,b,c], t:0}); }
+    for(let i=S.pulses.length-1;i>=0;i--){ const pu=S.pulses[i]; pu.t+=0.016;
+      const seg=pu.t<0.5?0:1, k=(pu.t%0.5)/0.5, A=pu.p[seg], B=pu.p[seg+1];
+      const px=A.x+(B.x-A.x)*k, py=A.y+(B.y-A.y)*k;
+      x.beginPath(); x.arc(px,py,3,0,7); x.fillStyle='#ffd0c0'; x.shadowColor='#ff6a4a'; x.shadowBlur=12; x.fill(); x.shadowBlur=0;
+      if(pu.t>=1){ S.pulses.splice(i,1); if(Math.random()<0.5) trade(); }   // convergence hit → route a paper order
+    }
+  }
+  let last=0;
+  function loop(ts){ if(!S.open) return; S.raf=requestAnimationFrame(loop);
+    if(ts-last<50) return; last=ts;
+    drawMesh(ts/1000); drawEq(); }
+  window.openBlood=function(){
+    const el=$('bloodterm'); el.classList.add('open'); S.open=true; S.t0=S.t0||Date.now();
+    if(!S.eq.length){ S.eq.push(S.equity); renderTop(); }
+    spot(); markets(); whaleTape();
+    if(!S._iv){ S._iv=setInterval(spot, 30000); S._mv=setInterval(markets, 90000); S._hb=setInterval(()=>{ if(S.open){ renderTop(); renderPos(); } }, 4000); S._wv=setInterval(()=>{ if(S.open) whaleTape(); }, 45000); }
+    log('BLOOD TERMINAL online · paper engine armed · whale tape LIVE (read-only) · window 12s','ok');
+    S.raf=requestAnimationFrame(loop);
+  };
+  window.closeBlood=function(){ $('bloodterm').classList.remove('open'); S.open=false; cancelAnimationFrame(S.raf); };
+})();
+</script>
+<script>
+/* ═══ SHIP SOUND — fully procedural WebAudio (no assets): bridge hum, warp, entry roar,
+   airlock hiss, per-planet venue ambience. Reads BamStage.nav; touches nothing else. ═══ */
+(function(){
+  let AC=null, master=null, noiseBuf=null, muted=localStorage.getItem('bamSndMute')==='1';
+  const L={};                       // persistent layers: hum / vent / warp / roar / rumble
+  let venue=null;                   // current venue ambience (nodes + timers), rebuilt per landing
+  let lastState='', btn=null;
+  function mkNoise(){ const n=AC.sampleRate*2, b=AC.createBuffer(1,n,AC.sampleRate), d=b.getChannelData(0);
+    let l=0; for(let i=0;i<n;i++){ const w=Math.random()*2-1; l=(l+0.02*w)/1.02; d[i]=(l*3.2+w*0.35)*0.7; } return b; }
+  function src(){ const s=AC.createBufferSource(); s.buffer=noiseBuf; s.loop=true; s.start(); return s; }
+  function layer(mk){ const g=AC.createGain(); g.gain.value=0; g.connect(master); return Object.assign({g}, mk(g)||{}); }
+  function boot(){
+    if(AC) return;
+    try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; }
+    master=AC.createGain(); master.gain.value=muted?0:0.5; master.connect(AC.destination);
+    noiseBuf=mkNoise();
+    // bridge hum: two detuned lows through a dark lowpass + slow breathing LFO
+    L.hum=layer(g=>{ const f=AC.createBiquadFilter(); f.type='lowpass'; f.frequency.value=210; f.connect(g);
+      for(const [fr,ty,vl] of [[46,'sine',0.6],[92.6,'sawtooth',0.16],[138,'sine',0.10]]){
+        const o=AC.createOscillator(); o.type=ty; o.frequency.value=fr;
+        const og=AC.createGain(); og.gain.value=vl; o.connect(og); og.connect(f); o.start(); }
+      const lfo=AC.createOscillator(); lfo.frequency.value=0.11; const la=AC.createGain(); la.gain.value=28;
+      lfo.connect(la); la.connect(f.frequency); lfo.start(); });
+    // air vents: thin filtered noise bed
+    L.vent=layer(g=>{ const f=AC.createBiquadFilter(); f.type='bandpass'; f.frequency.value=420; f.Q.value=0.6;
+      src().connect(f); f.connect(g); });
+    // warp: noise swept through a rising bandpass + a climbing whine
+    L.warp=layer(g=>{ const f=AC.createBiquadFilter(); f.type='bandpass'; f.frequency.value=240; f.Q.value=1.4;
+      src().connect(f); f.connect(g);
+      const o=AC.createOscillator(); o.type='sawtooth'; o.frequency.value=60;
+      const of=AC.createBiquadFilter(); of.type='lowpass'; of.frequency.value=900;
+      const og=AC.createGain(); og.gain.value=0.14; o.connect(of); of.connect(og); og.connect(g); o.start();
+      return {f, o}; });
+    // entry roar: heavy low noise + buffeting sub rumble
+    L.roar=layer(g=>{ const f=AC.createBiquadFilter(); f.type='lowpass'; f.frequency.value=160; f.Q.value=0.8;
+      src().connect(f); f.connect(g); return {f}; });
+    L.rumble=layer(g=>{ const o=AC.createOscillator(); o.type='sine'; o.frequency.value=31;
+      const sh=AC.createGain(); sh.gain.value=1; o.connect(sh); sh.connect(g); o.start();
+      const j=AC.createOscillator(); j.type='sine'; j.frequency.value=7.3; const ja=AC.createGain(); ja.gain.value=0.45;
+      j.connect(ja); ja.connect(sh.gain); j.start(); });
+    setInterval(tick, 90);
+  }
+  function set(name, v, tc){ const l=L[name]; if(l) l.g.gain.setTargetAtTime(v, AC.currentTime, tc||0.25); }
+  function hiss(dur, hp){ // one-shot airlock/steam burst
+    if(!AC) return; const s=src(), f=AC.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp||900;
+    const g=AC.createGain(); g.gain.setValueAtTime(0.0001,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.5,AC.currentTime+0.06);
+    g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+(dur||1.2));
+    s.connect(f); f.connect(g); g.connect(master); setTimeout(()=>{ try{s.stop();}catch(e){} }, (dur||1.2)*1000+150); }
+  function chime(fr){ // soft arrival tone
+    if(!AC) return; const o=AC.createOscillator(); o.type='sine'; o.frequency.value=fr||660;
+    const g=AC.createGain(); g.gain.setValueAtTime(0.0001,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.16,AC.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+1.4);
+    o.connect(g); g.connect(master); o.start(); o.stop(AC.currentTime+1.5); }
+  function killVenue(){ if(!venue) return; for(const t of venue.timers||[]) clearInterval(t);
+    try{ venue.g.gain.setTargetAtTime(0, AC.currentTime, 0.4); }catch(e){}
+    const vg=venue.g; setTimeout(()=>{ try{ vg.disconnect(); }catch(e){} }, 2500); venue=null; }
+  function buildVenue(key){
+    killVenue();
+    const g=AC.createGain(); g.gain.value=0; g.connect(master);
+    const timers=[];
+    // shared wind bed for every world
+    { const f=AC.createBiquadFilter(); f.type='bandpass'; f.frequency.value=310; f.Q.value=0.5;
+      src().connect(f); f.connect(g);
+      const lfo=AC.createOscillator(); lfo.frequency.value=0.07; const la=AC.createGain(); la.gain.value=140;
+      lfo.connect(la); la.connect(f.frequency); lfo.start(); }
+    if(key==='beats'){ // distant show: muffled 4-on-the-floor + crowd wash
+      const cf=AC.createBiquadFilter(); cf.type='bandpass'; cf.frequency.value=950; cf.Q.value=0.8;
+      const cg=AC.createGain(); cg.gain.value=0.5; src().connect(cf); cf.connect(cg); cg.connect(g);
+      const clfo=AC.createOscillator(); clfo.frequency.value=0.19; const ca=AC.createGain(); ca.gain.value=0.22;
+      clfo.connect(ca); ca.connect(cg.gain); clfo.start();
+      timers.push(setInterval(()=>{ if(!AC) return; const o=AC.createOscillator(); o.type='sine';
+        o.frequency.setValueAtTime(118,AC.currentTime); o.frequency.exponentialRampToValueAtTime(38,AC.currentTime+0.16);
+        const kg=AC.createGain(); kg.gain.setValueAtTime(0.9,AC.currentTime);
+        kg.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+0.32);
+        const kf=AC.createBiquadFilter(); kf.type='lowpass'; kf.frequency.value=220;
+        o.connect(kf); kf.connect(kg); kg.connect(g); o.start(); o.stop(AC.currentTime+0.36); }, 652)); // ~92 BPM through the walls
+    } else if(key==='academy'){ // calm learned air: soft fifth pad
+      for(const fr of [220, 330.4, 441.2]){ const o=AC.createOscillator(); o.type='sine'; o.frequency.value=fr;
+        o.detune.value=(Math.random()-0.5)*7; const og=AC.createGain(); og.gain.value=0.05;
+        o.connect(og); og.connect(g); o.start(); }
+    } else if(key==='minds'){ // shimmering thought-field
+      for(let i=0;i<4;i++){ const o=AC.createOscillator(); o.type='sine'; o.frequency.value=880+i*220.5;
+        const og=AC.createGain(); og.gain.value=0.016; o.connect(og); og.connect(g);
+        const lf=AC.createOscillator(); lf.frequency.value=0.13+i*0.07; const la=AC.createGain(); la.gain.value=0.014;
+        lf.connect(la); la.connect(og.gain); lf.start(); o.start(); }
+    } else if(key==='empire'){ // deep prosperity drone + rare coin pings
+      const o=AC.createOscillator(); o.type='triangle'; o.frequency.value=55;
+      const og=AC.createGain(); og.gain.value=0.30; o.connect(og); og.connect(g); o.start();
+      timers.push(setInterval(()=>{ if(Math.random()<0.4) chime(1318+Math.random()*660); }, 3400));
+    } else if(key==='security'){ // dark drone + slow sonar sweep
+      const o=AC.createOscillator(); o.type='sawtooth'; o.frequency.value=41;
+      const f=AC.createBiquadFilter(); f.type='lowpass'; f.frequency.value=130;
+      const og=AC.createGain(); og.gain.value=0.34; o.connect(f); f.connect(og); og.connect(g); o.start();
+      timers.push(setInterval(()=>chime(494), 4200));
+    }
+    venue={g, timers};
+    g.gain.setTargetAtTime(0.55, AC.currentTime, 0.8);
+  }
+  function tick(){
+    if(!AC) return;
+    const open=(()=>{ try{ const e=document.getElementById('stage3d'); return e&&e.classList.contains('open'); }catch(err){ return false; } })();
+    if(!open){ if(AC.state==='running') AC.suspend(); return; }
+    if(AC.state==='suspended') AC.resume();
+    let nav={state:'idle'}; try{ if(window.BamStage&&BamStage.nav) nav=BamStage.nav; }catch(e){}
+    const st=nav.state||'idle';
+    if(st!==lastState){ // one-shots on the transitions
+      if(st==='fly') hiss(0.8, 500);                                   // engines spool
+      if(st==='entry'){ hiss(1.6, 300); }                              // hitting the atmosphere
+      if(st==='disembark'){ hiss(2.2, 800); }                          // airlock cycles open
+      if(st==='landed'){ chime(660); setTimeout(()=>chime(880),180); if(nav.dest) buildVenue(nav.dest.key); }
+      if(st==='board'){ hiss(1.0, 700); }
+      if(lastState==='landed' && st!=='landed') killVenue();
+      lastState=st;
+    }
+    const onShip = st==='idle'||st==='fly'||st==='manual'||st==='entry'||st==='board';
+    set('hum',  onShip?0.30:0.0, 0.6);
+    set('vent', onShip?0.05:0.0, 0.6);
+    if(st==='fly'){ const k=Math.min(1,(nav.t||0)/(nav.dur||6.5)), mid=Math.sin(k*Math.PI);
+      set('warp', 0.02+mid*0.30, 0.12);
+      if(L.warp.f) L.warp.f.frequency.setTargetAtTime(240+mid*2200, AC.currentTime, 0.15);
+      if(L.warp.o) L.warp.o.frequency.setTargetAtTime(60+mid*340, AC.currentTime, 0.2);
+    } else if(st==='manual'){ const rush=Math.min(1,(nav.spd||0)/70);   // manual flight: thrust follows real speed
+      set('warp', rush*0.32, 0.15);
+      if(L.warp.f) L.warp.f.frequency.setTargetAtTime(240+rush*2000, AC.currentTime, 0.2);
+      if(L.warp.o) L.warp.o.frequency.setTargetAtTime(60+rush*300, AC.currentTime, 0.25);
+    } else set('warp', 0, 0.3);
+    if(st==='entry'){ const k=Math.min(1,(nav.t||0)/7), heat=Math.max(0,Math.min(1,(k-0.30)/0.35)), fade=Math.max(0,Math.min(1,(1-k)/0.12));
+      set('roar', (0.06+heat*0.5)*fade, 0.15);
+      set('rumble', (0.05+heat*0.30)*fade, 0.15);
+      if(L.roar.f) L.roar.f.frequency.setTargetAtTime(160+heat*740, AC.currentTime, 0.2);
+    } else { set('roar', 0, 0.4); set('rumble', 0, 0.4); }
+  }
+  function toggle(){ muted=!muted; localStorage.setItem('bamSndMute', muted?'1':'0');
+    if(master) master.gain.setTargetAtTime(muted?0:0.5, AC.currentTime, 0.1);
+    if(btn) btn.textContent=muted?'🔇':'🔊'; }
+  addEventListener('load', function(){ setTimeout(function(){
+    try{ const nv=document.getElementById('b3d-nav'); if(nv){
+      btn=document.createElement('button'); btn.textContent=muted?'🔇':'🔊'; btn.title='Ship sound';
+      btn.onclick=function(){ boot(); toggle(); }; nv.appendChild(btn); } }catch(e){}
+  }, 400); });
+  // WebAudio needs a user gesture: arm on the first tap/keypress anywhere
+  for(const ev of ['pointerdown','keydown','touchstart'])
+    addEventListener(ev, function once(){ boot(); }, {once:true, passive:true});
+})();
+</script>
+<script>
+/* ═══ DAEMON → HOLOGRAMS: the 24/7 Mac daemon's REAL events (sales, minds runs, video
+   batches, briefings) appear as live holograms on the ship. Polls the server vault's
+   /api/daemon (read-only). Nothing fires if no vault is configured. ═══ */
+(function(){
+  let lastTs=0; try{ lastTs=parseInt(localStorage.getItem('bamDaemonTs')||'0',10)||0; }catch(e){}
+  let firstPoll=true;
+  async function poll(){
+    try{
+      if(!(typeof cfg!=='undefined' && cfg.apiUrl)) return;
+      if(!(window.BamStage && BamStage.loaded)) return;
+      const r=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/daemon',{headers:{'x-jarvis-token':cfg.apiToken||''}});
+      if(!r.ok) return;
+      const d=await r.json(); if(!d||!Array.isArray(d.events)) return;
+      if(firstPoll){ firstPoll=false;                       // baseline on first poll: only NEW work projects
+        for(const ev of d.events) if(ev.ts>lastTs) lastTs=ev.ts;
+        try{ localStorage.setItem('bamDaemonTs', String(lastTs)); }catch(e){}
+        return; }
+      let shown=0;
+      for(const ev of d.events){
+        if(!ev.ts || ev.ts<=lastTs || ev.sticky) continue;
+        lastTs=Math.max(lastTs, ev.ts); shown++;
+        if(shown>3) continue;                               // don't flood the deck
+        try{
+          const h=BamStage.action(ev.kind||'task', 'DAEMON · '+(ev.label||'WORKING'));
+          setTimeout(()=>{ try{ BamStage.actionDone(h, true, ev.label||'✓ DONE'); }catch(e){} }, 6000+Math.random()*4000);
+        }catch(e){}
+      }
+      if(shown){ try{ localStorage.setItem('bamDaemonTs', String(lastTs)); }catch(e){}
+        try{ window.toast && toast('🛰 Daemon: '+shown+' real event'+(shown>1?'s':'')+' projected on deck'); }catch(e){} }
+    }catch(e){}
+  }
+  setInterval(poll, 30000);
+  addEventListener('load', ()=>setTimeout(poll, 12000));
+})();
+</script>
+<script>
+/* ═══ VAULT AUTO-DISCOVERY: the Mac's jarvis-api.sh publishes its current tunnel URL to
+   this site as vault.json. The quick-tunnel URL rotates on every restart — this keeps
+   every device (especially the phone) pointed at the live backend without re-pasting. ═══ */
+(function(){
+  let adopted=false;
+  async function discover(){
+    if(adopted) return;
+    try{
+      if(typeof cfg==='undefined') return;
+      const r=await fetch('vault.json?t='+Date.now(),{cache:'no-store'}); if(!r.ok) return;
+      const v=await r.json(); if(!v||!v.url) return;
+      const url=String(v.url).replace(/\/+$/,''), cur=(cfg.apiUrl||'').replace(/\/+$/,'');
+      if(cur===url) { adopted=true; return; }
+      // only auto-switch when nothing is set or the saved URL is a rotating quick-tunnel one
+      if(cur && !/trycloudflare\.com/.test(cur)) { adopted=true; return; }
+      const h=await fetch(url+'/api/health').catch(()=>null); if(!h||!h.ok) return;
+      cfg.apiUrl=url;
+      try{ if(typeof persistCfg==='function') persistCfg(); }catch(e){}
+      adopted=true;
+      try{ window.toast && toast('🔗 Reconnected to your Mac’s server vault'); }catch(e){}
+    }catch(e){}
+  }
+  addEventListener('load', ()=>setTimeout(discover, 2500));
+  setInterval(discover, 45000);          // keeps trying through the PIN-unlock, then stops once adopted
+  setInterval(()=>{ adopted=false; }, 10*60*1000);   // re-check occasionally in case the tunnel rotated mid-session
+})();
+</script>
 <!-- auto-enter3D removed: the ship deck (BamStage) is the main experience; the 3D button still opens the CORE world manually --></body>
 </html>
