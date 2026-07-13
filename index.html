@@ -1374,6 +1374,14 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
         <div class="hint">Discord server → channel settings → Integrations → Webhooks → New Webhook → Copy URL.</div>
       </div>
       <div class="field">
+        <label>BAM in your Terminal</label>
+        <div style="display:flex;gap:8px">
+          <input readonly id="c-cli" value="curl -fsSL https://bozo711.github.io/bam-install.sh | bash" style="flex:1;min-width:0;background:rgba(100,0,0,.06);border:1px solid var(--red-b);border-radius:7px;color:var(--text);font-family:ui-monospace,Menlo,monospace;font-size:11px;padding:9px 10px;outline:none" onclick="this.select()">
+          <button type="button" class="save-btn" style="margin:0;padding:0 14px" onclick="copySecure(document.getElementById('c-cli').value);toast('📋 Copied — paste it in Terminal')">📋 COPY</button>
+        </div>
+        <div class="hint">Paste in Terminal (needs Node.js). Installs the <strong>bam</strong> command — same brain, memory and modes as this app. Then just type <strong>bam</strong>. On your Mac it picks up your keys automatically.</div>
+      </div>
+      <div class="field">
         <label>Backup &amp; Restore</label>
         <textarea id="c-backup" placeholder="Tap Export to back up your key, settings &amp; memory — or paste a backup here and tap Restore." style="width:100%;min-height:64px;background:rgba(100,0,0,.06);border:1px solid var(--red-b);border-radius:7px;color:var(--text);font-family:inherit;font-size:12px;padding:8px 10px;outline:none;resize:vertical;-webkit-appearance:none"></textarea>
         <div style="display:flex;gap:8px;margin-top:7px">
