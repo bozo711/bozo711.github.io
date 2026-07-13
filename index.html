@@ -1034,6 +1034,8 @@ strong{color:#e8d4b0}
 #yt.open{display:flex}
 #phys{position:fixed;inset:0;z-index:437;background:radial-gradient(900px 600px at 50% -10%,#0a1226,#05030c 60%,#03060c);display:none;flex-direction:column}
 #phys.open{display:flex}
+#agent{position:fixed;inset:0;z-index:438;background:radial-gradient(1000px 600px at 50% -10%,#0c1420,#06060c 60%,#03040a);display:none;flex-direction:column}
+#agent.open{display:flex}
 .ph-l{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#9fc7e6}
 .ph-l input{background:rgba(255,255,255,.06);border:1px solid rgba(120,180,255,.3);border-radius:8px;color:var(--text);padding:9px 11px;font-family:inherit;font-size:14px;outline:none}
 
@@ -1366,6 +1368,7 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
       <button onclick="goSection('chat')" title="Core · Chat">◉</button>
       <button onclick="goSection('brain')" title="Brain">🧠</button>
       <button onclick="goSection('academy')" title="Academy">🎓</button>
+      <button onclick="openAgent()" title="Web agent — Bam does real tasks on real sites">🕹</button>
       <button onclick="goSection('security')" title="Security">🛡</button>
       <button onclick="goSection('settings')" title="Settings">⚙</button>
       <button onclick="openDoom()" title="Doomscroll (2D)">🌀</button>
@@ -1541,6 +1544,28 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
   <div class="biz-body" id="yt-bam" style="display:none">
     <div id="yt-bam-status">The videos Bam's daemon renders on your Mac, watchable from any device.</div>
     <div id="yt-bam-out"></div>
+  </div>
+</div>
+
+<!-- WEB AGENT — Bam drives a real browser on the Mac; you watch and approve from anywhere -->
+<div id="agent">
+  <div class="biz-top"><span class="biz-title">🕹 WEB AGENT — BAM DOES IT FOR REAL</span><button onclick="closeAgent()">✕</button></div>
+  <div class="biz-body">
+    <div class="biz-search">
+      <input id="ag-task" placeholder='Give Bam a real task — e.g. "sign up for a free Canva account"'>
+      <button onclick="agentStart()">▶ Go</button>
+    </div>
+    <div id="ag-status">Bam opens a real browser on your Mac and works the task step by step. He pauses for YOUR approval before anything gets submitted or signed up, and asks when he needs info.</div>
+    <div id="ag-approve" class="biz-card" style="display:none;border-left-color:#e2c05c"><div style="flex:1"><b style="color:#f2e2ae">⏸ Bam wants to:</b> <span id="ag-approve-what"></span></div>
+      <button onclick="agentApprove(true)" style="background:rgba(60,170,100,.2);border-color:rgba(90,200,130,.5);color:#bde9cc">✅ Approve</button>
+      <button onclick="agentApprove(false)">✕ Deny</button></div>
+    <div id="ag-ask" class="biz-card" style="display:none;flex-wrap:wrap;border-left-color:#7fc2dd"><div style="flex:1 1 100%"><b style="color:#cfe8ff">❓ Bam asks:</b> <span id="ag-ask-q"></span></div>
+      <input id="ag-answer" placeholder="Your answer…" style="flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(120,180,255,.3);border-radius:8px;color:var(--text);padding:8px 10px;font-family:inherit;font-size:13px;outline:none">
+      <button onclick="agentAnswer()">Send</button></div>
+    <div id="ag-summary" class="biz-card" style="display:none"></div>
+    <img id="ag-shot" alt="" style="width:100%;max-width:760px;border-radius:10px;border:1px solid rgba(120,180,255,.25);display:none;margin:8px 0">
+    <div id="ag-log" class="yt-pre" style="display:none;max-height:200px;overflow-y:auto;font-size:11.5px"></div>
+    <div class="yt-actions" style="margin-top:10px"><button onclick="agentStop()">⏹ Stop the agent</button></div>
   </div>
 </div>
 <div id="phys">
@@ -3050,10 +3075,23 @@ async function bizSearch(){
 function renderBizResults(area){
   var st=document.getElementById("biz-status"); st.textContent=bizResults.length+" businesses with no website found near "+area;
   var h=bizResults.map(function(b,i){ return '<div class="biz-card"><div style="flex:1;min-width:160px"><b>'+doomEsc(b.name)+'</b><div class="biz-meta">'+doomEsc(b.type)+(b.addr?" · "+doomEsc(b.addr):"")+(b.phone?" · "+doomEsc(b.phone):"")+'</div></div>'
-    +'<button onclick="bizOutreach('+i+')">✉ Pitch</button><button onclick="bizBuildFor('+i+')">🌐 Build site</button></div>'
+    +'<button onclick="bizOutreach('+i+')">✉ Pitch</button><button onclick="bizBuildFor('+i+')">🌐 Build site</button><button onclick="bizPublish('+i+')" style="background:rgba(60,170,100,.16);border-color:rgba(90,200,130,.45);color:#bde9cc">🚀 Live site</button></div>'
     +'<div id="biz-out-'+i+'" class="biz-out"></div>'; }).join("");
   document.getElementById("biz-results").innerHTML = h || '<div style="color:var(--text-d);padding:14px">None found here — try a bigger radius, or a nearby bigger town/city.</div>';
   document.getElementById("biz-csv").style.display=bizResults.length?"":"none";
+}
+// ── LIVE SITE — Bam writes the copy, fills the premium template on the Mac,
+// and publishes to bozo711.github.io/sites/<slug>/ — a real link to pitch with ──
+async function bizPublish(i){
+  var b=bizResults[i], box=document.getElementById("biz-out-"+i); box.style.display="block";
+  if(!cfg.apiUrl){ box.textContent="Connect the Server Vault (⚙ Settings) to publish live sites."; return; }
+  box.textContent="🚀 Bam is writing the copy and publishing "+b.name+"'s site… (~30s)";
+  try{
+    var r=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/site',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify({name:b.name,type:b.type,addr:b.addr,phone:b.phone})});
+    var d=await r.json();
+    if(d.ok){ box.innerHTML='✓ LIVE (takes ~1 min to appear): <a href="'+d.url+'" target="_blank" style="color:#7fd6a4;word-break:break-all">'+d.url+'</a><br><span style="color:var(--text-d);font-size:11px">Send this link with your pitch — it\'s their site, already built.</span><button class="biz-dl" onclick="copySecure(\''+d.url+'\')" style="margin-top:8px">📋 Copy link</button>'; }
+    else box.textContent="Failed: "+(d.error||r.status);
+  }catch(e){ box.textContent="Failed: "+e.message; }
 }
 function bizCSV(){ var rows=[["Name","Type","Address","Phone"]].concat(bizResults.map(function(b){return [b.name,b.type,b.addr,b.phone];}));
   var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c||"").replace(/"/g,'""')+'"';}).join(",");}).join("\n");
@@ -3091,18 +3129,85 @@ function openYT(){ document.getElementById("yt").classList.add("open"); ytDrawTh
 function closeYT(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); document.getElementById("yt").classList.remove("open"); }
 function ytTab(t){ ["plan","thumb","cal","make","bam"].forEach(function(k){ document.getElementById("yt-"+k).style.display=(k===t)?"":"none"; document.getElementById("yttab-"+k).classList.toggle("on",k===t); }); if(t==="thumb") ytDrawThumb(); if(t==="bam") ytBamLoad(); }
 
-// ── FROM BAM — the daemon's rendered batches, streamed from the Mac via the server vault ──
+// ── WEB AGENT — start/watch/approve Bam's real-browser tasks from any device ──
+let agentTimer=null;
+function openAgent(){ document.getElementById('agent').classList.add('open'); agentPoll(); if(!agentTimer) agentTimer=setInterval(agentPoll,2500); }
+function closeAgent(){ document.getElementById('agent').classList.remove('open'); if(agentTimer){clearInterval(agentTimer);agentTimer=null;} }
+function agentAPI(p,body){ return fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/agent/'+p,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:body?JSON.stringify(body):undefined}).then(function(r){return r.json();}); }
+async function agentStart(){
+  var t=document.getElementById('ag-task').value.trim(), st=document.getElementById('ag-status');
+  if(!cfg.apiUrl){ st.textContent='Connect the Server Vault (⚙ Settings) first — the agent runs on your Mac.'; return; }
+  if(!t){ st.textContent='Type the task first.'; return; }
+  st.textContent='Starting the agent…'; document.getElementById('ag-summary').style.display='none';
+  try{ var d=await agentAPI('start',{task:t}); st.textContent=d.ok?'🕹 Bam is on it — watch below.':(d.error||'failed'); }
+  catch(e){ st.textContent='Failed: '+e.message; }
+  agentPoll();
+}
+async function agentApprove(ok){ try{ await agentAPI('approve',{ok:ok}); }catch(e){} document.getElementById('ag-approve').style.display='none'; }
+async function agentAnswer(){ var v=document.getElementById('ag-answer').value.trim(); if(!v)return; try{ await agentAPI('answer',{text:v}); }catch(e){} document.getElementById('ag-answer').value=''; document.getElementById('ag-ask').style.display='none'; }
+async function agentStop(){ try{ await agentAPI('stop',{}); }catch(e){} agentPoll(); }
+async function agentPoll(){
+  if(!document.getElementById('agent').classList.contains('open') || !cfg.apiUrl) return;
+  var s=null; try{ s=await agentAPI('state'); }catch(e){ return; }
+  if(!s) return;
+  var st=document.getElementById('ag-status');
+  var labels={idle:'Idle — give Bam a task.',starting:'Starting…',running:'🕹 Working — step '+(s.step||0),waiting_approval:'⏸ Waiting for YOUR approval',waiting_input:'❓ Bam needs an answer from you',done:'✅ Done',failed:'✕ Failed',stopped:'⏹ Stopped'};
+  st.textContent=(labels[s.status]||s.status)+(s.task?' · "'+s.task.slice(0,60)+'"':'');
+  document.getElementById('ag-approve').style.display = s.status==='waiting_approval'?'flex':'none';
+  if(s.status==='waiting_approval') document.getElementById('ag-approve-what').textContent=s.pending_action||'';
+  document.getElementById('ag-ask').style.display = s.status==='waiting_input'?'flex':'none';
+  if(s.status==='waiting_input') document.getElementById('ag-ask-q').textContent=s.question||'';
+  var sum=document.getElementById('ag-summary');
+  if((s.status==='done'||s.status==='failed') && s.summary){ sum.style.display='block'; sum.innerHTML=(s.status==='done'?'<b style="color:#bde9cc">✅ ':'<b style="color:#f0b9c0">✕ ')+'</b>'+doomEsc(s.summary); }
+  if(s.shotTs){ var img=document.getElementById('ag-shot'); img.style.display='block'; var src=cfg.apiUrl.replace(/\/+$/,'')+'/api/agent/shot?token='+encodeURIComponent(cfg.apiToken||'')+'&t='+s.shotTs; if(img.dataset.ts!==String(s.shotTs)){ img.src=src; img.dataset.ts=String(s.shotTs); } }
+  var lg=document.getElementById('ag-log');
+  if((s.log||[]).length){ lg.style.display='block'; lg.textContent=s.log.map(function(l){return l.t+'  '+l.m;}).join('\n'); lg.scrollTop=lg.scrollHeight; }
+}
+
+// ── FROM BAM — the daemon's rendered batches + the autonomous TREND video awaiting your call ──
+async function ytBamPendingHTML(base,tok){
+  var p=null;
+  try{ var r=await fetch(base+'/api/pending',{headers:{'x-jarvis-token':cfg.apiToken||''}}); if(r.ok) p=await r.json(); }catch(e){}
+  if(!p || p.status==='none') return '';
+  if(p.status==='published') return '<div class="biz-card" style="border-left-color:#3aa76b"><b style="color:#bde9cc">✓ Published: '+doomEsc(p.title)+'</b>'+(p.url?'&nbsp;<a href="'+p.url+'" target="_blank" style="color:#7fd6a4">'+p.url+'</a>':'')+'</div>';
+  if(p.status!=='pending') return '';
+  var h='<div class="ac-hero" style="border-color:rgba(212,175,55,.45)"><div class="ac-hero-l"><div class="ac-kicker">Needs your approval — found by daily trend research</div>'
+    +'<h1 style="font-size:19px">🎯 '+doomEsc(p.title)+'</h1>'
+    +(p.analysis?'<p style="margin:0 0 8px">'+doomEsc(p.analysis)+'</p>':'')
+    +'</div></div>';
+  if(p.hasVideo) h+='<video controls playsinline preload="metadata" src="'+base+'/api/pending/video?token='+tok+'" style="width:100%;max-width:560px;border-radius:10px;background:#000;margin:8px 0"></video>';
+  h+='<div class="yt-actions" style="margin-bottom:10px"><button style="background:rgba(60,170,100,.2);border-color:rgba(90,200,130,.5);color:#bde9cc" onclick="ytPendingAct(\'publish\')">✅ Publish to YouTube</button>'
+    +'<button onclick="ytPendingAct(\'reject\')">✕ Not this one</button></div>'
+    +(p.script?'<details style="margin-bottom:8px"><summary style="cursor:pointer;color:var(--text-d);font-size:11px">Script</summary><div class="yt-pre">'+doomEsc(p.script)+'</div></details>':'')
+    +(p.research?'<details style="margin-bottom:14px"><summary style="cursor:pointer;color:var(--text-d);font-size:11px">This week\'s research (real view counts)</summary><div class="yt-pre">'+doomEsc(p.research)+'</div></details>':'');
+  return h;
+}
+async function ytPendingAct(act){
+  var base=cfg.apiUrl.replace(/\/+$/,'');
+  var reason='';
+  if(act==='reject'){ reason=prompt('Tell Bam why (he learns from it — optional):')||''; }
+  var st=document.getElementById("yt-bam-status");
+  st.textContent=act==='publish'?'Uploading to YouTube… (can take a minute, don\'t close)':'Rejecting…';
+  try{
+    var r=await fetch(base+'/api/pending/'+act,{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify({reason:reason})});
+    var d=await r.json();
+    if(d.ok){ toast(act==='publish'?('🚀 Live on YouTube!'+(d.url?' '+d.url:'')):'Rejected — Bam will research a new one'); }
+    else toast('Failed: '+(d.error||r.status));
+  }catch(e){ toast('Failed: '+e.message); }
+  ytBamLoad();
+}
 async function ytBamLoad(){
   var st=document.getElementById("yt-bam-status"), out=document.getElementById("yt-bam-out");
   if(!cfg.apiUrl){ st.textContent="Connect the Server Vault in ⚙ Settings (your Mac publishes its URL automatically) to see the videos Bam made for you."; out.innerHTML=""; return; }
-  st.textContent="Loading Bam's latest batch…";
+  st.textContent="Loading Bam's latest work…";
   var base=cfg.apiUrl.replace(/\/+$/,''), tok=encodeURIComponent(cfg.apiToken||'');
+  var pendingHTML=await ytBamPendingHTML(base,tok);
   var d=null;
   try{ var r=await fetch(base+'/api/batch',{headers:{'x-jarvis-token':cfg.apiToken||''}}); if(r.ok) d=await r.json(); }catch(e){}
-  if(!d || !d.idea || !(d.items||[]).length){ st.textContent="No batch yet — the daemon drops fresh videos here automatically. Check back soon."; out.innerHTML=""; return; }
+  if(!d || !d.idea || !(d.items||[]).length){ st.textContent=pendingHTML?"":"No batch yet — the daemon drops fresh videos here automatically. Check back soon."; out.innerHTML=pendingHTML; return; }
   st.textContent="";
   var when=d.ts?new Date(d.ts).toLocaleString():'';
-  var h='<div class="ac-hero"><div class="ac-hero-l"><div class="ac-kicker">Rendered on your Mac</div><h1 style="font-size:19px">🎬 '+doomEsc(d.idea)+'</h1><p style="margin:0">'+d.items.length+' variations, rendered by your daemon'+(when?' · '+when:'')+'</p></div></div>';
+  var h=pendingHTML+'<div class="ac-hero"><div class="ac-hero-l"><div class="ac-kicker">Rendered on your Mac</div><h1 style="font-size:19px">🎬 '+doomEsc(d.idea)+'</h1><p style="margin:0">'+d.items.length+' variations, rendered by your daemon'+(when?' · '+when:'')+'</p></div></div>';
   d.items.forEach(function(it){
     h+='<div class="biz-card" style="flex-direction:column;align-items:stretch"><b style="color:#fff">'+it.n+'. '+doomEsc(it.title)+'</b>';
     if(it.hasVideo) h+='<video controls playsinline preload="metadata" src="'+base+'/api/batch/video/'+it.n+'?token='+tok+'" style="width:100%;max-width:560px;border-radius:10px;background:#000;margin:8px 0"></video>';
