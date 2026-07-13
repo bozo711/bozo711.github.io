@@ -1050,6 +1050,15 @@ strong{color:#e8d4b0}
 #agent.open{display:flex}
 #ventures{position:fixed;inset:0;z-index:439;background:radial-gradient(1000px 600px at 50% -10%,#131007,#0a0806 60%,#050403);display:none;flex-direction:column}
 #ventures.open{display:flex}
+#sentinel{position:fixed;inset:0;z-index:441;background:radial-gradient(1000px 600px at 50% -10%,#160a0a,#0a0506 60%,#050303);display:none;flex-direction:column}
+#sentinel.open{display:flex}
+#brainapp{position:fixed;inset:0;z-index:442;background:radial-gradient(1000px 600px at 50% -10%,#120a18,#0a060c 60%,#050308);display:none;flex-direction:column}
+#brainapp.open{display:flex}
+#intercom{position:fixed;inset:0;z-index:443;background:radial-gradient(1000px 600px at 50% -10%,#141005,#0a0804 60%,#050402);display:none;flex-direction:column}
+#intercom.open{display:flex}
+.sn-row{display:flex;align-items:center;gap:10px;padding:12px 15px;margin-bottom:8px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,251,240,.02)}
+.sn-row b{flex:1;color:#efe9db;font-size:13px}
+.sn-ok{color:#8fd6a4;font-size:12px;font-weight:700}.sn-warn{color:#e2c05c;font-size:12px;font-weight:700}.sn-bad{color:#f0919b;font-size:12px;font-weight:700}
 /* DECISION BAR — every yes/no Bam is waiting on, floating above everything */
 #decision-bar{display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:650;width:min(560px,calc(100vw - 20px));background:rgba(20,14,4,.97);border:1px solid rgba(212,175,55,.55);border-radius:14px;padding:13px 15px;box-shadow:0 24px 60px rgba(0,0,0,.75),0 0 30px -10px rgba(212,175,55,.5);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 #decision-bar.open{display:block;animation:nx-pop .22s cubic-bezier(.2,.9,.3,1)}
@@ -1664,6 +1673,48 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
   </div>
 </div>
 
+<!-- SENTINEL — security center -->
+<div id="sentinel">
+  <div class="biz-top"><span class="biz-title">🛡 SENTINEL — SECURITY CENTER</span><button onclick="closeSentinel()">✕</button></div>
+  <div class="biz-tabs">
+    <button id="sntab-status" class="biz-tab on" onclick="snTab('status')">Status</button>
+    <button id="sntab-creds" class="biz-tab" onclick="snTab('creds')">Passwords 🔑</button>
+  </div>
+  <div class="biz-body" id="sn-status"><div id="sn-status-out">loading…</div></div>
+  <div class="biz-body" id="sn-creds" style="display:none">
+    <div style="color:#9fc7e6;font-size:12px;margin:4px 0 10px">Every credential encrypted (AES-256, key in your Mac's Keychain). The agent saves new ones here automatically.</div>
+    <div class="biz-search">
+      <input id="cr-site" placeholder="site" style="flex:1.2"><input id="cr-user" placeholder="user/email"><input id="cr-pass" placeholder="password" type="password">
+      <button onclick="crAdd()">＋ Save</button>
+    </div>
+    <div id="cr-out"></div>
+  </div>
+</div>
+
+<!-- BRAIN — what Bam remembers about you, editable -->
+<div id="brainapp">
+  <div class="biz-top"><span class="biz-title">🧠 BRAIN — WHAT BAM REMEMBERS</span><button onclick="closeBrainApp()">✕</button></div>
+  <div class="biz-body">
+    <div style="color:#9fc7e6;font-size:12px;margin:4px 0 10px">Bam learns these automatically from your chats. Delete anything wrong — a bad memory poisons every future answer.</div>
+    <div class="biz-search"><input id="br-new" placeholder="Teach Bam a fact directly…"><button onclick="brAdd()">＋ Remember</button></div>
+    <div id="br-local"></div>
+    <div style="color:#9fc7e6;font-size:11px;letter-spacing:1px;margin:16px 0 8px">MAC BRAIN (terminal + daemon)</div>
+    <div id="br-mac"></div>
+  </div>
+</div>
+
+<!-- INTERCOM — talk to the house -->
+<div id="intercom">
+  <div class="biz-top"><span class="biz-title">📢 INTERCOM — TALK TO THE HOUSE</span><button onclick="closeIntercom()">✕</button></div>
+  <div class="biz-body" style="max-width:560px">
+    <div style="color:#9fc7e6;font-size:12px;margin:4px 0 14px">Hold the button, speak, release — your Mac hears it, Bam answers <b>out loud in the room</b> and texts the reply back here.</div>
+    <button id="ic-btn" style="width:150px;height:150px;border-radius:50%;margin:10px auto;display:block;background:radial-gradient(circle at 35% 30%,rgba(212,60,60,.85),#5a1010);border:2px solid rgba(255,90,90,.5);color:#ffe0e0;font-family:inherit;font-size:13px;letter-spacing:2px;cursor:pointer;box-shadow:0 14px 40px -12px rgba(200,40,40,.6)">HOLD<br>TO TALK</button>
+    <div id="ic-status" style="text-align:center;color:var(--text-d);font-size:11px;margin:8px 0 14px">or type it:</div>
+    <div class="biz-search"><input id="ic-text" placeholder="Say something to the house…" onkeydown="if(event.key==='Enter')icSendText()"><button onclick="icSendText()">📢</button></div>
+    <div id="ic-out"></div>
+  </div>
+</div>
+
 <!-- DECISION BAR — every yes/no Bam needs, floating above everything -->
 <div id="decision-bar">
   <div class="db-head">⚖️ <b id="db-title">BAM NEEDS A YES</b><span id="db-count"></span></div>
@@ -1722,7 +1773,10 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
         <button onclick="adGo(openBiz)">🏢 <b>Leads &amp; Sites</b><span>find clients · build · pipeline</span></button>
         <button onclick="adGo(openYT)">📹 <b>YouTube Studio</b><span>plan · make · From Bam</span></button>
         <button onclick="adGo(openBlood)" id="blood-btn">🩸 <b>Blood Terminal</b><span>24/7 paper trading · real odds</span></button>
+        <div class="ad-sec">SECURITY</div>
+        <button onclick="adGo(openSentinel)">🛡 <b>Sentinel</b><span>status · passwords · kill switch</span></button>
         <div class="ad-sec">MIND</div>
+        <button onclick="adGo(openBrainApp)">🧠 <b>Brain</b><span>what Bam remembers — edit it</span></button>
         <button onclick="adGo(openAcademy)">🎓 <b>Academy</b><span>courses · lessons · quizzes</span></button>
         <button onclick="adGo(openDoom)">🌀 <b>Doomscroll</b><span>insights · videos · games</span></button>
         <button onclick="adGo(openNeuro)">🧠 <b>Neurolink</b><span>cortex · tools · agents</span></button>
@@ -1731,6 +1785,7 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
         <button onclick="adGo(enter3D)" id="b3d-btn">🌐 <b>3D World</b><span>the holographic core</span></button>
         <button onclick="adGo(openDeck)" id="deck-btn">⌸ <b>Command Deck</b><span>every panel at once</span></button>
         <div class="ad-sec">SENSES</div>
+        <button onclick="adGo(openIntercom)">📢 <b>Intercom</b><span>talk to the house from anywhere</span></button>
         <button onclick="adGo(visionLook)" id="vision-btn">👁 <b>Look once</b><span>Bam sees screen/camera</span></button>
         <button onclick="adGo(toggleWatch)" id="watch-btn">📡 <b>Watch mode</b><span>continuous vision</span></button>
         <button onclick="adGo(toggleHandsFree)" id="hands-free-btn" style="opacity:0.4">🗣 <b>Hands-free</b><span>open conversation</span></button>
@@ -3271,6 +3326,114 @@ function bizOpenSite(){ try{ var w=window.open(); w.document.open(); w.document.
 function openYT(){ document.getElementById("yt").classList.add("open"); ytDrawThumb(); ytStats(); var sc=document.getElementById("bm-script"); if(sc&&!sc.value&&window._ytScript) sc.value=window._ytScript; }
 function closeYT(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); document.getElementById("yt").classList.remove("open"); }
 function ytTab(t){ ["plan","thumb","cal","make","bam"].forEach(function(k){ document.getElementById("yt-"+k).style.display=(k===t)?"":"none"; document.getElementById("yttab-"+k).classList.toggle("on",k===t); }); if(t==="thumb") ytDrawThumb(); if(t==="bam") ytBamLoad(); }
+
+// ═══ SENTINEL — security status, live token rotation, kill switch ═══
+function openSentinel(){ document.getElementById('sentinel').classList.add('open'); snRender(); }
+function closeSentinel(){ document.getElementById('sentinel').classList.remove('open'); }
+function snTab(t){ ['status','creds'].forEach(function(k){ document.getElementById('sn-'+k).style.display=(k===t)?'':'none'; document.getElementById('sntab-'+k).classList.toggle('on',k===t); }); if(t==='creds') crLoad(); else snRender(); }
+async function snRender(){
+  var el=document.getElementById('sn-status-out');
+  if(!cfg.apiUrl){ el.innerHTML='<div class="sn-row"><b>Server Vault</b><span class="sn-bad">NOT CONNECTED</span></div>'; return; }
+  var s=null; try{ s=await dbAPI('security/status'); }catch(e){ el.innerHTML='<div class="sn-row"><b>Backend</b><span class="sn-bad">UNREACHABLE</span></div>'; return; }
+  function row(name,val,cls,extra){ return '<div class="sn-row"><b>'+name+'</b>'+(extra||'')+'<span class="'+cls+'">'+val+'</span></div>'; }
+  el.innerHTML=
+    row('🔒 Lockdown', s.lockdown?'ENGAGED':'off', s.lockdown?'sn-bad':'sn-ok', s.lockdown?'<button class="biz-dl" onclick="snUnlock()" style="margin:0;padding:6px 10px;font-size:10px">LIFT IT</button>':'')
+    +row('🎟 API token age', s.tokenAgeDays<0?'?':s.tokenAgeDays+' days', s.tokenAgeDays>30?'sn-warn':'sn-ok', '<button class="biz-dl" onclick="snRotate()" style="margin:0;padding:6px 10px;font-size:10px">🔄 ROTATE NOW</button>')
+    +row('🌐 Tunnel', s.tunnelUrl?(s.tunnelAgeHours+'h old'):'down', s.tunnelUrl?'sn-ok':'sn-bad')
+    +row('🚫 Failed logins (24h)', s.authFails24h, s.authFails24h>10?'sn-bad':(s.authFails24h>0?'sn-warn':'sn-ok'))
+    +row('🕹 Agent', s.agentAlive?'working':'idle', 'sn-ok')
+    +row('💾 Last backup', s.lastBackup?new Date(s.lastBackup).toLocaleDateString():'NEVER — runs tonight', s.lastBackup?(Date.now()-s.lastBackup>3*864e5?'sn-warn':'sn-ok'):'sn-warn')
+    +row('🦙 Local AI fallback', 'armed', 'sn-ok')
+    +((s.lastFails||[]).length?'<div style="color:var(--text-d);font-size:10.5px;margin:4px 2px 10px">last attempts: '+s.lastFails.map(function(f){return doomEsc(f.ip||'?')+' → '+doomEsc(f.path||'');}).join(' · ')+'</div>':'')
+    +'<button onclick="snKill()" style="width:100%;margin-top:14px;padding:15px;border-radius:12px;border:1px solid rgba(255,60,60,.6);background:linear-gradient(160deg,rgba(150,20,30,.4),rgba(60,5,10,.6));color:#ffb0b0;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:3px;cursor:pointer">🔴 KILL SWITCH — TUNNEL DOWN · AGENT STOPPED · LOCKDOWN</button>'
+    +'<div style="color:var(--text-d);font-size:10.5px;margin-top:8px">Backups: encrypted nightly → ~/Backups/bam + iCloud Drive/BAM Backups. Restore: <span style="font-family:monospace">openssl enc -d -aes-256-cbc -pbkdf2 -pass pass:KEY -in FILE | tar xzf - -C ~</span> (key: Keychain → jarvis-keys → backupkey)</div>';
+}
+async function snRotate(){
+  if(!confirm('Rotate the API token? Every device reconnects automatically except other browsers, which need the new token pasted once.')) return;
+  try{ var d=await dbAPI('security/rotate-token',{}); if(d.ok){ cfg.apiToken=d.token; persistCfg(); toast('🎟 Token rotated — this device already updated'); snRender(); } else toast('✕ '+(d.error||'')); }catch(e){ toast('Failed: '+e.message); }
+}
+async function snKill(){
+  if(!confirm('KILL SWITCH: tunnel dies, agent stops, missions abort, and BAM stays unreachable from outside until you lift lockdown. Sure?')) return;
+  try{ var d=await dbAPI('security/killswitch',{}); toast(d.ok?'🔴 Locked down. '+(d.note||''):'✕ failed'); snRender(); }catch(e){ toast('Sent — tunnel may already be dead (that\'s the point)'); }
+}
+async function snUnlock(){ try{ var d=await dbAPI('security/unlock',{}); toast(d.ok?'🔓 '+d.note:'✕'); snRender(); }catch(e){ toast('If the tunnel is down, run on the Mac: rm ~/.jarvis/lockdown'); } }
+async function crLoad(){
+  var el=document.getElementById('cr-out');
+  var list=[]; try{ list=await dbAPI('creds'); }catch(e){ el.innerHTML='<div style="color:var(--text-d);padding:12px">backend unreachable</div>'; return; }
+  el.innerHTML=(list&&list.length)?list.map(function(c){ return '<div class="biz-card"><div style="flex:1;min-width:140px"><b>'+doomEsc(c.site)+'</b><div class="biz-meta">'+doomEsc(c.user||'')+(c.note?' · '+doomEsc(c.note):'')+'</div></div>'
+    +'<button onclick="crReveal('+c.i+',this)">👁 Show</button><button onclick="crCopy('+c.i+')">📋</button><button onclick="crDel('+c.i+')">✕</button></div>'; }).join('')
+    :'<div style="color:var(--text-d);padding:12px">Vault is empty — the agent adds credentials here when it creates accounts.</div>';
+}
+async function crReveal(i,btn){ try{ var d=await dbAPI('creds/reveal',{i:i}); btn.textContent=d.pass||'?'; setTimeout(function(){btn.textContent='👁 Show';},6000); }catch(e){} }
+async function crCopy(i){ try{ var d=await dbAPI('creds/reveal',{i:i}); copySecure(d.pass||''); toast('📋 Copied (clipboard auto-clears)'); }catch(e){} }
+async function crDel(i){ if(!confirm('Delete this credential?'))return; try{ await dbAPI('creds/delete',{i:i}); }catch(e){} crLoad(); }
+async function crAdd(){
+  var s=document.getElementById('cr-site').value.trim(), u=document.getElementById('cr-user').value.trim(), p=document.getElementById('cr-pass').value;
+  if(!s||!p){ toast('site + password required'); return; }
+  try{ await dbAPI('creds',{site:s,user:u,pass:p}); document.getElementById('cr-site').value='';document.getElementById('cr-user').value='';document.getElementById('cr-pass').value=''; toast('🔑 Saved encrypted'); }catch(e){ toast('Failed: '+e.message); }
+  crLoad();
+}
+
+// ═══ BRAIN — view + edit what Bam remembers ═══
+function openBrainApp(){ document.getElementById('brainapp').classList.add('open'); brRender(); }
+function closeBrainApp(){ document.getElementById('brainapp').classList.remove('open'); }
+function brFact(b){ return typeof b==='string'?b:(b.text||b.fact||b.f||JSON.stringify(b)); }
+function brRender(){
+  var el=document.getElementById('br-local');
+  el.innerHTML=(brain&&brain.length)?brain.map(function(b,i){ return '<div class="biz-card" style="padding:9px 13px"><div style="flex:1;font-size:12.5px">'+doomEsc(brFact(b))+'</div><button onclick="brDel('+i+')">✕</button></div>'; }).join('')
+    :'<div style="color:var(--text-d);padding:12px">No memories on this device yet — Bam learns as you chat.</div>';
+  brMac();
+}
+function brDel(i){ brain.splice(i,1); saveBrainData(); brRender(); toast('forgotten'); }
+function brAdd(){ var v=document.getElementById('br-new').value.trim(); if(!v)return; brain.push({id:Date.now(),text:v}); saveBrainData(); document.getElementById('br-new').value=''; brRender(); toast('🧠 remembered'); }
+async function brMac(){
+  var el=document.getElementById('br-mac');
+  if(!cfg.apiUrl){ el.innerHTML='<div style="color:var(--text-d);font-size:11px;padding:6px">connect the vault to see the Mac brain</div>'; return; }
+  var mb=[]; try{ mb=await dbAPI('brain'); }catch(e){ el.innerHTML='<div style="color:var(--text-d);font-size:11px;padding:6px">backend unreachable</div>'; return; }
+  window._macBrain=mb;
+  el.innerHTML=(mb&&mb.length)?mb.map(function(b,i){ return '<div class="biz-card" style="padding:9px 13px;border-left-color:#9c8fd8"><div style="flex:1;font-size:12.5px">'+doomEsc(brFact(b))+'</div><button onclick="brMacDel('+i+')">✕</button></div>'; }).join('')
+    :'<div style="color:var(--text-d);font-size:11px;padding:6px">Mac brain is empty.</div>';
+}
+async function brMacDel(i){ var mb=window._macBrain||[]; mb.splice(i,1); try{ await dbAPI('brain',{brain:mb}); }catch(e){} brMac(); toast('forgotten on the Mac'); }
+
+// ═══ INTERCOM — hold to talk; the Mac hears you and Bam answers in the room ═══
+function openIntercom(){ document.getElementById('intercom').classList.add('open'); icWire(); }
+function closeIntercom(){ document.getElementById('intercom').classList.remove('open'); }
+var _icRec=null,_icChunks=[],_icWired=false;
+function icWire(){
+  if(_icWired) return; _icWired=true;
+  var b=document.getElementById('ic-btn');
+  var start=async function(e){ e.preventDefault();
+    if(!cfg.apiUrl){ toast('Connect the Server Vault first'); return; }
+    try{
+      var stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      _icChunks=[]; _icRec=new MediaRecorder(stream);
+      _icRec.ondataavailable=function(ev){ if(ev.data.size) _icChunks.push(ev.data); };
+      _icRec.onstop=function(){ stream.getTracks().forEach(function(t){t.stop();}); icSendAudio(new Blob(_icChunks,{type:_icRec.mimeType})); };
+      _icRec.start(); b.style.transform='scale(1.12)'; b.innerHTML='LISTENING…';
+      document.getElementById('ic-status').textContent='release to send';
+    }catch(err){ toast('Mic blocked — allow microphone for this site'); }
+  };
+  var stop=function(e){ e.preventDefault(); if(_icRec&&_icRec.state==='recording') _icRec.stop(); b.style.transform=''; b.innerHTML='HOLD<br>TO TALK'; document.getElementById('ic-status').textContent='or type it:'; };
+  b.addEventListener('touchstart',start,{passive:false}); b.addEventListener('touchend',stop);
+  b.addEventListener('mousedown',start); b.addEventListener('mouseup',stop); b.addEventListener('mouseleave',stop);
+}
+function icShow(heard,reply){ document.getElementById('ic-out').innerHTML='<div class="biz-card" style="flex-direction:column;align-items:stretch"><div style="color:var(--text-d);font-size:11px">you: '+doomEsc(heard)+'</div><div style="color:#f0ead9;font-size:13.5px;margin-top:6px">📢 '+doomEsc(reply)+'</div></div>'+document.getElementById('ic-out').innerHTML; }
+async function icSendAudio(blob){
+  document.getElementById('ic-status').textContent='🛰 sending to the house…';
+  var b64=await new Promise(function(res){ var r=new FileReader(); r.onloadend=function(){res(r.result);}; r.readAsDataURL(blob); });
+  try{
+    var d=await dbAPI('intercom',{audio:b64});
+    if(d.ok){ icShow(d.heard,d.reply); document.getElementById('ic-status').textContent='spoken out loud on the Mac ✓ — or type it:'; }
+    else{ toast('✕ '+(d.error||'failed')); document.getElementById('ic-status').textContent='or type it:'; }
+  }catch(e){ toast('Failed: '+e.message); document.getElementById('ic-status').textContent='or type it:'; }
+}
+async function icSendText(){
+  var v=document.getElementById('ic-text').value.trim(); if(!v)return;
+  if(!cfg.apiUrl){ toast('Connect the Server Vault first'); return; }
+  document.getElementById('ic-text').value='';
+  try{ var d=await dbAPI('intercom',{text:v}); if(d.ok) icShow(d.heard,d.reply); else toast('✕ '+(d.error||'')); }catch(e){ toast('Failed: '+e.message); }
+}
 
 // ═══ DECISION BAR — Bam works hands-free; every yes/no he needs floats here,
 // on top of everything, like a coding-assistant permission prompt. ═══
