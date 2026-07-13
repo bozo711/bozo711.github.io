@@ -74,6 +74,18 @@ body::after{content:'';position:fixed;inset:0;background:radial-gradient(ellipse
 .sys-tag{font-size:6px;letter-spacing:3px;color:rgba(204,34,68,.45);text-transform:uppercase;animation:sys-flick 6s ease-in-out infinite}
 @keyframes sys-flick{0%,85%,100%{opacity:.45}87%,91%{opacity:.08}89%,93%{opacity:.6}}
 .icon-btn{background:none;border:none;color:rgba(190,150,160,.4);font-size:17px;cursor:pointer;padding:4px;line-height:1;transition:color .15s}
+/* APPS drawer — the whole fleet behind one clean button */
+.apps-btn{border:1px solid rgba(120,0,40,.4)!important;border-radius:8px;padding:5px 10px!important;font-size:13px!important;color:rgba(210,170,175,.75)!important;letter-spacing:1px}
+.apps-btn .apps-word{font-size:9px;letter-spacing:2.5px;font-weight:700}
+.apps-btn:hover,.apps-btn.on{color:#ffd0c0!important;border-color:rgba(200,60,80,.7)!important}
+#apps-drawer{display:none;position:fixed;top:54px;right:10px;z-index:600;width:300px;max-height:calc(100dvh - 70px);overflow-y:auto;background:rgba(14,3,8,.96);border:1px solid rgba(150,20,50,.4);border-radius:14px;padding:8px;box-shadow:0 30px 70px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.05);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);scrollbar-width:none}
+#apps-drawer::-webkit-scrollbar{display:none}
+#apps-drawer.open{display:block;animation:nx-pop .18s cubic-bezier(.2,.9,.3,1)}
+#apps-drawer .ad-sec{font-size:8px;letter-spacing:3px;color:rgba(200,90,90,.6);padding:9px 10px 4px;font-weight:700}
+#apps-drawer button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;border-radius:9px;padding:9px 10px;cursor:pointer;color:rgba(230,200,200,.9);font-family:inherit;font-size:15px;transition:background .12s}
+#apps-drawer button:hover{background:rgba(150,20,50,.14)}
+#apps-drawer button b{font-size:12px;font-weight:600;color:#eedcd8;letter-spacing:.4px}
+#apps-drawer button span{margin-left:auto;font-size:9.5px;color:rgba(190,150,160,.45);text-align:right;max-width:130px;line-height:1.3}
 .icon-btn:active{color:var(--live)}
 .icon-btn.live{color:var(--live);text-shadow:0 0 8px rgba(200,30,60,.7);animation:hud-line-pulse 1.4s ease-in-out infinite}
 
@@ -1636,20 +1648,28 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
         <span class="sys-tag">SYS ONLINE</span>
       </div>
       <button class="icon-btn" onclick="toggleVoiceOut()" id="voice-out-btn" title="Toggle voice output">🔊</button>
-      <button class="icon-btn" onclick="toggleHandsFree()" id="hands-free-btn" title="Hands-free conversation" style="opacity:0.4">🗣</button>
-      <button class="icon-btn" onclick="toggleWake()" id="wake-btn" title="Wake word — say 'Bam' to talk hands-free" style="opacity:0.4">🎙</button>
-      <button class="icon-btn" onclick="visionLook()" id="vision-btn" title="Let Bam see your screen/camera (once)">👁</button>
-      <button class="icon-btn" onclick="toggleWatch()" id="watch-btn" title="Watch my screen/camera continuously">📡</button>
-      <button class="icon-btn" onclick="enter3D()" id="b3d-btn" title="3D interface (holographic)" style="font-size:13px;font-weight:bold;letter-spacing:1px">3D</button>
-      <button class="icon-btn" onclick="openBlood()" id="blood-btn" title="BLOOD TERMINAL — smart-money convergence (real Polymarket odds + live spot, simulated fills)">🩸</button>
-      <button class="icon-btn" onclick="openDeck()" id="deck-btn" title="Command Deck — all panels at once" style="font-size:16px">⌸</button>
-      <button class="icon-btn" onclick="openNeuro()" title="NEUROLINK — Bam's cortex, tools & agents">🧠</button>
-      <button class="icon-btn" onclick="openAcademy()" title="Teacher mode — structured lessons">🎓</button>
-      <button class="icon-btn" onclick="openDoom()" title="Doomscroll — insights, games & more">🌀</button>
-      <button class="icon-btn" onclick="openBiz()" title="Lead Finder & Website Builder">🏢</button>
-      <button class="icon-btn" onclick="openYT()" title="Faceless YouTube Studio">📹</button>
-      <button class="icon-btn" onclick="openPhys()" title="Portal Physics Lab (Go · WASM)">⚛</button>
+      <button class="icon-btn apps-btn" onclick="toggleApps()" id="apps-btn" title="All of Bam's apps">▦ <span class="apps-word">APPS</span></button>
       <button class="icon-btn" onclick="openCfg()">⚙</button>
+      <div id="apps-drawer">
+        <div class="ad-sec">WORK</div>
+        <button onclick="adGo(openAgent)">🕹 <b>Web Agent</b><span>does real tasks on real sites</span></button>
+        <button onclick="adGo(openBiz)">🏢 <b>Leads &amp; Sites</b><span>find clients · build · pipeline</span></button>
+        <button onclick="adGo(openYT)">📹 <b>YouTube Studio</b><span>plan · make · From Bam</span></button>
+        <button onclick="adGo(openBlood)" id="blood-btn">🩸 <b>Blood Terminal</b><span>24/7 paper trading · real odds</span></button>
+        <div class="ad-sec">MIND</div>
+        <button onclick="adGo(openAcademy)">🎓 <b>Academy</b><span>courses · lessons · quizzes</span></button>
+        <button onclick="adGo(openDoom)">🌀 <b>Doomscroll</b><span>insights · videos · games</span></button>
+        <button onclick="adGo(openNeuro)">🧠 <b>Neurolink</b><span>cortex · tools · agents</span></button>
+        <button onclick="adGo(openPhys)">⚛ <b>Physics Lab</b><span>portal engineering</span></button>
+        <div class="ad-sec">SHIP</div>
+        <button onclick="adGo(enter3D)" id="b3d-btn">🌐 <b>3D World</b><span>the holographic core</span></button>
+        <button onclick="adGo(openDeck)" id="deck-btn">⌸ <b>Command Deck</b><span>every panel at once</span></button>
+        <div class="ad-sec">SENSES</div>
+        <button onclick="adGo(visionLook)" id="vision-btn">👁 <b>Look once</b><span>Bam sees screen/camera</span></button>
+        <button onclick="adGo(toggleWatch)" id="watch-btn">📡 <b>Watch mode</b><span>continuous vision</span></button>
+        <button onclick="adGo(toggleHandsFree)" id="hands-free-btn" style="opacity:0.4">🗣 <b>Hands-free</b><span>open conversation</span></button>
+        <button onclick="adGo(toggleWake)" id="wake-btn" style="opacity:0.4">🎙 <b>Wake word</b><span>say “Bam” to talk</span></button>
+      </div>
     </div>
   </div>
 
@@ -3185,6 +3205,13 @@ function bizOpenSite(){ try{ var w=window.open(); w.document.open(); w.document.
 function openYT(){ document.getElementById("yt").classList.add("open"); ytDrawThumb(); ytStats(); var sc=document.getElementById("bm-script"); if(sc&&!sc.value&&window._ytScript) sc.value=window._ytScript; }
 function closeYT(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); document.getElementById("yt").classList.remove("open"); }
 function ytTab(t){ ["plan","thumb","cal","make","bam"].forEach(function(k){ document.getElementById("yt-"+k).style.display=(k===t)?"":"none"; document.getElementById("yttab-"+k).classList.toggle("on",k===t); }); if(t==="thumb") ytDrawThumb(); if(t==="bam") ytBamLoad(); }
+
+// ── APPS DRAWER — the whole fleet behind one clean button ──
+// live directly under <body>: the topbar's backdrop-filter would trap position:fixed
+addEventListener('load',function(){ var d=document.getElementById('apps-drawer'); if(d&&d.parentElement!==document.body) document.body.appendChild(d); });
+function toggleApps(){ var d=document.getElementById('apps-drawer'), b=document.getElementById('apps-btn'); var on=!d.classList.contains('open'); d.classList.toggle('open',on); if(b)b.classList.toggle('on',on); }
+function adGo(fn){ toggleApps(); setTimeout(function(){ try{ fn(); }catch(e){ toast&&toast('Could not open: '+e.message); } },80); }
+document.addEventListener('click',function(e){ var d=document.getElementById('apps-drawer'); if(!d||!d.classList.contains('open')) return; if(!d.contains(e.target)&&e.target.id!=='apps-btn'&&!e.target.closest('#apps-btn')) { d.classList.remove('open'); var b=document.getElementById('apps-btn'); if(b)b.classList.remove('on'); } });
 
 // ── WEB AGENT — start/watch/approve Bam's real-browser tasks from any device ──
 let agentTimer=null;
@@ -8566,7 +8593,7 @@ window.BamStage = (function(){
       }catch(e){ console.warn('nav ui', e); }
       loaded=true; const l=document.getElementById('bam-load'); if(l) l.style.display='none';
       resize(); addEventListener('resize', resize); loop();
-    }catch(e){ console.error('BamStage init failed', e); const l=document.getElementById('bam-load'); if(l) l.textContent='Bam failed to load'; }
+    }catch(e){ console.error('BamStage init failed', e); const l=document.getElementById('bam-load'); if(l) l.innerHTML='Bam failed to load — usually a slow connection.<br><button onclick="location.reload()" style="margin-top:10px;background:rgba(150,20,50,.2);border:1px solid rgba(200,60,80,.6);color:#ffd0c0;border-radius:8px;padding:8px 16px;font-family:inherit;font-size:11px;letter-spacing:2px;cursor:pointer">↻ TAP TO RETRY</button>'; }
   }
   function say(role, text){ const t=(text||'').replace(/<[^>]*>/g,'').replace(/[*_`#>]/g,'').trim(); if(!t) return; if(role==='user') setPanel(userPanel,'YOU', t.slice(0,300)); else setPanel(mainPanel,'BAM', t.slice(0,460)); }
   /* dive into his eyes → see the room through them (toggle) */
@@ -9375,20 +9402,50 @@ canvas.bt-cv{width:100%;display:block}
   const RISK={ stakePct:0.015, maxOpen:6, dayStopPct:0.03 };
   function dayStopped(){ return (S.equity-S.day0) < -RISK.dayStopPct*S.day0; }
   function paperOpen(o){                                   // {q, cid, outIdx, outName, entry, src}
-    if(!o.cid || !(o.entry>0.01) || o.entry>0.99) { log('signal skipped — no tradable market id/price'); return; }
+    if(!o.cid || !(o.entry>=0.05) || o.entry>0.92) { log('signal skipped — price outside 0.05–0.92 band'); return; }
     if(S.pos.length>=RISK.maxOpen){ log('max '+RISK.maxOpen+' open positions — signal skipped'); return; }
     if(dayStopped()){ log('daily stop hit ('+(RISK.dayStopPct*100)+'% down) — no new entries today','ok'); return; }
-    if(S.pos.some(p=>p.cid===o.cid && p.outIdx===o.outIdx)){ log('already positioned in that market — skipped'); return; }
+    if(S.pos.some(p=>p.cid===o.cid)){ log('already positioned in that market — skipped'); return; }
     const stake=Math.max(5, S.equity*RISK.stakePct);
     S.pos.push({ q:o.q.slice(0,64), cid:o.cid, outIdx:o.outIdx|0, outName:(o.outName||'').slice(0,12), entry:o.entry, cur:o.entry, stake, t:Date.now(), src:o.src||'signal' });
     log('PAPER entry ('+(o.src||'signal')+') → <span class="bt-log-w">'+esc(o.q.slice(0,42))+'</span> · '+esc(o.outName||'')+' @ '+o.entry.toFixed(2)+' · $'+stake.toFixed(0),'ok');
     save(); renderPos();
   }
+  /* ── 24/7 MODE: when the Mac backend is reachable, the daemon owns the book —
+     this terminal becomes a live view + remote control of it. Local engine only
+     runs when the vault is unreachable, so there's never a double book. ── */
+  const R={ on:false };
+  const vaultBase=()=>((typeof cfg!=='undefined'&&cfg.apiUrl)?cfg.apiUrl.replace(/\/+$/,''):'');
+  const vaultHdr=()=>({ 'Content-Type':'application/json', 'x-jarvis-token':(typeof cfg!=='undefined'&&cfg.apiToken)||'' });
+  async function remoteSync(){
+    const base=vaultBase(); if(!base){ R.on=false; return; }
+    try{
+      const P=await (await fetch(base+'/api/paper',{headers:vaultHdr()})).json();
+      if(!P || P.equity==null) throw 0;
+      const was=R.on; R.on=true;
+      S.equity=P.equity; S.day0=P.day0; S.trades=P.trades; S.wins=P.wins;
+      S.pos=P.pos||[]; S.closed=P.closed||[];
+      S.fills=(P.closed||[]).slice(0,12).reverse().map(c=>c.pl>=0?1:0);
+      renderTop(); renderPos(); renderClosed();
+      if(!was) log('ENGINE · MAC 24/7 — the daemon trades this book around the clock; this screen is the live view','ok');
+    }catch(e){ if(R.on){ R.on=false; log('backend unreachable — falling back to on-device engine'); } }
+  }
   function tradeSignal(row){
+    if(R.on) return;                                       // the daemon already took this signal on the Mac
     paperOpen({ q:row.q, cid:row.cid, outIdx:row.outIdx, outName:row.out, entry:row.px, src:'whale convergence' });
   }
-  window.btManual=function(mi,oi){
+  window.btManual=async function(mi,oi){
     const m=S.mkts[mi]; if(!m) return;
+    if(R.on){
+      log('routing manual entry to the Mac engine…');
+      try{
+        const r=await fetch(vaultBase()+'/api/paper/trade',{method:'POST',headers:vaultHdr(),body:JSON.stringify({cid:m.cid,outIdx:oi})});
+        const d=await r.json();
+        log(d.ok?('PAPER entry (manual, 24/7 book) → '+esc(m.q.slice(0,42))+' · '+esc(String(m.outs[oi]||''))+' @ '+d.pos.entry.toFixed(2)):'entry refused — '+esc(d.error||''), d.ok?'ok':'');
+        remoteSync();
+      }catch(e){ log('backend error: '+esc(e.message)); }
+      return;
+    }
     paperOpen({ q:m.q, cid:m.cid, outIdx:oi, outName:String(m.outs[oi]||''), entry:m.px[oi]||0, src:'manual' });
   };
   function realize(p, exitPx, why){
@@ -9400,10 +9457,20 @@ canvas.bt-cv{width:100%;display:block}
     log('CLOSED ('+why+') '+esc(p.q.slice(0,36))+' · '+p.entry.toFixed(2)+'→'+exitPx.toFixed(2)+' · '+(win?'<span class="ok">+$'+pl.toFixed(2)+'</span>':'−$'+Math.abs(pl).toFixed(2)), win?'ok':'');
     save(); renderTop(); renderPos(); renderClosed();
   }
-  window.btClose=function(i){ const p=S.pos[i]; if(!p) return; S.pos.splice(i,1); realize(p, p.cur, 'manual close'); };
+  window.btClose=async function(i){
+    const p=S.pos[i]; if(!p) return;
+    if(R.on){
+      try{ const d=await (await fetch(vaultBase()+'/api/paper/close',{method:'POST',headers:vaultHdr(),body:JSON.stringify({id:p.id})})).json();
+        log(d.ok?('CLOSED (manual) '+esc(p.q.slice(0,36))+' · '+(d.pl>=0?'<span class="ok">+$'+d.pl.toFixed(2)+'</span>':'−$'+Math.abs(d.pl).toFixed(2))):'close failed — '+esc(d.error||''), 'ok');
+        remoteSync();
+      }catch(e){ log('backend error: '+esc(e.message)); }
+      return;
+    }
+    S.pos.splice(i,1); realize(p, p.cur, 'manual close');
+  };
   /* mark every open position to the REAL current price; settle when the market resolves */
   async function refreshPositions(){
-    if(!S.pos.length) return;
+    if(R.on || !S.pos.length) return;
     const cids=[...new Set(S.pos.map(p=>p.cid))];
     let map={};
     try{
@@ -9485,8 +9552,8 @@ canvas.bt-cv{width:100%;display:block}
   window.openBlood=function(){
     const el=$('bloodterm'); el.classList.add('open'); S.open=true; S.t0=S.t0||Date.now();
     if(!S.eq.length){ S.eq.push(S.equity); renderTop(); }
-    spot(); markets(); whaleTape(); refreshPositions(); renderClosed(); renderPos();
-    if(!S._iv){ S._iv=setInterval(spot, 30000); S._mv=setInterval(markets, 90000); S._hb=setInterval(()=>{ if(S.open){ renderTop(); } }, 4000); S._wv=setInterval(()=>{ if(S.open) whaleTape(); }, 45000); S._pv=setInterval(()=>{ if(S.open) refreshPositions(); }, 60000); }
+    spot(); markets(); whaleTape(); remoteSync(); refreshPositions(); renderClosed(); renderPos();
+    if(!S._iv){ S._iv=setInterval(spot, 30000); S._mv=setInterval(markets, 90000); S._hb=setInterval(()=>{ if(S.open){ renderTop(); } }, 4000); S._wv=setInterval(()=>{ if(S.open) whaleTape(); }, 45000); S._pv=setInterval(()=>{ if(S.open) refreshPositions(); }, 60000); S._rv=setInterval(()=>{ if(S.open) remoteSync(); }, 30000); }
     log('BLOOD TERMINAL online · REAL paper engine: entries at real odds, marked to live prices, settled by the market. Whale-convergence auto-entries + tap any market side to trade it.','ok');
     S.raf=requestAnimationFrame(loop);
   };
