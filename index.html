@@ -1050,6 +1050,17 @@ strong{color:#e8d4b0}
 #agent.open{display:flex}
 #ventures{position:fixed;inset:0;z-index:439;background:radial-gradient(1000px 600px at 50% -10%,#131007,#0a0806 60%,#050403);display:none;flex-direction:column}
 #ventures.open{display:flex}
+/* DECISION BAR — every yes/no Bam is waiting on, floating above everything */
+#decision-bar{display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:650;width:min(560px,calc(100vw - 20px));background:rgba(20,14,4,.97);border:1px solid rgba(212,175,55,.55);border-radius:14px;padding:13px 15px;box-shadow:0 24px 60px rgba(0,0,0,.75),0 0 30px -10px rgba(212,175,55,.5);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+#decision-bar.open{display:block;animation:nx-pop .22s cubic-bezier(.2,.9,.3,1)}
+#decision-bar .db-head{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:2.5px;color:#d8b95c;font-weight:700;margin-bottom:7px}
+#decision-bar .db-head span{margin-left:auto;color:rgba(233,226,210,.4);letter-spacing:1px}
+#decision-bar .db-text{color:#f0ead9;font-size:13.5px;line-height:1.5;margin-bottom:10px}
+#decision-bar .db-plan{margin:0 0 10px;padding-left:18px;color:rgba(233,226,210,.7);font-size:12px;line-height:1.7}
+#decision-bar .db-acts{display:flex;gap:8px;flex-wrap:wrap}
+#decision-bar .db-acts button{border-radius:9px;font-size:12px;font-weight:700;padding:9px 16px;cursor:pointer;font-family:inherit;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(233,226,210,.8)}
+#decision-bar .db-acts button.yes{background:linear-gradient(160deg,#3f9c63,#26663f);border-color:transparent;color:#eafff0}
+#decision-bar .db-acts input{flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(212,175,55,.35);border-radius:9px;color:var(--text);padding:9px 11px;font-family:inherit;font-size:13px;outline:none}
 .v-card{border:1px solid rgba(212,175,55,.16);border-radius:13px;background:linear-gradient(160deg,rgba(255,251,240,.03),rgba(0,0,0,.18));padding:13px 15px;margin-bottom:10px}
 .v-card .v-h{display:flex;align-items:center;gap:9px;cursor:pointer}
 .v-card .v-h b{flex:1;color:#efe9db;font-size:13.5px}
@@ -1613,7 +1624,12 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
   </div>
   <div class="biz-body" id="ag-task-body">
     <div class="biz-search">
-      <input id="ag-task" placeholder='Give Bam a real task — e.g. "sign up for a free Canva account"'>
+      <input id="ag-goal" placeholder='🗺 MISSION — a whole goal: "get my first Fiverr order". Bam plans it, you tap ONE yes.'>
+      <button onclick="missionStart()" style="background:linear-gradient(90deg,#e2c05c,#a37a1e);color:#1a1000">🗺 Plan it</button>
+    </div>
+    <div id="ag-mission" style="margin-bottom:8px"></div>
+    <div class="biz-search">
+      <input id="ag-task" placeholder='…or a single task — e.g. "sign up for a free Canva account"'>
       <button onclick="agentStart()">▶ Go</button>
     </div>
     <div id="ag-status">Bam opens a real browser on your Mac and works the task step by step. He pauses for YOUR approval before anything gets submitted or signed up, and asks when he needs info.</div>
@@ -1646,6 +1662,14 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
     <div id="v-summary" style="color:#9fc7e6;font-size:12px;margin:4px 0 12px"></div>
     <div id="v-out"></div>
   </div>
+</div>
+
+<!-- DECISION BAR — every yes/no Bam needs, floating above everything -->
+<div id="decision-bar">
+  <div class="db-head">⚖️ <b id="db-title">BAM NEEDS A YES</b><span id="db-count"></span></div>
+  <div class="db-text" id="db-text"></div>
+  <div class="db-plan" id="db-plan" style="display:none"></div>
+  <div class="db-acts" id="db-acts"></div>
 </div>
 <div id="phys">
   <div class="biz-top"><span class="biz-title">⚛ PORTAL PHYSICS LAB</span><button onclick="closePhys()">✕</button></div>
@@ -3248,6 +3272,60 @@ function openYT(){ document.getElementById("yt").classList.add("open"); ytDrawTh
 function closeYT(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); document.getElementById("yt").classList.remove("open"); }
 function ytTab(t){ ["plan","thumb","cal","make","bam"].forEach(function(k){ document.getElementById("yt-"+k).style.display=(k===t)?"":"none"; document.getElementById("yttab-"+k).classList.toggle("on",k===t); }); if(t==="thumb") ytDrawThumb(); if(t==="bam") ytBamLoad(); }
 
+// ═══ DECISION BAR — Bam works hands-free; every yes/no he needs floats here,
+// on top of everything, like a coding-assistant permission prompt. ═══
+var _dbTimer=null;
+function dbAPI(p,body){ return fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/'+p,{method:body!==undefined?'POST':'GET',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:body!==undefined?JSON.stringify(body):undefined}).then(function(r){return r.json();}); }
+async function dbPoll(){
+  if(typeof cfg==='undefined'||!cfg.apiUrl) return;
+  var ds=null; try{ ds=await dbAPI('decisions'); }catch(e){ return; }
+  var bar=document.getElementById('decision-bar');
+  if(!ds || !ds.length){ bar.classList.remove('open'); return; }
+  var d=ds[0];
+  document.getElementById('db-count').textContent=ds.length>1?(ds.length-1)+' more waiting':'';
+  var titles={mission:'MISSION PLAN — LAUNCH IT?','agent-approval':'BAM WANTS TO ACT — YES?','agent-question':'BAM HAS A QUESTION',video:'VIDEO READY — PUBLISH?'};
+  document.getElementById('db-title').textContent=titles[d.kind]||'BAM NEEDS A YES';
+  document.getElementById('db-text').textContent=d.text||'';
+  var plan=document.getElementById('db-plan');
+  if(d.kind==='mission'&&d.plan){ plan.style.display='block'; plan.innerHTML=d.plan.map(function(s,i){return '<div>'+(i+1)+'. '+doomEsc(s)+'</div>';}).join(''); }
+  else plan.style.display='none';
+  var acts=document.getElementById('db-acts'), h='';
+  if(d.kind==='mission') h='<button class="yes" onclick="dbAct(\'mission/approve\',{})">✅ Launch mission</button><button onclick="dbAct(\'mission/abort\',{})">✕ Cancel</button>';
+  else if(d.kind==='agent-approval') h='<button class="yes" onclick="dbAct(\'agent/approve\',{ok:true})">✅ Yes, do it</button><button onclick="dbAct(\'agent/approve\',{ok:false})">✕ No</button>';
+  else if(d.kind==='agent-question') h='<input id="db-answer" placeholder="Your answer…" onkeydown="if(event.key===\'Enter\')dbAnswer()"><button class="yes" onclick="dbAnswer()">Send</button>';
+  else if(d.kind==='video') h='<button class="yes" onclick="dbAct(\'pending/publish\',{})">✅ Publish to YouTube</button><button onclick="dbAct(\'pending/reject\',{})">✕ Reject</button><button onclick="closeAllForBam();openYT();ytTab(\'bam\')">▶ Watch first</button>';
+  acts.innerHTML=h;
+  bar.classList.add('open');
+}
+function closeAllForBam(){ document.getElementById('decision-bar').classList.remove('open'); }
+async function dbAct(p,body){ document.getElementById('decision-bar').classList.remove('open'); try{ var d=await dbAPI(p,body); if(d&&d.error) toast('✕ '+d.error); else if(p==='pending/publish'&&d.url) toast('🚀 Live: '+d.url); else toast('✓ done'); }catch(e){ toast('Failed: '+e.message); } setTimeout(dbPoll,1500); }
+async function dbAnswer(){ var v=(document.getElementById('db-answer')||{}).value; if(!v||!v.trim())return; await dbAct('agent/answer',{text:v.trim()}); }
+addEventListener('load',function(){ setTimeout(dbPoll,7000); if(!_dbTimer) _dbTimer=setInterval(dbPoll,8000); });
+
+// ── MISSIONS — a whole goal, planned + executed hands-free ──
+async function missionStart(){
+  var g=document.getElementById('ag-goal').value.trim();
+  if(!g){ toast('Type the mission goal first'); return; }
+  if(!cfg.apiUrl){ toast('Connect the Server Vault first (⚙ Settings)'); return; }
+  toast('🗺 Bam is planning the mission…');
+  try{
+    var d=await dbAPI('mission',{goal:g});
+    if(d.ok){ document.getElementById('ag-goal').value=''; toast('Plan ready — approve it in the gold bar'); dbPoll(); }
+    else toast('✕ '+(d.error||'failed'));
+  }catch(e){ toast('Failed: '+e.message); }
+}
+async function missionRender(){
+  if(!cfg.apiUrl) return;
+  var m=null; try{ m=await dbAPI('mission'); }catch(e){ return; }
+  var el=document.getElementById('ag-mission'); if(!el) return;
+  if(!m || m.status==='none' || m.status==='aborted'){ el.innerHTML=''; return; }
+  var icons={pending:'○',running:'◉',done:'✓',failed:'✕'};
+  el.innerHTML='<div class="biz-card" style="flex-direction:column;align-items:stretch;border-left-color:#e2c05c"><div style="display:flex;gap:8px;align-items:center"><b style="color:#f2e2ae;flex:1">🗺 '+doomEsc(m.goal)+'</b><span style="font-size:9px;letter-spacing:1.5px;color:'+(m.status==='running'?'#e2c05c':(m.status.indexOf('done')===0?'#8fd6a4':'#9fc7e6'))+'">'+m.status.toUpperCase()+'</span>'
+    +(['plan','running'].includes(m.status)?'<button onclick="dbAct(\'mission/abort\',{});missionRender()" style="font-size:10px">✕ abort</button>':'')+'</div>'
+    +m.plan.map(function(s,i){ return '<div style="display:flex;gap:8px;font-size:11.5px;margin-top:6px;color:'+(s.status==='done'?'#8fd6a4':(s.status==='failed'?'#f0a9b0':(s.status==='running'?'#f2e2ae':'rgba(233,226,210,.55)')))+'"><span>'+(icons[s.status]||'○')+'</span><span style="flex:1">'+doomEsc(s.task)+(s.result?'<div style="color:rgba(233,226,210,.45);margin-top:2px">'+doomEsc(s.result.slice(0,140))+'</div>':'')+'</span></div>'; }).join('')
+    +'</div>';
+}
+
 // ── APPS DRAWER — the whole fleet behind one clean button ──
 // live directly under <body>: the topbar's backdrop-filter would trap position:fixed
 addEventListener('load',function(){ var d=document.getElementById('apps-drawer'); if(d&&d.parentElement!==document.body) document.body.appendChild(d); });
@@ -3358,7 +3436,7 @@ async function vAct(id,i){
 
 // ── WEB AGENT — start/watch/approve Bam's real-browser tasks from any device ──
 let agentTimer=null;
-function openAgent(){ document.getElementById('agent').classList.add('open'); agentPoll(); agQueueLoad(); agJournalLoad(); if(!agentTimer) agentTimer=setInterval(agentPoll,2500); }
+function openAgent(){ document.getElementById('agent').classList.add('open'); agentPoll(); agQueueLoad(); agJournalLoad(); missionRender(); if(!agentTimer) agentTimer=setInterval(function(){ agentPoll(); missionRender(); },2500); }
 function closeAgent(){ document.getElementById('agent').classList.remove('open'); if(agentTimer){clearInterval(agentTimer);agentTimer=null;} }
 function agTab(t){ ["task","routines","ledger"].forEach(function(k){ document.getElementById("ag-"+k+"-body").style.display=(k===t)?"":"none"; var tb=document.getElementById("agtab-"+k); if(tb) tb.classList.toggle("on",k===t); }); if(t==="routines") rtLoad(); if(t==="ledger") ledgerLoad(); }
 
