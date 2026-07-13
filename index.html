@@ -1468,7 +1468,11 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
 
 <div id="biz">
   <div class="biz-top"><span class="biz-title">🏢 LEAD FINDER &amp; SITE BUILDER</span><button onclick="closeBiz()">✕</button></div>
-  <div class="biz-tabs"><button id="biztab-find" class="biz-tab on" onclick="bizTab('find')">Find businesses (no website)</button><button id="biztab-build" class="biz-tab" onclick="bizTab('build')">Build a website</button></div>
+  <div class="biz-tabs"><button id="biztab-find" class="biz-tab on" onclick="bizTab('find')">Find businesses (no website)</button><button id="biztab-pipeline" class="biz-tab" onclick="bizTab('pipeline')">Pipeline 🎯</button><button id="biztab-build" class="biz-tab" onclick="bizTab('build')">Build a website</button></div>
+  <div class="biz-body" id="biz-pipeline" style="display:none">
+    <div id="biz-pipe-status" style="color:#9fc7e6;font-size:12px;margin:6px 0 10px">Your territory: every business Bam found, sited, and pitched — and where each one stands.</div>
+    <div id="biz-pipe-out"></div>
+  </div>
   <div class="biz-body" id="biz-find">
     <div class="biz-search">
       <input id="biz-loc" placeholder="Location — e.g. Miami FL, or a neighborhood">
@@ -1550,7 +1554,27 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
 <!-- WEB AGENT — Bam drives a real browser on the Mac; you watch and approve from anywhere -->
 <div id="agent">
   <div class="biz-top"><span class="biz-title">🕹 WEB AGENT — BAM DOES IT FOR REAL</span><button onclick="closeAgent()">✕</button></div>
-  <div class="biz-body">
+  <div class="biz-tabs">
+    <button id="agtab-task" class="biz-tab on" onclick="agTab('task')">Task</button>
+    <button id="agtab-routines" class="biz-tab" onclick="agTab('routines')">Routines ⏰</button>
+    <button id="agtab-ledger" class="biz-tab" onclick="agTab('ledger')">Ledger 📒</button>
+    <button class="biz-tab" onclick="bamPushEnable()" title="Approvals, sales & previews on your lock screen">🔔 Alerts</button>
+  </div>
+  <div class="biz-body" id="ag-routines-body" style="display:none">
+    <div class="biz-search">
+      <input id="rt-task" placeholder='Recurring patrol — e.g. "check if any business replied to my pitch emails"'>
+      <input id="rt-time" type="time" value="09:00" style="flex:0 0 110px">
+      <select id="rt-days" style="flex:0 0 130px"><option value="daily">Every day</option><option value="mon">Mondays</option><option value="tue">Tuesdays</option><option value="wed">Wednesdays</option><option value="thu">Thursdays</option><option value="fri">Fridays</option><option value="sat">Saturdays</option><option value="sun">Sundays</option><option value="mon,wed,fri">Mon/Wed/Fri</option></select>
+      <button onclick="rtAdd()">＋ Add</button>
+    </div>
+    <div style="color:#9fc7e6;font-size:12px;margin:6px 0 10px">Bam runs these on schedule while you sleep — results land in the Ledger and on your lock screen.</div>
+    <div id="rt-list"></div>
+  </div>
+  <div class="biz-body" id="ag-ledger-body" style="display:none">
+    <div style="color:#9fc7e6;font-size:12px;margin:6px 0 10px">Everything Bam has done autonomously — the score board.</div>
+    <div id="ledger-out"></div>
+  </div>
+  <div class="biz-body" id="ag-task-body">
     <div class="biz-search">
       <input id="ag-task" placeholder='Give Bam a real task — e.g. "sign up for a free Canva account"'>
       <button onclick="agentStart()">▶ Go</button>
@@ -1566,6 +1590,8 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
     <img id="ag-shot" alt="" style="width:100%;max-width:760px;border-radius:10px;border:1px solid rgba(120,180,255,.25);display:none;margin:8px 0">
     <div id="ag-log" class="yt-pre" style="display:none;max-height:200px;overflow-y:auto;font-size:11.5px"></div>
     <div class="yt-actions" style="margin-top:10px"><button onclick="agentStop()">⏹ Stop the agent</button></div>
+    <div id="ag-queue" style="margin-top:14px"></div>
+    <div id="ag-journal" style="margin-top:14px"></div>
   </div>
 </div>
 <div id="phys">
@@ -3031,7 +3057,37 @@ async function publishLastProduct(){
 let bizResults=[];
 function openBiz(){ document.getElementById("biz").classList.add("open"); var sel=document.getElementById("biz-src"); if(sel) sel.style.display=(typeof cfg!=="undefined"&&cfg.gmapsKey)?"":"none"; }
 function closeBiz(){ document.getElementById("biz").classList.remove("open"); }
-function bizTab(t){ document.getElementById("biz-find").style.display=t==="find"?"":"none"; document.getElementById("biz-build").style.display=t==="build"?"":"none"; document.getElementById("biztab-find").classList.toggle("on",t==="find"); document.getElementById("biztab-build").classList.toggle("on",t==="build"); }
+function bizTab(t){ ["find","pipeline","build"].forEach(function(k){ var b=document.getElementById("biz-"+k), tb=document.getElementById("biztab-"+k); if(b) b.style.display=(k===t)?"":"none"; if(tb) tb.classList.toggle("on",k===t); }); if(t==="pipeline") bizPipeLoad(); }
+
+// ── PIPELINE — found → site built → pitched → replied → client ──
+var PIPE_STAGES=["found","site built","pitched","replied","client"];
+var PIPE_COLORS={found:"#8a93a6","site built":"#6da8d8",pitched:"#e2c05c",replied:"#c98d5f",client:"#5fc98a"};
+async function bizLeadSave(b,extra){
+  if(!cfg.apiUrl) return null;
+  try{ var r=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/leads',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify(Object.assign({name:b.name,addr:b.addr||'',phone:b.phone||'',type:b.type||'',lat:b.lat||0,lon:b.lon||0},extra||{}))}); return await r.json(); }catch(e){ return null; }
+}
+async function bizPipeLoad(){
+  var out=document.getElementById("biz-pipe-out"), st=document.getElementById("biz-pipe-status");
+  if(!cfg.apiUrl){ st.textContent="Connect the Server Vault (⚙ Settings) to track your pipeline."; return; }
+  var leads=[]; try{ var r=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/leads',{headers:{'x-jarvis-token':cfg.apiToken||''}}); leads=await r.json(); }catch(e){}
+  if(!leads.length){ out.innerHTML='<div style="color:var(--text-d);padding:14px">Empty territory — find businesses in the first tab, hit 🚀 Live site, and they land here automatically.</div>'; return; }
+  var counts={}; PIPE_STAGES.forEach(function(s){counts[s]=leads.filter(function(l){return l.status===s;}).length;});
+  st.innerHTML=PIPE_STAGES.map(function(s){return '<span style="color:'+PIPE_COLORS[s]+';font-weight:600">'+counts[s]+' '+s+'</span>';}).join(' <span style="opacity:.4">→</span> ');
+  out.innerHTML=leads.map(function(l){
+    var next=PIPE_STAGES[Math.min(PIPE_STAGES.indexOf(l.status)+1,PIPE_STAGES.length-1)];
+    var smsBody=encodeURIComponent('Hi! I built '+l.name+' a website — take a look: '+(l.site||'')+' — want it? It\'s ready to go live under your name today.');
+    return '<div class="biz-card" style="border-left-color:'+(PIPE_COLORS[l.status]||'#8a93a6')+'"><div style="flex:1;min-width:150px"><b>'+doomEsc(l.name)+'</b>'
+      +'<div class="biz-meta"><span style="color:'+(PIPE_COLORS[l.status]||'#8a93a6')+';font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:10px">'+doomEsc(l.status)+'</span>'+(l.addr?' · '+doomEsc(l.addr):'')+(l.phone?' · '+doomEsc(l.phone):'')+'</div>'
+      +(l.site?'<a href="'+l.site+'" target="_blank" style="color:#7fd6a4;font-size:11px;word-break:break-all">'+l.site+'</a>':'')+'</div>'
+      +(l.phone&&l.site?'<a href="sms:'+l.phone.replace(/[^\d+]/g,'')+'&body='+smsBody+'"><button>💬 Text pitch</button></a>':'')
+      +(l.status!==PIPE_STAGES[PIPE_STAGES.length-1]?'<button onclick="bizPipeAdvance(\''+l.id+'\',\''+next+'\')" style="background:rgba(60,170,100,.16);border-color:rgba(90,200,130,.45);color:#bde9cc">→ '+doomEsc(next)+'</button>':'<span style="color:#5fc98a;font-weight:700">💰</span>')
+      +'</div>';
+  }).join('');
+}
+async function bizPipeAdvance(id,status){
+  try{ await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/leads',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify({id:id,status:status,name:'',addr:''})}); }catch(e){}
+  bizPipeLoad();
+}
 async function bizGeocode(q){ var r=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+encodeURIComponent(q)); var d=await r.json(); if(!d||!d.length) throw new Error("Location not found — try 'City, State'"); return {lat:+d[0].lat, lon:+d[0].lon, name:d[0].display_name}; }
 async function bizSearchOSM(loc,type,radius){
   var g=await bizGeocode(loc);
@@ -3089,7 +3145,8 @@ async function bizPublish(i){
   try{
     var r=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/site',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify({name:b.name,type:b.type,addr:b.addr,phone:b.phone})});
     var d=await r.json();
-    if(d.ok){ box.innerHTML='✓ LIVE (takes ~1 min to appear): <a href="'+d.url+'" target="_blank" style="color:#7fd6a4;word-break:break-all">'+d.url+'</a><br><span style="color:var(--text-d);font-size:11px">Send this link with your pitch — it\'s their site, already built.</span><button class="biz-dl" onclick="copySecure(\''+d.url+'\')" style="margin-top:8px">📋 Copy link</button>'; }
+    if(d.ok){ box.innerHTML='✓ LIVE (takes ~1 min to appear): <a href="'+d.url+'" target="_blank" style="color:#7fd6a4;word-break:break-all">'+d.url+'</a><br><span style="color:var(--text-d);font-size:11px">Send this link with your pitch — it\'s their site, already built. Tracked in Pipeline 🎯.</span><button class="biz-dl" onclick="copySecure(\''+d.url+'\')" style="margin-top:8px">📋 Copy link</button>';
+      bizLeadSave(b,{status:'site built',site:d.url}); }
     else box.textContent="Failed: "+(d.error||r.status);
   }catch(e){ box.textContent="Failed: "+e.message; }
 }
@@ -3131,8 +3188,59 @@ function ytTab(t){ ["plan","thumb","cal","make","bam"].forEach(function(k){ docu
 
 // ── WEB AGENT — start/watch/approve Bam's real-browser tasks from any device ──
 let agentTimer=null;
-function openAgent(){ document.getElementById('agent').classList.add('open'); agentPoll(); if(!agentTimer) agentTimer=setInterval(agentPoll,2500); }
+function openAgent(){ document.getElementById('agent').classList.add('open'); agentPoll(); agQueueLoad(); agJournalLoad(); if(!agentTimer) agentTimer=setInterval(agentPoll,2500); }
 function closeAgent(){ document.getElementById('agent').classList.remove('open'); if(agentTimer){clearInterval(agentTimer);agentTimer=null;} }
+function agTab(t){ ["task","routines","ledger"].forEach(function(k){ document.getElementById("ag-"+k+"-body").style.display=(k===t)?"":"none"; var tb=document.getElementById("agtab-"+k); if(tb) tb.classList.toggle("on",k===t); }); if(t==="routines") rtLoad(); if(t==="ledger") ledgerLoad(); }
+
+// ── PUSH — approvals, sales & previews on the lock screen ──
+async function bamPushEnable(){
+  if(!cfg.apiUrl){ toast('Connect the Server Vault first (⚙ Settings)'); return; }
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)){ toast('This browser can\'t do push — on iPhone, add BAM to your Home Screen first'); return; }
+  try{
+    var perm=await Notification.requestPermission();
+    if(perm!=='granted'){ toast('Notifications blocked — allow them in Settings for this site'); return; }
+    var reg=await navigator.serviceWorker.ready;
+    var kd=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/push/key',{headers:{'x-jarvis-token':cfg.apiToken||''}}).then(function(x){return x.json();});
+    var sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:(function(b64){var p='='.repeat((4-b64.length%4)%4);var r=atob((b64+p).replace(/-/g,'+').replace(/_/g,'/'));var a=new Uint8Array(r.length);for(var i=0;i<r.length;i++)a[i]=r.charCodeAt(i);return a;})(kd.key)});
+    var r=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify(sub.toJSON())});
+    var d=await r.json();
+    toast(d.ok?'🔔 Lock-screen alerts ON ('+d.devices+' device'+(d.devices>1?'s':'')+')':'Failed: '+(d.error||''));
+  }catch(e){ toast('Push failed: '+e.message); }
+}
+// re-subscribe silently on every launch if permission was already given
+addEventListener('load',function(){ setTimeout(function(){ if(typeof Notification!=='undefined'&&Notification.permission==='granted'&&cfg.apiUrl) bamPushEnable().catch(function(){}); },6000); });
+
+// ── QUEUE + JOURNAL + ROUTINES + LEDGER ──
+async function agQueueLoad(){
+  if(!cfg.apiUrl) return;
+  var q=[]; try{ q=await agentAPI('queue'); }catch(e){}
+  var el=document.getElementById('ag-queue'); if(!el) return;
+  el.innerHTML=(q&&q.length)?'<div style="color:#9fc7e6;font-size:11px;letter-spacing:1px;margin-bottom:6px">UP NEXT ('+q.length+')</div>'+q.map(function(t,i){return '<div class="biz-card" style="padding:8px 12px"><div style="flex:1;font-size:12px">'+doomEsc(t.task)+'</div><button onclick="agQueueRemove('+i+')">✕</button></div>';}).join(''):'';
+}
+async function agQueueRemove(i){ try{ await agentAPI('queue/remove',{i:i}); }catch(e){} agQueueLoad(); }
+async function agJournalLoad(){
+  if(!cfg.apiUrl) return;
+  var j=[]; try{ j=await agentAPI('journal'); }catch(e){}
+  var el=document.getElementById('ag-journal'); if(!el) return;
+  el.innerHTML=(j&&j.length)?'<div style="color:#9fc7e6;font-size:11px;letter-spacing:1px;margin-bottom:6px">WORK LOG</div>'+j.slice(0,8).map(function(e){return '<div class="biz-card" style="padding:8px 12px"><div style="flex:1;font-size:12px">'+(e.outcome==='done'?'✅ ':'✕ ')+doomEsc(e.task)+'<div class="biz-meta">'+new Date(e.ts).toLocaleString()+(e.summary?' — '+doomEsc(e.summary.slice(0,120)):'')+'</div></div></div>';}).join(''):'';
+}
+async function rtLoad(){
+  if(!cfg.apiUrl) return;
+  var r=[]; try{ r=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/routines',{headers:{'x-jarvis-token':cfg.apiToken||''}}).then(function(x){return x.json();}); }catch(e){}
+  document.getElementById('rt-list').innerHTML=(r&&r.length)?r.map(function(x){return '<div class="biz-card"><div style="flex:1"><b style="font-size:13px">'+doomEsc(x.task)+'</b><div class="biz-meta">⏰ '+doomEsc(x.time)+' · '+doomEsc(x.days)+'</div></div><button onclick="rtRemove(\''+x.id+'\')">✕</button></div>';}).join(''):'<div style="color:var(--text-d);padding:14px">No patrols yet. Try: "check my competitors\' Gumroad pages for price changes" every Monday.</div>';
+}
+async function rtAdd(){
+  var t=document.getElementById('rt-task').value.trim(); if(!t){ toast('Type the patrol task first'); return; }
+  try{ await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/routines',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify({task:t,time:document.getElementById('rt-time').value,days:document.getElementById('rt-days').value})}); document.getElementById('rt-task').value=''; toast('⏰ Patrol scheduled'); }catch(e){ toast('Failed: '+e.message); }
+  rtLoad();
+}
+async function rtRemove(id){ try{ await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/routines/remove',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify({id:id})}); }catch(e){} rtLoad(); }
+var LEDGER_ICONS={sale:'💰',youtube:'🎬',site:'🌐',agent:'🕹',trend:'🎯',routine:'⏰',fix:'🔧',lead:'🎯',scout:'🧭'};
+async function ledgerLoad(){
+  if(!cfg.apiUrl) return;
+  var rows=[]; try{ rows=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/ledger',{headers:{'x-jarvis-token':cfg.apiToken||''}}).then(function(x){return x.json();}); }catch(e){}
+  document.getElementById('ledger-out').innerHTML=(rows&&rows.length)?rows.map(function(e){return '<div class="biz-card" style="padding:9px 13px"><span style="font-size:15px">'+(LEDGER_ICONS[e.kind]||'•')+'</span><div style="flex:1;font-size:12.5px">'+doomEsc(e.msg)+(e.url?' <a href="'+e.url+'" target="_blank" style="color:#7fd6a4">link</a>':'')+'<div class="biz-meta">'+new Date(e.ts).toLocaleString()+'</div></div></div>';}).join(''):'<div style="color:var(--text-d);padding:14px">Nothing yet — the board fills itself as Bam works.</div>';
+}
 function agentAPI(p,body){ return fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/agent/'+p,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:body?JSON.stringify(body):undefined}).then(function(r){return r.json();}); }
 async function agentStart(){
   var t=document.getElementById('ag-task').value.trim(), st=document.getElementById('ag-status');
