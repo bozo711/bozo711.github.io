@@ -3223,12 +3223,31 @@ async function bizPipeLoad(){
     var next=PIPE_STAGES[Math.min(PIPE_STAGES.indexOf(l.status)+1,PIPE_STAGES.length-1)];
     var smsBody=encodeURIComponent('Hi! I built '+l.name+' a website — take a look: '+(l.site||'')+' — want it? It\'s ready to go live under your name today.');
     return '<div class="biz-card" style="border-left-color:'+(PIPE_COLORS[l.status]||'#8a93a6')+'"><div style="flex:1;min-width:150px"><b>'+doomEsc(l.name)+'</b>'
-      +'<div class="biz-meta"><span style="color:'+(PIPE_COLORS[l.status]||'#8a93a6')+';font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:10px">'+doomEsc(l.status)+'</span>'+(l.addr?' · '+doomEsc(l.addr):'')+(l.phone?' · '+doomEsc(l.phone):'')+'</div>'
+      +'<div class="biz-meta"><span style="color:'+(PIPE_COLORS[l.status]||'#8a93a6')+';font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:10px">'+doomEsc(l.status)+'</span>'+(l.owner?' · 👤 '+doomEsc(l.owner):'')+(l.email?' · '+doomEsc(l.email):'')+(l.addr?' · '+doomEsc(l.addr):'')+(l.phone?' · '+doomEsc(l.phone):'')+'</div>'
       +(l.site?'<a href="'+l.site+'" target="_blank" style="color:#7fd6a4;font-size:11px;word-break:break-all">'+l.site+'</a>':'')+'</div>'
+      +(!l.email?'<button onclick="bizEnrich(\''+l.id+'\')">🔍 Find email</button>':'')
+      +(l.email&&(l.status==='found'||l.status==='site built')?'<button onclick="bizEmailPitch(\''+l.id+'\')" style="background:rgba(212,175,55,.14);border-color:rgba(212,175,55,.45);color:#e8d5a0">📧 Email pitch</button>':'')
       +(l.phone&&l.site?'<a href="sms:'+l.phone.replace(/[^\d+]/g,'')+'&body='+smsBody+'"><button>💬 Text pitch</button></a>':'')
       +(l.status!==PIPE_STAGES[PIPE_STAGES.length-1]?'<button onclick="bizPipeAdvance(\''+l.id+'\',\''+next+'\')" style="background:rgba(60,170,100,.16);border-color:rgba(90,200,130,.45);color:#bde9cc">→ '+doomEsc(next)+'</button>':'<span style="color:#5fc98a;font-weight:700">💰</span>')
       +'</div>';
   }).join('');
+}
+async function bizEnrich(id){
+  toast('🔍 Bam is digging for the owner + email…');
+  try{ var d=await dbAPI('leads/enrich',{id:id}); toast(d.ok?(d.lead.email?'✓ Found: '+d.lead.email:'No email on the public web — use the text pitch'):'✕ '+(d.error||'')); }catch(e){ toast('Failed: '+e.message); }
+  bizPipeLoad();
+}
+async function bizEmailPitch(id){
+  var leads=[]; try{ leads=await dbAPI('leads'); }catch(e){}
+  var l=(leads||[]).find(function(x){return x.id===id;}); if(!l||!l.email) return;
+  if(!confirm('Send the pitch to '+l.email+' from Bam\'s address? Follow-ups go automatically on day 1, 3 and 7 until they reply.')) return;
+  var pitch=(l.pitch||('Hi'+(l.owner?' '+l.owner.split(' ')[0]:'')+',\n\nI build websites for '+(l.type||'local businesses')+' and noticed '+l.name+' doesn\'t have one — so I went ahead and built it: '+(l.site||'(preview coming)')+'\n\nIt\'s yours if you want it — happy to put it under your own name this week. Worth a look?\n\n— Bam, Miguel\'s assistant'));
+  try{
+    var d=await dbAPI('mail/send',{to:l.email,subject:'I already built '+l.name+' a website',text:pitch});
+    if(d.ok){ await dbAPI('leads',{id:id,name:'',status:'pitched'}); toast('📧 Pitched — drip armed (day 1/3/7, stops on reply)'); }
+    else toast('✕ '+(d.error||''));
+  }catch(e){ toast('Failed: '+e.message); }
+  bizPipeLoad();
 }
 async function bizPipeAdvance(id,status){
   try{ await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/leads',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify({id:id,status:status,name:'',addr:''})}); }catch(e){}
@@ -3490,6 +3509,18 @@ async function icSendText(){
   document.getElementById('ic-text').value='';
   try{ var d=await dbAPI('intercom',{text:v}); if(d.ok) icShow(d.heard,d.reply); else toast('✕ '+(d.error||'')); }catch(e){ toast('Failed: '+e.message); }
 }
+
+// ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
+var BAM_BUILD='1783992505';
+(function(){
+  if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
+  async function chk(){
+    try{ var v=(await (await fetch('version.json?t='+Date.now(),{cache:'no-store'})).json()).v;
+      if(v && String(v)!==BAM_BUILD){ if(window.toast) toast('⬆️ New BAM shipped — pull down / reload to get it'); }
+    }catch(e){}
+  }
+  setInterval(chk, 10*60*1000); setTimeout(chk, 20000);
+})();
 
 // ═══ DECISION BAR — Bam works hands-free; every yes/no he needs floats here,
 // on top of everything, like a coding-assistant permission prompt. ═══
