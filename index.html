@@ -1679,6 +1679,11 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
   <div class="biz-tabs">
     <button id="sntab-status" class="biz-tab on" onclick="snTab('status')">Status</button>
     <button id="sntab-creds" class="biz-tab" onclick="snTab('creds')">Passwords 🔑</button>
+    <button id="sntab-integr" class="biz-tab" onclick="snTab('integr')">Integrations 🔌</button>
+  </div>
+  <div class="biz-body" id="sn-integr" style="display:none">
+    <div style="color:#9fc7e6;font-size:12px;margin:4px 0 12px">Free-tier superpowers. Each wakes up the moment its key is saved (keys live in the Mac's Keychain). No account yet? The 🕹 button sends the web agent to create one — you approve from the decision bar, then copy the API key from the dashboard into the box.</div>
+    <div id="integr-out">loading…</div>
   </div>
   <div class="biz-body" id="sn-status"><div id="sn-status-out">loading…</div></div>
   <div class="biz-body" id="sn-creds" style="display:none">
@@ -3330,7 +3335,52 @@ function ytTab(t){ ["plan","thumb","cal","make","bam"].forEach(function(k){ docu
 // ═══ SENTINEL — security status, live token rotation, kill switch ═══
 function openSentinel(){ document.getElementById('sentinel').classList.add('open'); snRender(); }
 function closeSentinel(){ document.getElementById('sentinel').classList.remove('open'); }
-function snTab(t){ ['status','creds'].forEach(function(k){ document.getElementById('sn-'+k).style.display=(k===t)?'':'none'; document.getElementById('sntab-'+k).classList.toggle('on',k===t); }); if(t==='creds') crLoad(); else snRender(); }
+function snTab(t){ ['status','creds','integr'].forEach(function(k){ document.getElementById('sn-'+k).style.display=(k===t)?'':'none'; document.getElementById('sntab-'+k).classList.toggle('on',k===t); }); if(t==='creds') crLoad(); else if(t==='integr') inRender(); else snRender(); }
+
+// ── INTEGRATIONS — Firecrawl / AgentMail / Composio, key-gated ──
+async function inRender(){
+  var el=document.getElementById('integr-out');
+  if(!cfg.apiUrl){ el.innerHTML='<div style="color:var(--text-d);padding:12px">connect the vault first</div>'; return; }
+  var s={}; try{ s=await dbAPI('keys/status'); }catch(e){ el.innerHTML='<div style="color:var(--text-d);padding:12px">backend unreachable</div>'; return; }
+  function block(icon,name,desc,armed,keyName,site,extra){
+    return '<div class="biz-card" style="flex-direction:column;align-items:stretch"><div style="display:flex;gap:9px;align-items:center"><span style="font-size:17px">'+icon+'</span><b style="flex:1;color:#efe9db">'+name+'</b><span class="'+(armed?'sn-ok':'sn-warn')+'">'+(armed?'ARMED ✓':'no key')+'</span></div>'
+      +'<div class="biz-meta" style="margin:5px 0 9px">'+desc+'</div>'
+      +(armed?(extra||''):'<div style="display:flex;gap:7px;flex-wrap:wrap"><input id="ik-'+keyName+'" placeholder="paste API key" type="password" style="flex:1;min-width:120px;background:rgba(255,255,255,.06);border:1px solid rgba(120,180,255,.25);border-radius:8px;color:var(--text);padding:8px 10px;font-family:inherit;font-size:12px;outline:none">'
+      +'<button onclick="inSaveKey(\''+keyName+'\')">💾 Arm it</button>'
+      +'<button onclick="inAgentSignup(\''+site+'\',\''+name+'\')">🕹 Agent: make the account</button></div>')
+      +'</div>';
+  }
+  el.innerHTML=
+    block('🔎','Firecrawl','Clean web data in one call — upgrades the agent (instant research action), scouts and trend engine. Free 500 pages/mo.',s.firecrawl,'fc_key','https://firecrawl.dev',
+      '<button class="biz-dl" style="margin:0" onclick="inTestResearch()">🔎 Test a research call</button>')
+    +block('📧','AgentMail','Bam\'s own email address — sends pitches, receives replies, all by API. Free beta.',s.agentmail,'am_key','https://agentmail.to',
+      s.agentmailInbox?'<div class="sn-ok" style="font-size:12px">inbox: '+doomEsc(s.agentmailInbox)+'</div><button class="biz-dl" style="margin:0;margin-top:6px" onclick="inInbox()">📥 Check inbox</button>':'<button class="biz-dl" style="margin:0" onclick="inMailSetup()">📮 Create Bam\'s inbox</button>')
+    +block('🔗','Composio','One-time logins for hundreds of platforms — the agent\'s skeleton key. Key stored now, deep wiring is the next build.',s.composio,'composio_key','https://composio.dev','<div class="biz-meta">key stored ✓ — say the word to wire the tools in</div>')
+    +'<div id="in-test-out" style="margin-top:8px"></div>';
+}
+async function inSaveKey(name){
+  var v=(document.getElementById('ik-'+name)||{}).value; if(!v||!v.trim()){ toast('paste the key first'); return; }
+  try{ var d=await dbAPI('keys',{name:name,value:v.trim()}); toast(d.ok?'🔌 Armed':'✕ '+(d.error||'')); }catch(e){ toast('Failed: '+e.message); }
+  inRender();
+}
+async function inAgentSignup(site,name){
+  try{ await agentAPI('queue',{task:'Go to '+site+' and sign up for a FREE account using my email. Pause for my approval before submitting. Once the account exists, find the API key page in the dashboard and tell me the key (use ask).'}); toast('🕹 Queued — approve the signup from the decision bar when Bam gets there'); }catch(e){ toast('Failed: '+e.message); }
+}
+async function inTestResearch(){
+  var el=document.getElementById('in-test-out'); el.innerHTML='<div style="color:var(--text-d)">researching…</div>';
+  try{ var d=await dbAPI('research',{q:'best free ways to promote digital products 2026'});
+    el.innerHTML=d.ok?'<div class="yt-pre">'+d.items.map(function(i){return '• <b>'+doomEsc(i.title)+'</b> — '+doomEsc(i.text.slice(0,140));}).join('<br>')+'</div>':'<div class="sn-warn">'+doomEsc(d.error||'failed')+'</div>';
+  }catch(e){ el.innerHTML='<div class="sn-warn">'+doomEsc(e.message)+'</div>'; }
+}
+async function inMailSetup(){
+  toast('creating Bam\'s inbox…');
+  try{ var d=await dbAPI('mail/setup',{}); toast(d.ok?'📧 Bam\'s email: '+d.inbox:'✕ '+(d.error||'')); }catch(e){ toast('Failed: '+e.message); }
+  inRender();
+}
+async function inInbox(){
+  var el=document.getElementById('in-test-out');
+  try{ var d=await dbAPI('mail/inbox'); el.innerHTML=d.ok?((d.messages||[]).length?d.messages.map(function(m){return '<div class="biz-card" style="padding:8px 12px"><div style="flex:1;font-size:12px"><b>'+doomEsc(m.subject)+'</b><div class="biz-meta">'+doomEsc(m.from)+' — '+doomEsc(m.preview)+'</div></div></div>';}).join(''):'<div style="color:var(--text-d);padding:10px">inbox empty</div>'):'<div class="sn-warn">'+doomEsc(d.error||'')+'</div>'; }catch(e){}
+}
 async function snRender(){
   var el=document.getElementById('sn-status-out');
   if(!cfg.apiUrl){ el.innerHTML='<div class="sn-row"><b>Server Vault</b><span class="sn-bad">NOT CONNECTED</span></div>'; return; }
