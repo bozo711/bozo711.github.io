@@ -3355,7 +3355,7 @@ async function inRender(){
       '<button class="biz-dl" style="margin:0" onclick="inTestResearch()">🔎 Test a research call</button>')
     +block('📧','AgentMail','Bam\'s own email address — sends pitches, receives replies, all by API. Free beta.',s.agentmail,'am_key','https://agentmail.to',
       s.agentmailInbox?'<div class="sn-ok" style="font-size:12px">inbox: '+doomEsc(s.agentmailInbox)+'</div><button class="biz-dl" style="margin:0;margin-top:6px" onclick="inInbox()">📥 Check inbox</button>':'<button class="biz-dl" style="margin:0" onclick="inMailSetup()">📮 Create Bam\'s inbox</button>')
-    +block('🔗','Composio','One-time logins for hundreds of platforms — the agent\'s skeleton key. Key stored now, deep wiring is the next build.',s.composio,'composio_key','https://composio.dev','<div class="biz-meta">key stored ✓ — say the word to wire the tools in</div>')
+    +block('🔗','Composio','One-time logins for hundreds of platforms — the agent\'s skeleton key. Connect apps once at app.composio.dev, then Bam can use their tools directly.',s.composio,'composio_key','https://composio.dev','<button class="biz-dl" style="margin:0" onclick="inComposio()">🔗 Show connected apps</button>')
     +'<div id="in-test-out" style="margin-top:8px"></div>';
 }
 async function inSaveKey(name){
@@ -3376,6 +3376,12 @@ async function inMailSetup(){
   toast('creating Bam\'s inbox…');
   try{ var d=await dbAPI('mail/setup',{}); toast(d.ok?'📧 Bam\'s email: '+d.inbox:'✕ '+(d.error||'')); }catch(e){ toast('Failed: '+e.message); }
   inRender();
+}
+async function inComposio(){
+  var el=document.getElementById('in-test-out');
+  try{ var d=await dbAPI('composio/status');
+    el.innerHTML=d.armed?((d.accounts||[]).length?'<div class="yt-pre">connected: '+d.accounts.map(function(a){return doomEsc(a.toolkit)+' ('+doomEsc(a.status)+')';}).join(' · ')+'</div>':'<div style="color:var(--text-d);padding:10px">No apps connected yet — go to <b>app.composio.dev → Auth Configs → connect Gmail/GitHub/etc once</b>, and they show up here for Bam to use.</div>'):'<div class="sn-warn">not armed</div>';
+  }catch(e){ el.innerHTML='<div class="sn-warn">'+doomEsc(e.message)+'</div>'; }
 }
 async function inInbox(){
   var el=document.getElementById('in-test-out');
