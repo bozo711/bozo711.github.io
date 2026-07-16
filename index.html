@@ -3425,6 +3425,7 @@ async function snRender(){
     +row('🎟 API token age', s.tokenAgeDays<0?'?':s.tokenAgeDays+' days', s.tokenAgeDays>30?'sn-warn':'sn-ok', '<button class="biz-dl" onclick="snRotate()" style="margin:0;padding:6px 10px;font-size:10px">🔄 ROTATE NOW</button>')
     +row('🌐 Tunnel', s.tunnelUrl?(s.tunnelAgeHours+'h old'):'down', s.tunnelUrl?'sn-ok':'sn-bad')
     +row('🚫 Failed logins (24h)', s.authFails24h, s.authFails24h>10?'sn-bad':(s.authFails24h>0?'sn-warn':'sn-ok'))
+    +row('🕷 Honeypot probes (24h)', s.threats24h||0, (s.threats24h||0)>0?'sn-bad':'sn-ok')
     +row('🕹 Agent', s.agentAlive?'working':'idle', 'sn-ok')
     +row('💾 Last backup', s.lastBackup?new Date(s.lastBackup).toLocaleDateString():'NEVER — runs tonight', s.lastBackup?(Date.now()-s.lastBackup>3*864e5?'sn-warn':'sn-ok'):'sn-warn')
     +row('🦙 Local AI fallback', 'armed', 'sn-ok')
@@ -3520,7 +3521,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784214725';
+var BAM_BUILD='1784224081';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
