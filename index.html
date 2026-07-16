@@ -1641,6 +1641,10 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
       <input id="ag-task" placeholder='…or a single task — e.g. "sign up for a free Canva account"'>
       <button onclick="agentStart()">▶ Go</button>
     </div>
+    <div class="biz-search">
+      <input id="ag-code" placeholder='🛠 CODE — change BAM itself: "make the intercom reply shorter". Uses your Claude plan.'>
+      <button onclick="codeStart()" style="background:rgba(150,20,50,.3);border:1px solid rgba(200,60,80,.5);color:#ffd0c0">🛠 Propose</button>
+    </div>
     <div id="ag-status">Bam opens a real browser on your Mac and works the task step by step. He pauses for YOUR approval before anything gets submitted or signed up, and asks when he needs info.</div>
     <div id="ag-approve" class="biz-card" style="display:none;border-left-color:#e2c05c"><div style="flex:1"><b style="color:#f2e2ae">⏸ Bam wants to:</b> <span id="ag-approve-what"></span></div>
       <button onclick="agentApprove(true)" style="background:rgba(60,170,100,.2);border-color:rgba(90,200,130,.5);color:#bde9cc">✅ Approve</button>
@@ -3511,7 +3515,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1783992505';
+var BAM_BUILD='1784160628';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -3533,17 +3537,20 @@ async function dbPoll(){
   if(!ds || !ds.length){ bar.classList.remove('open'); return; }
   var d=ds[0];
   document.getElementById('db-count').textContent=ds.length>1?(ds.length-1)+' more waiting':'';
-  var titles={mission:'MISSION PLAN — LAUNCH IT?','agent-approval':'BAM WANTS TO ACT — YES?','agent-question':'BAM HAS A QUESTION',video:'VIDEO READY — PUBLISH?'};
+  var titles={mission:'MISSION PLAN — LAUNCH IT?','agent-approval':'BAM WANTS TO ACT — YES?','agent-question':'BAM HAS A QUESTION',video:'VIDEO READY — PUBLISH?','code-request':'🛠 LET BAM EDIT HIS OWN CODE?','code-review':'🛠 CODE CHANGE DONE — KEEP IT?'};
   document.getElementById('db-title').textContent=titles[d.kind]||'BAM NEEDS A YES';
   document.getElementById('db-text').textContent=d.text||'';
   var plan=document.getElementById('db-plan');
   if(d.kind==='mission'&&d.plan){ plan.style.display='block'; plan.innerHTML=d.plan.map(function(s,i){return '<div>'+(i+1)+'. '+doomEsc(s)+'</div>';}).join(''); }
+  else if(d.kind==='code-review'){ plan.style.display='block'; plan.innerHTML='<div style="color:#e8d5a0">files: '+doomEsc((d.changed||[]).join(', '))+'</div><div style="margin-top:4px">'+doomEsc((d.detail||'').slice(0,400))+'</div>'; }
   else plan.style.display='none';
   var acts=document.getElementById('db-acts'), h='';
   if(d.kind==='mission') h='<button class="yes" onclick="dbAct(\'mission/approve\',{})">✅ Launch mission</button><button onclick="dbAct(\'mission/abort\',{})">✕ Cancel</button>';
   else if(d.kind==='agent-approval') h='<button class="yes" onclick="dbAct(\'agent/approve\',{ok:true})">✅ Yes, do it</button><button onclick="dbAct(\'agent/approve\',{ok:false})">✕ No</button>';
   else if(d.kind==='agent-question') h='<input id="db-answer" placeholder="Your answer…" onkeydown="if(event.key===\'Enter\')dbAnswer()"><button class="yes" onclick="dbAnswer()">Send</button>';
   else if(d.kind==='video') h='<button class="yes" onclick="dbAct(\'pending/publish\',{})">✅ Publish to YouTube</button><button onclick="dbAct(\'pending/reject\',{})">✕ Reject</button><button onclick="closeAllForBam();openYT();ytTab(\'bam\')">▶ Watch first</button>';
+  else if(d.kind==='code-request') h='<button class="yes" onclick="dbAct(\'code/approve\',{})">✅ Yes — go edit yourself</button><button onclick="dbAct(\'code/decide\',{keep:false})">✕ Cancel</button>';
+  else if(d.kind==='code-review') h='<button class="yes" onclick="dbAct(\'code/decide\',{keep:true})">✅ Keep it (auto-restart/deploy)</button><button onclick="dbAct(\'code/decide\',{keep:false})">↩ Roll it all back</button>';
   acts.innerHTML=h;
   bar.classList.add('open');
 }
@@ -3551,6 +3558,14 @@ function closeAllForBam(){ document.getElementById('decision-bar').classList.rem
 async function dbAct(p,body){ document.getElementById('decision-bar').classList.remove('open'); try{ var d=await dbAPI(p,body); if(d&&d.error) toast('✕ '+d.error); else if(p==='pending/publish'&&d.url) toast('🚀 Live: '+d.url); else toast('✓ done'); }catch(e){ toast('Failed: '+e.message); } setTimeout(dbPoll,1500); }
 async function dbAnswer(){ var v=(document.getElementById('db-answer')||{}).value; if(!v||!v.trim())return; await dbAct('agent/answer',{text:v.trim()}); }
 addEventListener('load',function(){ setTimeout(dbPoll,7000); if(!_dbTimer) _dbTimer=setInterval(dbPoll,8000); });
+
+// ── BAM CODES — he edits his own source via headless Claude, gated by your two yeses ──
+async function codeStart(){
+  var t=document.getElementById('ag-code').value.trim();
+  if(!t){ toast('Describe the code change first'); return; }
+  if(!cfg.apiUrl){ toast('Connect the Server Vault first'); return; }
+  try{ var d=await dbAPI('code/start',{task:t}); if(d.ok){ document.getElementById('ag-code').value=''; toast('🛠 Proposed — approve it in the gold bar (yes #1 starts the edit, yes #2 keeps it)'); dbPoll(); } else toast('✕ '+(d.error||'')); }catch(e){ toast('Failed: '+e.message); }
+}
 
 // ── MISSIONS — a whole goal, planned + executed hands-free ──
 async function missionStart(){
