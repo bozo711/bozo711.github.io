@@ -3521,7 +3521,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784224081';
+var BAM_BUILD='1784227085';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -9786,6 +9786,10 @@ canvas.bt-cv{width:100%;display:block}
         <h4>TRACK RECORD · CLOSED AT REAL PRICES</h4>
         <div id="bt-closed" style="font-size:10px">no closed trades yet — the record builds itself</div>
       </div>
+      <div class="bt-card" style="margin-top:12px">
+        <h4>🏆 STRATEGY TOURNAMENT · 10 EDGES, ONE DATA FEED, RANKED BY REAL P&L</h4>
+        <div id="bt-strats" style="font-size:10px">warming up — the daemon runs all ten 24/7</div>
+      </div>
     </div>
   </div>
 </div>
@@ -9920,7 +9924,27 @@ canvas.bt-cv{width:100%;display:block}
       S.fills=(P.closed||[]).slice(0,12).reverse().map(c=>c.pl>=0?1:0);
       renderTop(); renderPos(); renderClosed();
       if(!was) log('ENGINE · MAC 24/7 — the daemon trades this book around the clock; this screen is the live view','ok');
+      renderStrats(base);
     }catch(e){ if(R.on){ R.on=false; log('backend unreachable — falling back to on-device engine'); } }
+  }
+  async function renderStrats(base){
+    var el=$('bt-strats'); if(!el) return;
+    try{
+      var d=await (await fetch(base+'/api/strategies',{headers:vaultHdr()})).json();
+      if(!d.rows||!d.rows.length){ return; }
+      var days=d.started?Math.max(1,Math.round((Date.now()-d.started)/864e5)):0;
+      var traded=d.rows.filter(function(r){return r.trades>0;});
+      var h='<div style="color:#7a3a3a;margin-bottom:5px">'+(traded.length?('day '+days+' · ranked by settled P&L'):'day '+days+' · positions open, waiting on markets to resolve')+'</div>';
+      d.rows.forEach(function(r,i){
+        var col=r.pnl>0?'#5aff8a':(r.pnl<0?'#ff5a5a':'#c8a0a0');
+        h+='<div style="display:flex;gap:6px;align-items:baseline;padding:3px 0;border-bottom:1px dashed #2a0808">'
+          +'<span style="width:14px;color:#7a3a3a">'+(i+1)+'</span>'
+          +'<span style="flex:1;color:#e8b0b0">'+esc(r.name)+'<span style="color:#6a3030;font-size:9px"> · '+esc(r.desc)+'</span></span>'
+          +'<span style="color:'+col+';font-weight:700;min-width:52px;text-align:right">'+(r.pnl>=0?'+$':'-$')+Math.abs(r.pnl).toFixed(0)+'</span>'
+          +'<span style="color:#6a3030;min-width:60px;text-align:right;font-size:9px">'+r.trades+'t · '+r.wr+'% · '+r.open+' open</span></div>';
+      });
+      el.innerHTML=h;
+    }catch(e){}
   }
   function tradeSignal(row){
     if(R.on) return;                                       // the daemon already took this signal on the Mac
