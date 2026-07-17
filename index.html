@@ -3432,6 +3432,7 @@ async function inRender(){
     +block('📧','AgentMail','Bam\'s own email address — sends pitches, receives replies, all by API. Free beta.',s.agentmail,'am_key','https://agentmail.to',
       s.agentmailInbox?'<div class="sn-ok" style="font-size:12px">inbox: '+doomEsc(s.agentmailInbox)+'</div><button class="biz-dl" style="margin:0;margin-top:6px" onclick="inInbox()">📥 Check inbox</button>':'<button class="biz-dl" style="margin:0" onclick="inMailSetup()">📮 Create Bam\'s inbox</button>')
     +block('🔗','Composio','One-time logins for hundreds of platforms — the agent\'s skeleton key. Connect apps once at app.composio.dev, then Bam can use their tools directly.',s.composio,'composio_key','https://composio.dev','<button class="biz-dl" style="margin:0" onclick="inComposio()">🔗 Show connected apps</button>')
+    +block('📱','Telegram','Text BAM from ANYWHERE — works even on wifi that blocks the tunnel. Setup: message @BotFather → /newbot → paste the token here → then message your new bot once to link it. Alerts + full chat + /publish /keep approvals, all outside the web app.',s.telegram,'tg_token','https://telegram.org','<div class="sn-ok" style="font-size:12px">armed — message your bot; the first chat becomes the boss line</div>')
     +'<div id="in-test-out" style="margin-top:8px"></div>';
 }
 async function inSaveKey(name){
@@ -3569,7 +3570,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784308923';
+var BAM_BUILD='1784310037';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
