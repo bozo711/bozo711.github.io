@@ -3569,7 +3569,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784250145';
+var BAM_BUILD='1784250816';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -3898,6 +3898,76 @@ function ideasRender(){
   sum.innerHTML='<b style="color:#efe9db">'+doomEsc(d.n)+'</b> · ideas '+(i1kDom*20+1)+'–'+(i1kDom*20+20)+' · tap a chip to queue it · 💬 plans the build with Bam';
   d.i.forEach(function(txt,ii){ out.appendChild(i1kRow(i1kDom*20+ii+1,txt)); });
 }
+
+// ═══ FIRST-OPEN RUNDOWN — the first time BAM opens each day, he reports on
+// EVERYTHING unprompted: decisions waiting, both trading books, agent/mission,
+// pipeline, security, engine health, boards, last-24h actions. Server data from
+// /api/overview; board counts from this device. Say "rundown" logic: bamRundown(true). ═══
+async function bamRundown(force){
+  var today=new Date().toDateString();
+  if(!force && localStorage.getItem('jv-lastbrief')===today) return;
+  var o=null;
+  if(cfg.apiUrl){
+    try{
+      var opts={headers:{'x-jarvis-token':cfg.apiToken||''}};
+      try{ opts.signal=AbortSignal.timeout(9000); }catch(e){}
+      var r=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/overview',opts);
+      if(r.ok) o=await r.json();
+    }catch(e){}
+  }
+  var d=new Date();
+  var L=['📋 **FIRST-OPEN RUNDOWN — '+d.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+'**',''];
+  if(o){
+    if(o.decisions&&o.decisions.length) L.push('🔔 **Needs your YES ('+o.decisions.length+'):** '+o.decisions.join(' · '));
+    else L.push('🔔 Nothing waiting on you — all decisions clear.');
+    if(o.paper){
+      var wr=o.paper.trades?Math.round(o.paper.wins/o.paper.trades*100)+'% wins':'no settles yet';
+      L.push('🩸 **Trading:** $'+o.paper.equity.toLocaleString()+' ('+(o.paper.dayPnl>=0?'+':'−')+'$'+Math.abs(o.paper.dayPnl).toFixed(2)+' today) · '+o.paper.open+' open · '+wr);
+    }
+    if(o.strats&&o.strats.top&&o.strats.top.length){
+      var st='🏆 **Tournament:** '+o.strats.top.map(function(s){return s.name+' '+(s.pnl>=0?'+':'−')+'$'+Math.abs(s.pnl).toFixed(0);}).join(' · ');
+      if(o.strats.bottom&&o.strats.top[0]&&o.strats.bottom.name!==o.strats.top[0].name) st+=' · last: '+o.strats.bottom.name+' '+(o.strats.bottom.pnl>=0?'+':'−')+'$'+Math.abs(o.strats.bottom.pnl).toFixed(0);
+      L.push(st);
+    }
+    if(o.agent){
+      var ag='🕹 **Agent:** '+(o.agent.alive?('working — '+(o.agent.task||'a task')):'idle')+(o.agent.queued?(' · '+o.agent.queued+' queued'):'');
+      if(o.mission&&(o.mission.status==='plan'||o.mission.status==='running')) ag+=' · mission '+o.mission.status+' ('+o.mission.done+'/'+o.mission.total+' steps)';
+      L.push(ag);
+    }
+    if(o.leads&&o.leads.total){
+      L.push('🏢 **Pipeline:** '+o.leads.total+' leads — '+Object.keys(o.leads.by).map(function(k){return o.leads.by[k]+' '+k;}).join(', '));
+    }
+    if(o.security){
+      var sec=o.security.lockdown?'🔴 LOCKDOWN ON':((o.security.threats24h||o.security.fails24h)?('⚠️ '+o.security.threats24h+' threats, '+o.security.fails24h+' bad logins (24h)'):'✅ clean last 24h');
+      if(o.security.backupDays>=0) sec+=' · backup '+(o.security.backupDays===0?'today':o.security.backupDays+'d ago');
+      L.push('🛡 **Security:** '+sec);
+    }
+    var armed=['firecrawl','agentmail','composio'].filter(function(k){return o.keys&&o.keys[k];});
+    L.push('⚙️ **Engine:** daemon '+(o.daemonMins>=0&&o.daemonMins<45?'✅ alive':'⚠️ quiet '+(o.daemonMins<0?'(no log)':o.daemonMins+'m'))+' · '+(o.routines||0)+' routines armed · integrations: '+(armed.length?armed.join(' ✓, ')+' ✓':'none armed'));
+    if(o.ledger24h&&o.ledger24h.total){
+      L.push('📒 **Last 24h:** '+o.ledger24h.total+' actions — '+Object.keys(o.ledger24h.by).map(function(k){return o.ledger24h.by[k]+' '+k;}).join(', ')+(o.ledger24h.last&&o.ledger24h.last.length?('. Latest: '+o.ledger24h.last[o.ledger24h.last.length-1]):''));
+    }
+  }else{
+    L.push('⚠️ The Mac is unreachable right now (tunnel down or no vault connected) — this is the on-device view only. I\'ll give the full report once we reconnect.');
+  }
+  try{
+    var v=JSON.parse(localStorage.getItem('jv-vent')||'{}'),va=0,ve=0; Object.keys(v).forEach(function(k){ if(v[k]==='active')va++; if(v[k]==='earning')ve++; });
+    var p=JSON.parse(localStorage.getItem('jv-pow')||'{}'),pb=0,pl=0; Object.keys(p).forEach(function(k){ if(p[k]==='building')pb++; if(p[k]==='live')pl++; });
+    var q=JSON.parse(localStorage.getItem('jv-ideas')||'{}'),iq=0,ib=0; Object.keys(q).forEach(function(k){ if(q[k]==='queued')iq++; if(q[k]==='built')ib++; });
+    L.push('🗂 **Boards:** Ventures '+va+' active / '+ve+' earning · Powers '+pb+' building / '+pl+' live · 1000 Ideas '+iq+' queued / '+ib+' built');
+  }catch(e){}
+  L.push('');
+  L.push('*Ask me about any line. Say "rundown" anytime for a fresh one.*');
+  try{ addMsg('jarvis','assistant',L.join('\n')); toast('📋 Daily rundown posted'); }catch(e){ return; }
+  localStorage.setItem('jv-lastbrief',today);
+}
+addEventListener('load',function(){
+  var tries=0;
+  var t=setInterval(function(){
+    tries++;
+    if(document.getElementById('m-jarvis')||tries>8){ clearInterval(t); bamRundown(false); }
+  },2500);
+});
 
 // ── WEB AGENT — start/watch/approve Bam's real-browser tasks from any device ──
 let agentTimer=null;
@@ -4804,6 +4874,13 @@ async function callAPIWithPrompt(sysP, messages, onToken) {
 // ═══════════════════════════════════════════════
 function cmd(text) {
   const t = text.toLowerCase().trim();
+
+  // "rundown" / "status report" → the full everything-briefing, fresh, no LLM needed
+  if (/^(rundown|run down|daily rundown|full (status|report|update)|status report|overall update)$/.test(t)) {
+    addMsg('jarvis','user',text);
+    bamRundown(true);
+    return true;
+  }
 
   // Mode detection — "business mode", "enter code mode", "switch to beats mode", etc.
   const modeMatch = t.match(/(?:^|\b)(business|empire|code|beats|music|tax|launch|research|write|create|sales|blast|exit|off|normal|general|reset|clear)\s+mode\b/i)
