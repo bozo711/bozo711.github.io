@@ -3569,7 +3569,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784264781';
+var BAM_BUILD='1784308923';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -3618,7 +3618,7 @@ async function codeStart(){
   var t=document.getElementById('ag-code').value.trim();
   if(!t){ toast('Describe the code change first'); return; }
   if(!cfg.apiUrl){ toast('Connect the Server Vault first'); return; }
-  try{ var d=await dbAPI('code/start',{task:t}); if(d.ok){ document.getElementById('ag-code').value=''; toast('🛠 Proposed — approve it in the gold bar (yes #1 starts the edit, yes #2 keeps it)'); dbPoll(); } else toast('✕ '+(d.error||'')); }catch(e){ toast('Failed: '+e.message); }
+  try{ var d=await dbAPI('code/start',{task:t}); if(d.ok){ document.getElementById('ag-code').value=''; toast(d.running?'🛠 On it — Bam is editing now; the finished diff hits the gold bar for your one yes':'🛠 Proposed — approve it in the gold bar'); dbPoll(); } else toast('✕ '+(d.error||'')); }catch(e){ toast('Failed: '+e.message); }
 }
 
 // ── MISSIONS — a whole goal, planned + executed hands-free ──
@@ -3918,6 +3918,11 @@ async function bamRundown(force){
   var d=new Date();
   var L=['📋 **FIRST-OPEN RUNDOWN — '+d.toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})+'**',''];
   if(o){
+    if(o.insight&&(o.insight.read||o.insight.move)){
+      L.push('🧭 **My read:** '+doomEsc(o.insight.read||''));
+      if(o.insight.move) L.push('👉 **Today\'s one move:** '+doomEsc(o.insight.move));
+      L.push('');
+    }
     if(o.decisions&&o.decisions.length) L.push('🔔 **Needs your YES ('+o.decisions.length+'):** '+o.decisions.join(' · '));
     else L.push('🔔 Nothing waiting on you — all decisions clear.');
     if(o.paper){
@@ -4072,6 +4077,7 @@ async function ytBamPendingHTML(base,tok){
   var h='<div class="ac-hero" style="border-color:rgba(212,175,55,.45)"><div class="ac-hero-l"><div class="ac-kicker">Needs your approval — found by daily trend research</div>'
     +'<h1 style="font-size:19px">🎯 '+doomEsc(p.title)+'</h1>'
     +(p.analysis?'<p style="margin:0 0 8px">'+doomEsc(p.analysis)+'</p>':'')
+    +(p.viewEstimate&&p.viewEstimate.likely?'<div style="margin:6px 0;padding:8px 11px;border:1px solid rgba(212,175,55,.35);border-radius:9px;background:rgba(212,175,55,.06)"><b style="color:#e2c05c">📊 BAM predicts '+Number(p.viewEstimate.likely).toLocaleString()+' views</b> <span style="color:var(--text-d);font-size:11px">('+Number(p.viewEstimate.low||0).toLocaleString()+'–'+Number(p.viewEstimate.high||0).toLocaleString()+' range · '+doomEsc(p.viewEstimate.confidence||'low')+' confidence)</span>'+(p.viewEstimate.reasoning?'<br><span style="color:var(--text-d);font-size:11px">'+doomEsc(p.viewEstimate.reasoning)+'</span>':'')+'</div>':'')
     +'</div></div>';
   if(p.hasVideo) h+='<video controls playsinline preload="metadata" src="'+base+'/api/pending/video?token='+tok+'" style="width:100%;max-width:560px;border-radius:10px;background:#000;margin:8px 0"></video>';
   h+='<div class="yt-actions" style="margin-bottom:10px"><button style="background:rgba(60,170,100,.2);border-color:rgba(90,200,130,.5);color:#bde9cc" onclick="ytPendingAct(\'publish\')">✅ Publish to YouTube</button>'
