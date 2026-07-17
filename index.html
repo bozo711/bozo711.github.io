@@ -3569,7 +3569,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784250816';
+var BAM_BUILD='1784251806';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -3946,6 +3946,9 @@ async function bamRundown(force){
     L.push('⚙️ **Engine:** daemon '+(o.daemonMins>=0&&o.daemonMins<45?'✅ alive':'⚠️ quiet '+(o.daemonMins<0?'(no log)':o.daemonMins+'m'))+' · '+(o.routines||0)+' routines armed · integrations: '+(armed.length?armed.join(' ✓, ')+' ✓':'none armed'));
     if(o.ledger24h&&o.ledger24h.total){
       L.push('📒 **Last 24h:** '+o.ledger24h.total+' actions — '+Object.keys(o.ledger24h.by).map(function(k){return o.ledger24h.by[k]+' '+k;}).join(', ')+(o.ledger24h.last&&o.ledger24h.last.length?('. Latest: '+o.ledger24h.last[o.ledger24h.last.length-1]):''));
+    }
+    if(o.memory&&o.memory.total){
+      L.push('🧠 **Memory:** '+o.memory.total.toLocaleString()+' long-term memories'+(o.memory.by&&o.memory.by.chat?(' · '+o.memory.by.chat+' from our chats'):'')+' — ask me "what do you remember about…" anything');
     }
   }else{
     L.push('⚠️ The Mac is unreachable right now (tunnel down or no vault connected) — this is the on-device view only. I\'ll give the full report once we reconnect.');
