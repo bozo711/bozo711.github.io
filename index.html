@@ -1048,8 +1048,19 @@ strong{color:#e8d4b0}
 #phys.open{display:flex}
 #agent{position:fixed;inset:0;z-index:438;background:radial-gradient(1000px 600px at 50% -10%,#0c1420,#06060c 60%,#03040a);display:none;flex-direction:column}
 #agent.open{display:flex}
-#ventures,#powers{position:fixed;inset:0;z-index:439;background:radial-gradient(1000px 600px at 50% -10%,#131007,#0a0806 60%,#050403);display:none;flex-direction:column}
-#ventures.open,#powers.open{display:flex}
+#ventures,#powers,#ideas1000{position:fixed;inset:0;z-index:439;background:radial-gradient(1000px 600px at 50% -10%,#131007,#0a0806 60%,#050403);display:none;flex-direction:column}
+#ventures.open,#powers.open,#ideas1000.open{display:flex}
+.i1k-row{display:flex;align-items:center;gap:9px;border:1px solid rgba(212,175,55,.14);border-radius:10px;background:linear-gradient(160deg,rgba(255,251,240,.025),rgba(0,0,0,.15));padding:9px 11px;margin-bottom:7px}
+.i1k-row.dom{cursor:pointer}
+.i1k-row.dom:hover{background:rgba(212,175,55,.06)}
+.i1k-row .n{color:rgba(212,175,55,.55);font-size:10px;min-width:32px;text-align:right;flex-shrink:0}
+.i1k-row .t{flex:1;color:rgba(233,226,210,.8);font-size:12px;line-height:1.45}
+.i1k-row.dom .t{color:#efe9db;font-size:12.5px;font-weight:600;letter-spacing:.3px}
+.i1k-st{font-size:8.5px;letter-spacing:1.2px;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,255,255,.15);color:rgba(233,226,210,.45);white-space:nowrap;flex-shrink:0}
+.i1k-st.queued{border-color:rgba(212,175,55,.5);color:#e2c05c}
+.i1k-st.built{border-color:rgba(90,200,130,.55);color:#8fd6a4}
+.i1k-go{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 4px;flex-shrink:0}
+.i1k-cnt{color:rgba(159,199,230,.6);font-size:10px;white-space:nowrap;flex-shrink:0}
 #sentinel{position:fixed;inset:0;z-index:441;background:radial-gradient(1000px 600px at 50% -10%,#160a0a,#0a0506 60%,#050303);display:none;flex-direction:column}
 #sentinel.open{display:flex}
 #brainapp{position:fixed;inset:0;z-index:442;background:radial-gradient(1000px 600px at 50% -10%,#120a18,#0a060c 60%,#050308);display:none;flex-direction:column}
@@ -1697,6 +1708,19 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
   </div>
 </div>
 
+<!-- 1000 IDEAS — BAM's upgrade universe: 50 domains × 20 capability ideas -->
+<div id="ideas1000">
+  <div class="biz-top"><span class="biz-title">💡 1000 IDEAS — BAM'S UPGRADE UNIVERSE</span><button onclick="closeIdeas()">✕</button></div>
+  <div class="biz-body">
+    <div style="display:flex;gap:8px;align-items:center;margin:2px 0 10px">
+      <button id="i1k-back" onclick="ideasBack()" style="display:none;background:rgba(212,175,55,.10);border:1px solid rgba(212,175,55,.35);color:#e8d5a0;border-radius:8px;font-size:11px;padding:7px 11px;cursor:pointer;font-family:inherit">← Domains</button>
+      <input id="i1k-q" placeholder="Search all 1000…" oninput="ideasRender()" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(212,175,55,.25);border-radius:8px;color:#efe9db;font-family:inherit;font-size:12px;padding:8px 11px;outline:none">
+    </div>
+    <div id="i1k-sum" style="color:#9fc7e6;font-size:12px;margin:0 0 10px"></div>
+    <div id="i1k-out"></div>
+  </div>
+</div>
+
 <!-- SENTINEL — security center -->
 <div id="sentinel">
   <div class="biz-top"><span class="biz-title">🛡 SENTINEL — SECURITY CENTER</span><button onclick="closeSentinel()">✕</button></div>
@@ -1808,6 +1832,7 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
         <button onclick="adGo(openSentinel)">🛡 <b>Sentinel</b><span>status · passwords · kill switch</span></button>
         <div class="ad-sec">MIND</div>
         <button onclick="adGo(openBrainApp)">🧠 <b>Brain</b><span>what Bam remembers — edit it</span></button>
+        <button onclick="adGo(openIdeas)">💡 <b>1000 Ideas</b><span>BAM's upgrade universe</span></button>
         <button onclick="adGo(openAcademy)">🎓 <b>Academy</b><span>courses · lessons · quizzes</span></button>
         <button onclick="adGo(openDoom)">🌀 <b>Doomscroll</b><span>insights · videos · games</span></button>
         <button onclick="adGo(openNeuro)">🧠 <b>Neurolink</b><span>cortex · tools · agents</span></button>
@@ -1885,6 +1910,7 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
 
 <!-- shared brain: same modes + system prompt as the terminal CLI -->
 <script src="jarvis-core.js"></script>
+<script src="ideas1000.js"></script>
 <script src="vendor/wasm_exec.js"></script>
 <script src="vendor/forecast.js"></script>
 <script>
@@ -3543,7 +3569,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784248322';
+var BAM_BUILD='1784250145';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -3816,6 +3842,61 @@ async function pAct(id,i){
     try{ await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/routines',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify({task:a.p,time:a.time||'09:00',days:a.days||'daily'})}); toast('⏰ Routine scheduled — Bam runs it on the clock'); }catch(e){ toast('Failed: '+e.message); }
   }
   pRender();
+}
+
+// ═══ 1000 IDEAS — the upgrade universe (data in ideas1000.js: IDEAS1000 = 50
+// domains × 20). Browse, search, mark IDEA→QUEUED→BUILT, or 💬 any idea into
+// chat to plan the build. Rows are DOM-built (textContent) — no escaping traps. ═══
+var i1kDom=-1;
+function i1kState(){ try{ return JSON.parse(localStorage.getItem('jv-ideas')||'{}'); }catch(e){ return {}; } }
+function openIdeas(){ document.getElementById('ideas1000').classList.add('open'); ideasRender(); }
+function closeIdeas(){ document.getElementById('ideas1000').classList.remove('open'); }
+function ideasBack(){ i1kDom=-1; document.getElementById('i1k-q').value=''; ideasRender(); }
+function i1kCycle(n){ var s=i1kState(); var cur=s[n]||''; var nx=cur===''?'queued':(cur==='queued'?'built':''); if(nx)s[n]=nx; else delete s[n]; localStorage.setItem('jv-ideas',JSON.stringify(s)); ideasRender(); }
+function i1kText(n){ var d=Math.floor((n-1)/20), i=(n-1)%20; return (IDEAS1000[d]&&IDEAS1000[d].i[i])||''; }
+function i1kChat(n){ var t=i1kText(n); if(!t) return; closeIdeas(); setTimeout(function(){ try{ qp('jarvis','Idea #'+n+' from my 1000-ideas list: "'+t+'". How would we actually build this into you, on what we already run? Give me the honest plan: steps, what it needs, and how long.'); }catch(e){ toast('Chat not ready'); } },150); }
+function i1kRow(n,txt){
+  var s=i1kState(), st=s[n]||'';
+  var row=document.createElement('div'); row.className='i1k-row';
+  var num=document.createElement('span'); num.className='n'; num.textContent='#'+n; row.appendChild(num);
+  var t=document.createElement('span'); t.className='t'; t.textContent=txt; row.appendChild(t);
+  var chip=document.createElement('span'); chip.className='i1k-st'+(st?' '+st:''); chip.textContent=(st||'idea').toUpperCase();
+  chip.onclick=function(){ i1kCycle(n); }; row.appendChild(chip);
+  var go=document.createElement('button'); go.className='i1k-go'; go.textContent='💬'; go.title='Plan this with Bam';
+  go.onclick=function(){ i1kChat(n); }; row.appendChild(go);
+  return row;
+}
+function ideasRender(){
+  var out=document.getElementById('i1k-out'), sum=document.getElementById('i1k-sum'), back=document.getElementById('i1k-back');
+  out.innerHTML='';
+  if(typeof IDEAS1000==='undefined'){ sum.textContent='Idea data failed to load — check ideas1000.js'; return; }
+  var s=i1kState(), q=(document.getElementById('i1k-q').value||'').trim().toLowerCase();
+  var qd=0, bt=0; Object.keys(s).forEach(function(k){ if(s[k]==='queued')qd++; if(s[k]==='built')bt++; });
+  if(q){
+    back.style.display=(i1kDom>=0)?'':'none';
+    var hits=0;
+    IDEAS1000.forEach(function(d,di){ d.i.forEach(function(txt,ii){ var n=di*20+ii+1; if(hits<80&&(txt.toLowerCase().indexOf(q)>=0||(''+n)===q)){ out.appendChild(i1kRow(n,txt)); hits++; } }); });
+    sum.innerHTML='<b style="color:#e2c05c">'+hits+(hits===80?'+':'')+' matches</b> across all 1000 · <b style="color:#e2c05c">'+qd+' queued</b> · <b style="color:#8fd6a4">'+bt+' built</b>';
+    return;
+  }
+  if(i1kDom<0){
+    back.style.display='none';
+    sum.innerHTML='50 domains × 20 ideas — how BAM becomes a stronger mind · <b style="color:#e2c05c">'+qd+' queued</b> · <b style="color:#8fd6a4">'+bt+' built</b> · tap a domain';
+    IDEAS1000.forEach(function(d,di){
+      var mk=0; d.i.forEach(function(_,ii){ if(s[di*20+ii+1])mk++; });
+      var row=document.createElement('div'); row.className='i1k-row dom';
+      var num=document.createElement('span'); num.className='n'; num.textContent=(di+1); row.appendChild(num);
+      var t=document.createElement('span'); t.className='t'; t.textContent=d.n; row.appendChild(t);
+      var c=document.createElement('span'); c.className='i1k-cnt'; c.textContent=(mk?mk+'/20 marked':'20 ideas'); row.appendChild(c);
+      row.onclick=function(){ i1kDom=di; ideasRender(); };
+      out.appendChild(row);
+    });
+    return;
+  }
+  back.style.display='';
+  var d=IDEAS1000[i1kDom];
+  sum.innerHTML='<b style="color:#efe9db">'+doomEsc(d.n)+'</b> · ideas '+(i1kDom*20+1)+'–'+(i1kDom*20+20)+' · tap a chip to queue it · 💬 plans the build with Bam';
+  d.i.forEach(function(txt,ii){ out.appendChild(i1kRow(i1kDom*20+ii+1,txt)); });
 }
 
 // ── WEB AGENT — start/watch/approve Bam's real-browser tasks from any device ──
