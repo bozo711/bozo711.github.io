@@ -1048,8 +1048,8 @@ strong{color:#e8d4b0}
 #phys.open{display:flex}
 #agent{position:fixed;inset:0;z-index:438;background:radial-gradient(1000px 600px at 50% -10%,#0c1420,#06060c 60%,#03040a);display:none;flex-direction:column}
 #agent.open{display:flex}
-#ventures{position:fixed;inset:0;z-index:439;background:radial-gradient(1000px 600px at 50% -10%,#131007,#0a0806 60%,#050403);display:none;flex-direction:column}
-#ventures.open{display:flex}
+#ventures,#powers{position:fixed;inset:0;z-index:439;background:radial-gradient(1000px 600px at 50% -10%,#131007,#0a0806 60%,#050403);display:none;flex-direction:column}
+#ventures.open,#powers.open{display:flex}
 #sentinel{position:fixed;inset:0;z-index:441;background:radial-gradient(1000px 600px at 50% -10%,#160a0a,#0a0506 60%,#050303);display:none;flex-direction:column}
 #sentinel.open{display:flex}
 #brainapp{position:fixed;inset:0;z-index:442;background:radial-gradient(1000px 600px at 50% -10%,#120a18,#0a060c 60%,#050308);display:none;flex-direction:column}
@@ -1078,6 +1078,8 @@ strong{color:#e8d4b0}
 .v-status{font-size:8.5px;letter-spacing:1.5px;padding:2px 8px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,255,255,.15);color:rgba(233,226,210,.5);white-space:nowrap}
 .v-status.active{border-color:rgba(212,175,55,.5);color:#e2c05c}
 .v-status.earning{border-color:rgba(90,200,130,.55);color:#8fd6a4}
+.v-status.building{border-color:rgba(212,175,55,.5);color:#e2c05c}
+.v-status.live{border-color:rgba(90,200,130,.55);color:#8fd6a4}
 .v-body{display:none;margin-top:10px}
 .v-card.open .v-body{display:block}
 .v-body p{color:rgba(233,226,210,.6);font-size:12px;line-height:1.55;margin:0 0 9px}
@@ -1677,6 +1679,24 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
   </div>
 </div>
 
+<!-- POWERS — 37 personal upgrades: Bam runs Bam's LIFE, not just his money -->
+<div id="powers">
+  <div class="biz-top"><span class="biz-title">⚡ POWERS — 37 PERSONAL UPGRADES</span><button onclick="closePowers()">✕</button></div>
+  <div class="biz-tabs" style="flex-wrap:wrap">
+    <button id="ptab-body" class="biz-tab on" onclick="pTab('body')">Body</button>
+    <button id="ptab-mind" class="biz-tab" onclick="pTab('mind')">Mind</button>
+    <button id="ptab-life" class="biz-tab" onclick="pTab('life')">Life</button>
+    <button id="ptab-home" class="biz-tab" onclick="pTab('home')">Home</button>
+    <button id="ptab-fam" class="biz-tab" onclick="pTab('fam')">Family</button>
+    <button id="ptab-world" class="biz-tab" onclick="pTab('world')">World</button>
+    <button id="ptab-build" class="biz-tab" onclick="pTab('build')">Builds</button>
+  </div>
+  <div class="biz-body">
+    <div id="p-summary" style="color:#9fc7e6;font-size:12px;margin:4px 0 12px"></div>
+    <div id="p-out"></div>
+  </div>
+</div>
+
 <!-- SENTINEL — security center -->
 <div id="sentinel">
   <div class="biz-top"><span class="biz-title">🛡 SENTINEL — SECURITY CENTER</span><button onclick="closeSentinel()">✕</button></div>
@@ -1782,6 +1802,8 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
         <button onclick="adGo(openBiz)">🏢 <b>Leads &amp; Sites</b><span>find clients · build · pipeline</span></button>
         <button onclick="adGo(openYT)">📹 <b>YouTube Studio</b><span>plan · make · From Bam</span></button>
         <button onclick="adGo(openBlood)" id="blood-btn">🩸 <b>Blood Terminal</b><span>24/7 paper trading · real odds</span></button>
+        <div class="ad-sec">LIFE</div>
+        <button onclick="adGo(openPowers)">⚡ <b>Powers</b><span>37 personal upgrades</span></button>
         <div class="ad-sec">SECURITY</div>
         <button onclick="adGo(openSentinel)">🛡 <b>Sentinel</b><span>status · passwords · kill switch</span></button>
         <div class="ad-sec">MIND</div>
@@ -3521,7 +3543,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784227085';
+var BAM_BUILD='1784248322';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -3703,6 +3725,97 @@ async function vAct(id,i){
     try{ await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/routines',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify({task:a.p,time:a.time||'09:00',days:a.days||'daily'})}); toast('⏰ Routine scheduled — Bam runs it on the clock'); }catch(e){ toast('Failed: '+e.message); }
   }
   vRender();
+}
+
+// ═══ POWERS — 37 personal upgrades. Same card machinery as VENTURES, but these
+// run Bam's LIFE: body, mind, admin, home, family, world, hardware. Money plays
+// live in VENTURES; the new money batch is parked until the boss un-parks it. ═══
+var POWERS=[
+ // ── BODY ──
+ {id:'p1',cat:'body',t:'Fitness coach',d:'Adaptive training — Bam writes the program, logs every session, and progresses the weights so you never plateau.',steps:['Tell Bam your goal + equipment','He writes week 1, session by session','Log each workout in chat','He progresses the plan weekly'],act:[{l:'💪 Start my program',ty:'chat',p:'Be my fitness coach. Ask me my goal, training days per week, and what equipment I have — then write my full week-1 program with exercises, sets, reps, and starting weights. Keep my logs and progress the plan every week.'}]},
+ {id:'p2',cat:'body',t:'Nutrition tracker',d:'Snap a photo of the plate — Bam estimates calories and macros and keeps the daily running total against your targets.',steps:['Bam sets your calorie + macro targets','Send a photo or description of each meal','He keeps the daily total','Weekly adjustment from results'],act:[{l:'🍽 Set my targets',ty:'chat',p:'Set up my nutrition tracking: ask my height, weight, activity level, and goal, then set my daily calorie and macro targets. From now on, when I send a meal photo or description, estimate its macros and keep my running total for the day.'}]},
+ {id:'p3',cat:'body',t:'Sleep system',d:'A wind-down routine, a one-line sleep log, and pattern-spotting — better nights without buying a gadget.',steps:['Bam designs your wind-down routine','Rate the night each morning (1 line)','He finds what wrecks your sleep','Adjust and repeat'],act:[{l:'😴 Build my routine',ty:'chat',p:'Build my sleep system: design a realistic wind-down routine for me, then keep a sleep log — every morning I will tell you when I slept, when I woke, and how I feel (1-10). Find the patterns and tell me what to change.'}]},
+ {id:'p4',cat:'body',t:'Mood journal',d:'A 30-second daily check-in. Bam scores it, remembers it, and spots the patterns behind good and bad weeks.',steps:['Nightly 3-question check-in','Bam scores + saves the day','Weekly pattern report',''],act:[{l:'📖 First check-in',ty:'chat',p:'Run my first daily mood check-in: ask me 3 quick questions (mood 1-10, best thing today, what drained me), score it, remember it, and once a week tell me the patterns you see.'}]},
+ {id:'p5',cat:'body',t:'Medical organizer',d:'One organized health file: meds, conditions, history — plus a prepped question list before every appointment.',steps:['Bam builds your health file','List meds, conditions, history once','Before any appointment: prep questions','After: log what the doctor said'],act:[{l:'🩺 Build my file',ty:'chat',p:'Set up my personal health file: walk me through capturing my medications, conditions, allergies, and family history. Then whenever I tell you an appointment is coming up, prep the exact questions I should ask.'}]},
+ // ── MIND ──
+ {id:'p6',cat:'mind',t:'Spaced-repetition tutor',d:'Pick any subject — Bam builds the curriculum and drills you daily until it actually sticks.',steps:['Pick the subject','Bam builds the plan + card deck','Daily 10-minute drill in chat','He re-tests what you miss'],act:[{l:'🧠 Start learning',ty:'chat',p:'Be my spaced-repetition tutor. Ask me what I want to master and how many minutes a day I have, then build the learning plan and run my first drill session right now.'}]},
+ {id:'p7',cat:'mind',t:'Language partner',d:'A 5-minute daily conversation in the language you are learning — corrections included, new words tracked.',steps:['Pick the language + level','Daily 5-minute chat conversation','Bam corrects gently + tracks vocab','Level up monthly'],act:[{l:'🗣 Today\'s 5 minutes',ty:'chat',p:'Be my daily language partner. Ask me which language and my level, then start today\'s 5-minute conversation — stay mostly in that language, correct my mistakes at the end, and keep a list of new words I learn.'}]},
+ {id:'p8',cat:'mind',t:'Reading engine',d:'A managed book queue with chapter recaps and retention quizzes — books stay learned, not just finished.',steps:['Tell Bam your reading list','Chapter recaps as you go','Quiz at the end of each book','Queue picks your next read'],act:[{l:'📚 Load my queue',ty:'chat',p:'Set up my reading engine: ask me what books are on my list and what I am reading now. As I finish chapters I will check in — recap with me, quiz me on the big ideas, and manage my queue.'}]},
+ {id:'p9',cat:'mind',t:'Music practice coach',d:'A real practice plan for guitar / piano / anything — structured sessions, progress tracking, honest milestones.',steps:['Tell Bam the instrument + level','He builds the 30-day practice plan','Log each session in chat','Milestone check monthly'],act:[{l:'🎸 Build my plan',ty:'chat',p:'Be my music practice coach. Ask me my instrument, level, and what I want to be able to play, then build a 30-day practice plan with daily 20-minute sessions and track my progress as I log them.'}]},
+ {id:'p10',cat:'mind',t:'Chess trainer',d:'Daily tactics plus post-game analysis of your own games — measurable rating growth.',steps:['Daily puzzle in chat','Paste your games after you play','Bam finds your recurring mistakes','Fix one leak at a time'],act:[{l:'♟ Today\'s puzzle',ty:'chat',p:'Be my chess trainer: give me today\'s tactics puzzle (describe the position clearly), and when I paste my games, analyze where I went wrong and tell me the one pattern to fix next.'},{l:'↗ Lichess (free)',ty:'link',p:'https://lichess.org'}]},
+ {id:'p11',cat:'mind',t:'Public-speaking coach',d:'Send a transcript of yourself talking — Bam counts filler words, checks pacing, and drills your weak spots.',steps:['Record yourself for 2 minutes','Send the transcript (Intercom works)','Bam scores filler / pacing / clarity','Targeted drill each week'],act:[{l:'🎤 Score me',ty:'chat',p:'Be my public-speaking coach. I will send you transcripts of me talking — count the filler words, judge the pacing and clarity, score me out of 10, and give me one drill to fix my weakest spot.'}]},
+ // ── LIFE ADMIN ──
+ {id:'p12',cat:'life',t:'Net-worth dashboard',d:'Every account in one number, trended over time. Update it in one message a month.',steps:['List accounts + balances once','Bam computes the number','Monthly: send new balances','He trends it + flags drift'],act:[{l:'💠 Compute it',ty:'chat',p:'Set up my net-worth tracker: ask me for my accounts and balances (checking, savings, debts, anything), compute my net worth, and every time I send updates, recompute it and show me the trend.'}]},
+ {id:'p13',cat:'life',t:'Credit-score builder',d:'A concrete plan to raise the score — utilization targets, account ages, disputes — reviewed monthly.',steps:['Tell Bam your score + situation','He writes the raise plan','Monthly check-in','Dispute letters when needed'],act:[{l:'📈 Write my plan',ty:'chat',p:'Be my credit coach: ask my current score and situation (cards, balances, any negatives), then write my step-by-step plan to raise it with exact utilization targets — and draft any dispute letters I need.'}]},
+ {id:'p14',cat:'life',t:'Renewals radar',d:'Passport, license, plates, insurance, memberships — every expiry date tracked and warned well before it bites.',steps:['List everything that expires','Bam builds the radar with dates','Warnings 30 and 7 days out',''],act:[{l:'📅 Build my radar',ty:'chat',p:'Build my renewals radar: walk me through everything I have that expires (license, passport, vehicle registration, insurance, memberships, domains), record the dates, and remind me well before each one.'}]},
+ {id:'p15',cat:'life',t:'Paperwork vault',d:'Scan every document once — titles, leases, warranties — into a searchable archive you never dig for again.',steps:['Gather the shoebox of papers','Photo each doc to Bam','He names, categorizes, indexes','Ask "where\'s my lease?" forever'],act:[{l:'🗄 Start scanning',ty:'chat',p:'Set up my paperwork vault: I will send photos of my documents one at a time — read each, name it properly, extract the key details (dates, amounts, parties), and keep a searchable index for me.'}]},
+ {id:'p16',cat:'life',t:'Auto time-blocking',d:'Dump the todo list — Bam returns an actual scheduled day with realistic blocks and buffers.',steps:['Send todos + fixed events','Bam builds the blocked day','Adjust once, then execute','Review what actually got done'],act:[{l:'🕐 Block my day',ty:'chat',p:'Time-block my day: ask me for my todo list, my fixed appointments, and when I want to start and stop — then build my schedule in blocks with buffers, hardest work first.'}]},
+ {id:'p17',cat:'life',t:'Personal CRM',d:'Friends, family, contacts — Bam remembers the details and nudges you to reconnect before ties go cold.',steps:['Tell Bam your people + details','He tracks last-contact + life events','Weekly: who to reach out to','Never drop a friendship again'],act:[{l:'👥 Load my people',ty:'chat',p:'Set up my personal CRM: ask me about the people who matter (friends, family, contacts), what is going on in their lives, and when I last talked to each — then tell me weekly who I should reach out to and why.'}]},
+ {id:'p18',cat:'life',t:'Gift & birthday tracker',d:'Dates, sizes, dropped hints, past gifts — never caught empty-handed again.',steps:['Load birthdays + key dates','Log hints when you hear them','Gift ideas 3 weeks out','Track what you gave before'],act:[{l:'🎁 Load the dates',ty:'chat',p:'Set up my gift tracker: collect the birthdays and occasions for my people, their sizes and interests, and any gift hints I have heard — then propose gift ideas with enough lead time before each date.'}]},
+ {id:'p19',cat:'life',t:'Insurance re-shopper',d:'At every renewal Bam re-quotes the market so loyalty never costs you money.',steps:['Tell Bam your policies + renewal dates','Before renewal: fresh market check','Compare + switch or negotiate',''],act:[{l:'🛡 Set it up',ty:'chat',p:'Set up my insurance re-shop: ask me what policies I carry (auto, renters, phone), what I pay, and when each renews — then build the comparison checklist we will run before every renewal.'},{l:'🕹 Agent: check rates',ty:'agent',p:'Research current advertised rates for auto and renters insurance in Wisconsin from 3-4 major carriers and report the typical ranges so I can compare against what I pay now. Do NOT submit any forms or enter my personal information.'}]},
+ {id:'p20',cat:'life',t:'Contract explainer',d:'Before you sign anything — lease, loan, gig — Bam breaks it down in plain English and flags the traps.',steps:['Photo or paste the contract','Plain-English breakdown','Red flags + questions to ask','Sign only when it\'s clean'],act:[{l:'📜 Arm it',ty:'chat',p:'From now on, when I send you a contract or lease, break it down in plain English: what I am agreeing to, every red flag, the clauses to push back on, and the exact questions to ask before signing. Confirm you are ready.'}]},
+ {id:'p21',cat:'life',t:'Digital estate switch',d:'Sealed instructions so the people you love can reach what matters if anything ever happens to you.',steps:['List what matters with Bam','Write the access instructions','Seal + store safely offline','Review yearly'],act:[{l:'🔐 Draft the letter',ty:'chat',p:'Help me build my digital estate plan: walk me through listing my accounts, assets, and what my family would need to know or access — then draft the sealed instruction letter and tell me the safest way to store it.'}]},
+ // ── HOME ──
+ {id:'p22',cat:'home',t:'Pantry brain',d:'What is in the kitchen, what to cook tonight, and the grocery list that writes itself.',steps:['Inventory the kitchen once (photos ok)','Bam plans meals from what is there','Grocery list = what is missing','Update as you use things'],act:[{l:'🥫 Inventory now',ty:'chat',p:'Set up my pantry brain: I will photograph or list what is in my kitchen — track the inventory, plan this week\'s meals from what I actually have, and build the grocery list for what is missing.'}]},
+ {id:'p23',cat:'home',t:'Home energy monitor',cost:1,d:'Find where the electric bill actually goes and cut it — start free with the meter, add smart plugs later.',steps:['Send Bam a photo of the bill','Weekly meter readings (free)','He finds the hogs','Smart plugs (~$10 ea) for exact numbers'],act:[{l:'⚡ Cut my bill',ty:'chat',p:'Help me cut my electric bill: I will send my bill and weekly meter readings — figure out my baseline, estimate what my big appliances cost me monthly, and give me the highest-impact changes first.'}]},
+ {id:'p24',cat:'home',t:'Plant doctor',d:'Photo diagnosis when something looks sick, plus the watering and feeding schedule for every plant you own.',steps:['Photo each plant to Bam','He IDs + writes the care schedule','Sick plant? Photo → diagnosis','Seasonal adjustments'],act:[{l:'🪴 Check my plants',ty:'chat',p:'Be my plant doctor: I will send photos of my plants — identify each one, build the watering/light/feeding schedule, and when I show you a sick one, diagnose it and tell me the fix.'}]},
+ {id:'p25',cat:'home',t:'Emergency prep',d:'Go-bag, family plan, contact card, docs backed up — the hour of prep you will be glad you did.',steps:['Bam builds your go-bag list','Family meetup + contact plan','Copies of key docs (see Vault)','Review every 6 months'],act:[{l:'🎒 Build the plan',ty:'chat',p:'Build my emergency preparedness plan for a Wisconsin household: the exact go-bag checklist, a family communication plan, the documents to copy, and the 72-hour supplies list — prioritized by what to do first.'}]},
+ // ── FAMILY & MEMORY ──
+ {id:'p26',cat:'fam',t:'Family tree',d:'Bam researches the records and writes the interview questions — the family history, captured while it still can be.',steps:['Start with what you know','Interview questions for the elders','Records research fills the gaps','The tree becomes a family document'],act:[{l:'🌳 Start the tree',ty:'chat',p:'Start my family tree: collect what I know (names, dates, places), write me the interview questions to ask my oldest relatives before the stories are lost, and tell me which free records to search first.'},{l:'↗ FamilySearch (free)',ty:'link',p:'https://www.familysearch.org'}]},
+ {id:'p27',cat:'fam',t:'Family cookbook',d:'Digitize the family recipes into a real printed heirloom — the original handwriting preserved next to the typed version.',steps:['Photo every recipe card','Bam transcribes + organizes','Layout: photo + typed side by side','Print copies for the family'],act:[{l:'🍲 First recipe',ty:'chat',p:'Start the family cookbook: I will send photos of our family recipes — transcribe each one faithfully, organize them into chapters, and plan the printed book layout with the original photo next to the clean typed version.'}]},
+ {id:'p28',cat:'fam',t:'Photo librarian',d:'The camera-roll cleanup: dedupe, albums by event, and the best shot of every moment picked out.',steps:['Start with one year of photos','Bam designs the cleanup workflow','Albums by people, places, events','Mac-side auto-sweep: future build'],act:[{l:'🖼 Design the cleanup',ty:'chat',p:'Design my photo cleanup system: my camera roll is thousands of photos — give me the fastest workflow to dedupe, organize into albums by event, and pick the best shot from every burst, using only what is already free on my Mac and iPhone.'}]},
+ {id:'p29',cat:'fam',t:'Time capsule',d:'A letter to future Bam every year — sealed, dated, and resurfaced when it is time.',steps:['Bam interviews you once a year','The letter gets written + sealed','Next year: read, reflect, repeat',''],act:[{l:'⏳ This year\'s letter',ty:'chat',p:'Run my first time capsule session: interview me about this year — where I am, what I am proud of, what I am worried about, what I predict — then write it up as a letter to me, sealed until this date next year.'}]},
+ // ── WORLD & LOCAL ──
+ {id:'p30',cat:'world',t:'Trip architect',d:'Full itineraries built around what you actually like — plus fare watching so you fly on the cheap day.',steps:['Tell Bam where + when + budget','Full day-by-day itinerary','Agent checks fares on schedule','Book only when the price is right'],act:[{l:'✈️ Plan a trip',ty:'chat',p:'Plan my next trip: ask me where I want to go, when, my budget, and travel style — then build the full day-by-day itinerary with real places, realistic costs, and the smart booking order.'},{l:'🕹 Agent: check fares',ty:'agent',p:'Check current round-trip flight prices from Milwaukee (MKE) and Chicago (ORD) to the destination I most recently discussed in chat, across the next 3 months, and report the cheapest weeks and typical price range. Do not book anything.'}]},
+ {id:'p31',cat:'world',t:'Neighborhood radar',d:'Permits, crime reports, new businesses — what is actually happening within blocks of home.',steps:['Tell Bam your area (stays private)','Agent sweeps public sources','Digest of what changed nearby',''],act:[{l:'🕹 Sweep once now',ty:'agent',p:'Check Milwaukee public sources — the city permit portal, local news, and the public crime map — for anything new in my neighborhood this month (ask me in chat which area if you do not know). Report new permits, notable incidents, and business openings or closings.'},{l:'⏰ Weekly sweep (Mon 9am)',ty:'routine',p:'Sweep Milwaukee public sources (city permit portal, local news, public crime map) for changes in my neighborhood and report new permits, notable incidents, and business openings or closings.',time:'09:00',days:'mon'}]},
+ {id:'p32',cat:'world',t:'Ballot researcher',d:'Every candidate and measure on your next ballot, in plain language, before you vote.',steps:['Bam finds your next election','Agent pulls the actual ballot','Plain summary of every choice','Vote informed in 10 minutes'],act:[{l:'🕹 Research my ballot',ty:'agent',p:'Look up the next upcoming election for Milwaukee, Wisconsin on Ballotpedia and the county election site — find what will actually be on the ballot and summarize every race and measure in plain language, with each candidate\'s main positions. Stick to neutral summaries.'},{l:'↗ Ballotpedia',ty:'link',p:'https://ballotpedia.org'}]},
+ {id:'p33',cat:'world',t:'Stargazing alerts',d:'ISS passes, meteor showers, planet lineups — the nights actually worth stepping outside for.',steps:['Bam tracks the sky calendar','Good event + clear sky = heads-up','Walk outside and look up',''],act:[{l:'🔭 Next 30 days',ty:'chat',p:'What is worth watching in the night sky from Milwaukee in the next 30 days? ISS passes, meteor showers, planet events, anything special — with the exact best nights and times.'},{l:'↗ Heavens-Above',ty:'link',p:'https://www.heavens-above.com'}]},
+ {id:'p34',cat:'world',t:'Scanner ears',cost:1,d:'A ~$30 RTL-SDR dongle turns the Mac into ears: air traffic, NOAA weather, marine bands — legal listening.',steps:['RTL-SDR dongle (~$30)','Free software (SDR++ / GQRX)','Bam guides setup + frequencies','Listen to the city'],act:[{l:'📻 Setup guide',ty:'chat',p:'Guide my RTL-SDR setup: which dongle to buy (~$30), which free Mac software to use, and the legal, interesting frequencies to listen to around Milwaukee (air traffic, NOAA weather, marine) — step by step.'},{l:'↗ RTL-SDR',ty:'link',p:'https://www.rtl-sdr.com'}]},
+ // ── HARDWARE BUILDS ──
+ {id:'p35',cat:'build',t:'Smart mirror',cost:1,d:'A Raspberry Pi behind two-way glass — time, weather, and whatever Bam wants to show you, in the hallway.',steps:['Parts list (~$100-150)','MagicMirror² (free software)','Bam guides the build','His face in your hallway'],act:[{l:'🪞 Plan the build',ty:'chat',p:'Plan my smart mirror build: the exact parts list with prices (Raspberry Pi, two-way acrylic, frame, display), the MagicMirror² setup steps, and the build order for a first-timer.'},{l:'↗ MagicMirror²',ty:'link',p:'https://magicmirror.builders'}]},
+ {id:'p36',cat:'build',t:'Drone pilot',cost:1,d:'Aerial photos of the places that matter — Bam handles rules, flight planning, and shot lists.',steps:['Pick the drone (Bam compares)','FAA hobby rules (TRUST test)','Bam plans each flight + shot list','Aerial photos of your world'],act:[{l:'🚁 Get me flying',ty:'chat',p:'Help me get into drones: compare the best beginner camera drones under $500, explain the FAA recreational rules I must follow (TRUST test, where I can and cannot fly around Milwaukee), and plan my first three flights.'}]},
+ {id:'p37',cat:'build',t:'3D-print operator',cost:1,d:'A printer plus Bam curating the genuinely useful prints — the house starts making its own parts.',steps:['Pick the printer (~$200-300)','Free software chain','Queue: hooks, brackets, fixes, gifts','Print what you used to buy'],act:[{l:'🖨 Set me up',ty:'chat',p:'Set me up for 3D printing: which printer to buy at around $250 and why, the free software chain to use, and a first-month queue of 10 genuinely useful prints for a house, with where to find the free models.'}]},
+];
+function pState(){ try{ return JSON.parse(localStorage.getItem('jv-pow')||'{}'); }catch(e){ return {}; } }
+function pSetStatus(id){ var s=pState(); var cur=s[id]||'idea'; s[id]=cur==='idea'?'building':(cur==='building'?'live':'idea'); localStorage.setItem('jv-pow',JSON.stringify(s)); pRender(); }
+var pCat='body';
+function openPowers(){ document.getElementById('powers').classList.add('open'); pRender(); }
+function closePowers(){ document.getElementById('powers').classList.remove('open'); }
+function pTab(c){ pCat=c; ['body','mind','life','home','fam','world','build'].forEach(function(k){ document.getElementById('ptab-'+k).classList.toggle('on',k===c); }); pRender(); }
+function pRender(){
+  var s=pState(), bld=0, live=0;
+  POWERS.forEach(function(v){ if(s[v.id]==='building')bld++; if(s[v.id]==='live')live++; });
+  document.getElementById('p-summary').innerHTML='<b style="color:#e2c05c">'+bld+' building</b> · <b style="color:#8fd6a4">'+live+' live</b> · '+POWERS.length+' personal powers · tap a status chip to move it · these run your LIFE — the money plays live in 💰 Ventures';
+  var out=document.getElementById('p-out'); out.innerHTML='';
+  POWERS.filter(function(v){return v.cat===pCat;}).forEach(function(v){
+    var st=s[v.id]||'idea';
+    var card=document.createElement('div'); card.className='v-card';
+    card.innerHTML='<div class="v-h"><b>'+doomEsc(v.t)+'</b>'
+      +'<span class="v-cost'+(v.cost?' paid':'')+'">'+(v.cost?'NEEDS $':'$0')+'</span>'
+      +'<span class="v-status '+st+'" onclick="event.stopPropagation();pSetStatus(\''+v.id+'\')">'+st.toUpperCase()+'</span></div>'
+      +'<div class="v-body"><p>'+doomEsc(v.d)+'</p>'
+      +(v.steps&&v.steps.filter(Boolean).length?'<ol>'+v.steps.filter(Boolean).map(function(x){return '<li>'+doomEsc(x)+'</li>';}).join('')+'</ol>':'')
+      +'<div class="v-acts">'+(v.act||[]).map(function(a,i){return '<button onclick="pAct(\''+v.id+'\','+i+')">'+doomEsc(a.l)+'</button>';}).join('')+'</div></div>';
+    card.querySelector('.v-h').onclick=function(){ card.classList.toggle('open'); };
+    out.appendChild(card);
+  });
+}
+async function pAct(id,i){
+  var v=POWERS.find(function(x){return x.id===id;}); if(!v) return;
+  var a=v.act[i]; if(!a) return;
+  var s=pState(); if((s[id]||'idea')==='idea'){ s[id]='building'; localStorage.setItem('jv-pow',JSON.stringify(s)); }
+  if(a.ty==='chat'){ closePowers(); setTimeout(function(){ try{ qp('jarvis', a.p); }catch(e){ toast('Chat not ready'); } },150); }
+  else if(a.ty==='open'){ closePowers(); setTimeout(function(){ try{ window[a.p](); }catch(e){} },120); }
+  else if(a.ty==='link'){ window.open(a.p,'_blank'); }
+  else if(a.ty==='agent'){
+    if(!cfg.apiUrl){ toast('Connect the Server Vault first (⚙ Settings)'); return; }
+    try{ await agentAPI('queue',{task:a.p}); toast('🕹 Queued for the Web Agent — watch it in the Agent panel'); }catch(e){ toast('Failed: '+e.message); }
+  }
+  else if(a.ty==='routine'){
+    if(!cfg.apiUrl){ toast('Connect the Server Vault first (⚙ Settings)'); return; }
+    try{ await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/routines',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify({task:a.p,time:a.time||'09:00',days:a.days||'daily'})}); toast('⏰ Routine scheduled — Bam runs it on the clock'); }catch(e){ toast('Failed: '+e.message); }
+  }
+  pRender();
 }
 
 // ── WEB AGENT — start/watch/approve Bam's real-browser tasks from any device ──
