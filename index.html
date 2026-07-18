@@ -1573,6 +1573,7 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
     <button id="yttab-cal" class="biz-tab" onclick="ytTab('cal')">Content calendar</button>
     <button id="yttab-make" class="biz-tab" onclick="ytTab('make')">Make video 🎬</button>
     <button id="yttab-bam" class="biz-tab" onclick="ytTab('bam')">From Bam 🛰</button>
+    <button id="yttab-res" class="biz-tab" onclick="ytTab('res')">Research 🔬</button>
   </div>
   <div class="biz-body" id="yt-plan">
     <div class="biz-search">
@@ -1618,6 +1619,15 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
   <div class="biz-body" id="yt-bam" style="display:none">
     <div id="yt-bam-status">The videos Bam's daemon renders on your Mac, watchable from any device.</div>
     <div id="yt-bam-out"></div>
+  </div>
+  <div class="biz-body" id="yt-res" style="display:none">
+    <div class="biz-search">
+      <input id="res-topic" placeholder='Tell Bam what to deep-research — or just say "research X" in chat'>
+      <button onclick="resStart()">🔬 Lock on</button>
+      <button onclick="resLoad()">↻</button>
+    </div>
+    <div id="res-status">Bam scopes how long he'll stay focused (hours → months), digs angle by angle, and the bar fills with information he didn't have before.</div>
+    <div id="res-out"></div>
   </div>
 </div>
 
@@ -3406,7 +3416,48 @@ function bizOpenSite(){ try{ var w=window.open(); w.document.open(); w.document.
 // ════════ FACELESS YOUTUBE STUDIO — packages, thumbnails, content calendar ════════
 function openYT(){ document.getElementById("yt").classList.add("open"); ytDrawThumb(); ytStats(); var sc=document.getElementById("bm-script"); if(sc&&!sc.value&&window._ytScript) sc.value=window._ytScript; }
 function closeYT(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); document.getElementById("yt").classList.remove("open"); }
-function ytTab(t){ ["plan","thumb","cal","make","bam"].forEach(function(k){ document.getElementById("yt-"+k).style.display=(k===t)?"":"none"; document.getElementById("yttab-"+k).classList.toggle("on",k===t); }); if(t==="thumb") ytDrawThumb(); if(t==="bam") ytBamLoad(); }
+function ytTab(t){ ["plan","thumb","cal","make","bam","res"].forEach(function(k){ document.getElementById("yt-"+k).style.display=(k===t)?"":"none"; document.getElementById("yttab-"+k).classList.toggle("on",k===t); }); if(t==="thumb") ytDrawThumb(); if(t==="bam") ytBamLoad(); if(t==="res") resLoad(); }
+
+/* ── DEEP RESEARCH — focus window + "new info gained" bar ── */
+function resEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function resAgo(ms){ return ms>864e5?Math.round(ms/864e5)+'d':ms>3600e3?Math.round(ms/3600e3)+'h':Math.max(1,Math.round(ms/60e3))+'m'; }
+async function resLoad(){
+  var out=document.getElementById('res-out'); if(!out) return;
+  out.innerHTML='<div style="opacity:.6;padding:8px 0">checking Bam’s research desk…</div>';
+  var ms=[];
+  try{ ms=await dbAPI('deepresearch'); }catch(e){ out.innerHTML='<div style="opacity:.6;padding:8px 0">Bam’s brain is offline — the Mac API isn’t answering.</div>'; return; }
+  if(!Array.isArray(ms)||!ms.length){ out.innerHTML='<div style="opacity:.6;padding:8px 0">Nothing under research yet. Give him a topic — he’ll tell you how long he’ll be locked on.</div>'; return; }
+  out.innerHTML=ms.map(function(m){
+    var pct=Math.max(0,Math.min(100,Math.round(m.progress||0)));
+    var rem=m.status==='active'?Math.max(0,(m.startedTs+((m.horizon||{}).ms||0))-Date.now()):0;
+    var head=m.status==='active'?'⏳ locked on ~'+resEsc((m.horizon||{}).label||'?')+(rem>0?' · '+resAgo(rem)+' left':''):(m.status==='done'?'✅ done':'✋ stopped');
+    var facts=(m.facts||[]).slice().reverse().slice(0,4);
+    return '<div style="border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px 14px;margin:10px 0;background:rgba(255,255,255,.03)">'
+      +'<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline"><b>🔬 '+resEsc(m.topic)+'</b><span style="opacity:.7;font-size:12px">'+head+'</span></div>'
+      +((m.horizon||{}).why?'<div style="font-size:12px;opacity:.6;margin-top:2px">'+resEsc(m.horizon.why)+'</div>':'')
+      +'<div style="margin:9px 0 4px;height:10px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,#c9a13b,#f5d061);transition:width .6s"></div></div>'
+      +'<div style="font-size:12px;opacity:.75">'+pct+'% of the new info he set out to learn · '+(m.factsCount||0)+' things he didn’t know before'+(m.why&&m.status!=='active'?' · '+resEsc(m.why):'')+'</div>'
+      +(facts.length?'<div style="margin-top:8px;font-size:12.5px;line-height:1.5;opacity:.9">'+facts.map(function(f){ return '· '+resEsc(f.fact)+(f.src?' <span style="opacity:.5">('+resEsc(f.src)+')</span>':''); }).join('<br>')+'</div>':'')
+      +(m.report?'<details style="margin-top:8px"><summary style="cursor:pointer;opacity:.8">📄 Full report</summary><pre style="white-space:pre-wrap;font-size:12px;line-height:1.5;margin:6px 0 0">'+resEsc(m.report)+'</pre></details>':'')
+      +(m.status==='active'?'<button class="biz-tab" style="margin-top:8px" onclick="resStop('+(+m.id)+')">✋ Stop early</button>':'')
+      +'</div>';
+  }).join('');
+}
+async function resStart(){
+  var inp=document.getElementById('res-topic'); var t=(inp.value||'').trim();
+  if(t.length<3){ toast('Give Bam a topic first'); return; }
+  document.getElementById('res-status').textContent='🔬 Scoping how long this needs…';
+  try{
+    var r=await dbAPI('deepresearch',{topic:t});
+    if(r&&r.ok){ inp.value=''; toast('🔬 Locked on — focused for ~'+((r.horizon||{}).label||'?')); document.getElementById('res-status').textContent='⏱ He’ll be focused on this for ~'+((r.horizon||{}).label||'?')+' — '+((r.horizon||{}).why||'')+' ('+(r.angles||0)+' angles queued)'; }
+    else toast('✕ '+((r&&r.error)||'could not scope it'));
+  }catch(e){ toast('✕ '+e.message); }
+  resLoad();
+}
+async function resStop(id){
+  try{ await dbAPI('deepresearch/stop',{id:id}); toast('✋ Stopped — he’ll drop it'); }catch(e){}
+  resLoad();
+}
 
 // ═══ SENTINEL — security status, live token rotation, kill switch ═══
 function openSentinel(){ document.getElementById('sentinel').classList.add('open'); snRender(); }
@@ -3570,7 +3621,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784310037';
+var BAM_BUILD='__BAM_BUILD__';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
