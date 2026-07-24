@@ -3621,7 +3621,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784498026';
+var BAM_BUILD='1784874967';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -4715,7 +4715,20 @@ function switchTab(t) {
 // ═══════════════════════════════════════════════
 // MESSAGES
 // ═══════════════════════════════════════════════
+// [OPEN_TABS] — the one chat tag that touches the real world here: actually
+// open the URLs on THIS device, then show an honest record of what opened.
+function execTags(t, role) {
+  if (!t || role === 'user') return t;
+  return t.replace(/\[OPEN_TABS\]([\s\S]*?)\[\/OPEN_TABS\]/g, function(_, body) {
+    var urls = (body.match(/https?:\/\/[^\s|,\]"'<>]+/g) || []).slice(0, 6);
+    if (!urls.length) return '';
+    urls.forEach(function(u, i) { setTimeout(function() { try { window.open(u, '_blank', 'noopener'); } catch (e) {} }, i * 200); });
+    return '🔗 Opening ' + urls.length + ' tab' + (urls.length > 1 ? 's' : '') + ' (tap any the browser blocked):\n' + urls.join('\n');
+  });
+}
+
 function addMsg(agent, role, content) {
+  content = execTags(content, role);
   renderMsg(agent, role, content);
   pushConvo(agent, role, content);
 }
@@ -4741,7 +4754,7 @@ function mkStream(agent) {
   c.scrollTop = c.scrollHeight;
   const bubble = div.querySelector('.bubble');
   const upd = text => { bubble.innerHTML = fmt(text)+'<span class="cur"></span>'; c.scrollTop=c.scrollHeight; };
-  const fin = text => { div.classList.remove('thinking'); bubble.innerHTML = fmt(text); c.scrollTop=c.scrollHeight; };
+  const fin = text => { div.classList.remove('thinking'); bubble.innerHTML = fmt(execTags(text, 'assistant')); c.scrollTop=c.scrollHeight; };
   return { upd, fin };
 }
 
@@ -4752,6 +4765,7 @@ function fmt(t) {
     .replace(/\*\*(.*?)\*\*/gs,'<strong>$1</strong>')
     .replace(/\*(.*?)\*/gs,'<em>$1</em>')
     .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/(https?:\/\/[^\s<>"']+[^\s<>"'.,;:!?)])/g,'<a href="$1" target="_blank" rel="noopener" style="color:#f5d061;word-break:break-all">$1</a>')
     .replace(/\n/g,'<br>');
   const parts = t.split(/(```[\s\S]*?```)/g);
   return parts.map((seg, i) => {
