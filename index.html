@@ -3621,7 +3621,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784875750';
+var BAM_BUILD='1784880194';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -4726,9 +4726,40 @@ function execTags(t, role) {
     // buttons below are the guaranteed path, so the ability never silently no-ops
     var opened = 0;
     urls.forEach(function(u) { try { var w = window.open(u, '_blank', 'noopener'); if (w) opened++; } catch (e) {} });
+    try { stageLinks(urls); } catch (e) {}
     var head = opened ? '🔗 Opened ' + opened + ' of ' + urls.length + ' — tap any that were blocked:' : '🔗 Your browser blocks auto-open — tap to open:';
     return head + '\n' + urls.map(function(u) { return '⧉OPENBTN⧉' + u; }).join('\n');
   });
+}
+
+// Link tray ON TOP of the 3D stage — the chat bubbles (and their tap-buttons) are
+// hidden in immersive mode, and phones block window.open outside a direct tap,
+// so this floating tray is the guaranteed way to actually open a link.
+function stageLinks(urls) {
+  var old = document.getElementById('bam-links'); if (old) old.remove();
+  if (!urls || !urls.length) return;
+  var box = document.createElement('div');
+  box.id = 'bam-links';
+  box.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:calc(112px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;flex-direction:column;gap:8px;width:min(560px,92vw)';
+  var head = document.createElement('div');
+  head.style.cssText = 'display:flex;align-items:center;justify-content:space-between;color:#f7c14b;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:0 2px';
+  var lbl = document.createElement('span'); lbl.textContent = '🔗 Tap to open';
+  var x = document.createElement('button'); x.textContent = '✕';
+  x.style.cssText = 'background:none;border:0;color:#c9a35a;font-size:14px;cursor:pointer;padding:2px 8px';
+  x.onclick = function() { box.remove(); };
+  head.appendChild(lbl); head.appendChild(x); box.appendChild(head);
+  urls.slice(0, 6).forEach(function(u) {
+    var a = document.createElement('a');
+    a.href = u; a.target = '_blank'; a.rel = 'noopener';
+    var label = u.replace(/^https?:\/\//, ''); if (label.length > 52) label = label.slice(0, 50) + '…';
+    a.textContent = '↗ ' + label;
+    a.style.cssText = 'display:block;padding:13px 16px;background:linear-gradient(150deg,rgba(60,40,4,.92),rgba(24,14,2,.94));border:1px solid rgba(247,193,75,.6);border-radius:12px;color:#ffe1a0;font-weight:600;font-size:13px;text-decoration:none;word-break:break-all;box-shadow:0 8px 26px rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)';
+    a.addEventListener('click', function() { a.style.opacity = '.55'; a.textContent = '✓ ' + label; });
+    box.appendChild(a);
+  });
+  document.body.appendChild(box);
+  clearTimeout(window._bamLinksT);
+  window._bamLinksT = setTimeout(function() { try { box.remove(); } catch (e) {} }, 120000);
 }
 
 function addMsg(agent, role, content) {
@@ -5576,7 +5607,11 @@ function speak(text) {
   if (!voiceOut || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   if (window.LipSync) LipSync.stop();
-  const clean = text.replace(/<[^>]*>/g,'').replace(/[*_`#>]/g,'').substring(0,1500);
+  const clean = text
+    .replace(/\[OPEN_TABS\][\s\S]*?\[\/OPEN_TABS\]/g, '. The tap-button is on your screen. ')
+    .replace(/⧉OPENBTN⧉\S+/g, '')
+    .replace(/https?:\/\/\S+/g, 'the link on your screen')
+    .replace(/<[^>]*>/g,'').replace(/[*_`#>]/g,'').substring(0,1500);
   if (!clean.trim()) return;
   const u = new SpeechSynthesisUtterance(clean);
   if (!window._bamVoice && window.pickBamVoice) window._bamVoice = window.pickBamVoice();
@@ -9442,7 +9477,7 @@ window.BamStage = (function(){
       resize(); addEventListener('resize', resize); loop();
     }catch(e){ console.error('BamStage init failed', e); const l=document.getElementById('bam-load'); if(l) l.innerHTML='Bam failed to load — usually a slow connection.<br><button onclick="location.reload()" style="margin-top:10px;background:rgba(150,20,50,.2);border:1px solid rgba(200,60,80,.6);color:#ffd0c0;border-radius:8px;padding:8px 16px;font-family:inherit;font-size:11px;letter-spacing:2px;cursor:pointer">↻ TAP TO RETRY</button>'; }
   }
-  function say(role, text){ const t=(text||'').replace(/<[^>]*>/g,'').replace(/[*_`#>]/g,'').trim(); if(!t) return; if(role==='user') setPanel(userPanel,'YOU', t.slice(0,300)); else setPanel(mainPanel,'BAM', t.slice(0,460)); }
+  function say(role, text){ const t=(text||'').replace(/\[OPEN_TABS\]([\s\S]*?)\[\/OPEN_TABS\]/g,' 🔗 tap-button on your screen ').replace(/⧉OPENBTN⧉/g,'').replace(/<[^>]*>/g,'').replace(/[*_`#>]/g,'').trim(); if(!t) return; if(role==='user') setPanel(userPanel,'YOU', t.slice(0,300)); else setPanel(mainPanel,'BAM', t.slice(0,460)); }
   /* dive into his eyes → see the room through them (toggle) */
   function eyes(){
     if(!controls || mode==='diving' || mode==='exiting') return;
