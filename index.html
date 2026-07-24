@@ -3621,7 +3621,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784874967';
+var BAM_BUILD='1784875750';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -4722,8 +4722,12 @@ function execTags(t, role) {
   return t.replace(/\[OPEN_TABS\]([\s\S]*?)\[\/OPEN_TABS\]/g, function(_, body) {
     var urls = (body.match(/https?:\/\/[^\s|,\]"'<>]+/g) || []).slice(0, 6);
     if (!urls.length) return '';
-    urls.forEach(function(u, i) { setTimeout(function() { try { window.open(u, '_blank', 'noopener'); } catch (e) {} }, i * 200); });
-    return '🔗 Opening ' + urls.length + ' tab' + (urls.length > 1 ? 's' : '') + ' (tap any the browser blocked):\n' + urls.join('\n');
+    // phones block window.open outside a direct tap — try anyway (desktop), but the
+    // buttons below are the guaranteed path, so the ability never silently no-ops
+    var opened = 0;
+    urls.forEach(function(u) { try { var w = window.open(u, '_blank', 'noopener'); if (w) opened++; } catch (e) {} });
+    var head = opened ? '🔗 Opened ' + opened + ' of ' + urls.length + ' — tap any that were blocked:' : '🔗 Your browser blocks auto-open — tap to open:';
+    return head + '\n' + urls.map(function(u) { return '⧉OPENBTN⧉' + u; }).join('\n');
   });
 }
 
@@ -4765,6 +4769,7 @@ function fmt(t) {
     .replace(/\*\*(.*?)\*\*/gs,'<strong>$1</strong>')
     .replace(/\*(.*?)\*/gs,'<em>$1</em>')
     .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/⧉OPENBTN⧉(https?:\/\/[^\s<>"']+)/g,'<a href="$1" target="_blank" rel="noopener" style="display:inline-block;margin:4px 0;padding:9px 14px;background:rgba(247,193,75,.14);border:1px solid rgba(247,193,75,.55);border-radius:10px;color:#f5d061;font-weight:600;text-decoration:none;word-break:break-all">↗ $1</a>')
     .replace(/(https?:\/\/[^\s<>"']+[^\s<>"'.,;:!?)])/g,'<a href="$1" target="_blank" rel="noopener" style="color:#f5d061;word-break:break-all">$1</a>')
     .replace(/\n/g,'<br>');
   const parts = t.split(/(```[\s\S]*?```)/g);
@@ -9655,7 +9660,7 @@ window.BamStage = (function(){
 /* route the conversation into the holographic panels */
 (function(){
   if(window.speak){ const _s=window.speak; window.speak=function(t){ try{ if(window.BamStage&&BamStage.say) BamStage.say('assistant',t); }catch(e){} return _s.apply(this,arguments); }; }
-  if(window.renderMsg){ const _r=window.renderMsg; window.renderMsg=function(a,role,c){ try{ if(a==='jarvis'&&window.BamStage&&BamStage.say) BamStage.say(role==='user'?'user':'assistant', c); }catch(e){} return _r.apply(this,arguments); }; }
+  if(window.renderMsg){ const _r=window.renderMsg; window.renderMsg=function(a,role,c){ try{ if(a==='jarvis'&&window.BamStage&&BamStage.say) BamStage.say(role==='user'?'user':'assistant', String(c||'').replace(/⧉OPENBTN⧉/g,'')); }catch(e){} return _r.apply(this,arguments); }; }
 })();
 /* project Bam's real actions as live holograms in his room:
    🚀 publish → assembling crate + upload stream · 🎛 beat → circular equalizer
