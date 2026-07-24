@@ -1677,6 +1677,10 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
       <button onclick="agentAnswer()">Send</button></div>
     <div id="ag-summary" class="biz-card" style="display:none"></div>
     <img id="ag-shot" alt="" style="width:100%;max-width:760px;border-radius:10px;border:1px solid rgba(120,180,255,.25);display:none;margin:8px 0">
+    <div id="ag-trail" style="display:none;margin:8px 0;max-width:760px">
+      <div style="color:#f7c14b;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px">🧭 His route — tap any step to see that page</div>
+      <div id="ag-trail-x" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
     <div id="ag-log" class="yt-pre" style="display:none;max-height:200px;overflow-y:auto;font-size:11.5px"></div>
     <div class="yt-actions" style="margin-top:10px"><button onclick="agentStop()">⏹ Stop the agent</button></div>
     <div id="ag-queue" style="margin-top:14px"></div>
@@ -3621,7 +3625,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784880194';
+var BAM_BUILD='1784880624';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -4117,6 +4121,26 @@ async function agentPoll(){
   if(s.shotTs){ var img=document.getElementById('ag-shot'); img.style.display='block'; var src=cfg.apiUrl.replace(/\/+$/,'')+'/api/agent/shot?token='+encodeURIComponent(cfg.apiToken||'')+'&t='+s.shotTs; if(img.dataset.ts!==String(s.shotTs)){ img.src=src; img.dataset.ts=String(s.shotTs); } }
   var lg=document.getElementById('ag-log');
   if((s.log||[]).length){ lg.style.display='block'; lg.textContent=s.log.map(function(l){return l.t+'  '+l.m;}).join('\n'); lg.scrollTop=lg.scrollHeight; }
+  renderTrail(s.trail||[]);
+}
+
+// the agent's live route — every page he lands on becomes a numbered tap-button,
+// so you can retrace exactly how he did the task (updates live while he works)
+function renderTrail(tr){
+  var box=document.getElementById('ag-trail'), x=document.getElementById('ag-trail-x');
+  if(!box||!x) return;
+  if(!tr.length){ box.style.display='none'; return; }
+  box.style.display='block';
+  if(x.dataset.n===String(tr.length)) return;   // don't rebuild under a mid-tap finger
+  x.dataset.n=String(tr.length);
+  x.innerHTML=tr.map(function(p){
+    var host=(p.url||'').replace(/^https?:\/\//,'').split('/')[0];
+    return '<a href="'+doomEsc(p.url)+'" target="_blank" rel="noopener" style="display:block;padding:9px 12px;background:linear-gradient(150deg,rgba(50,32,4,.7),rgba(20,12,2,.75));border:1px solid rgba(247,193,75,.4);border-radius:10px;text-decoration:none">'
+      +'<span style="color:#f7c14b;font-weight:700;font-size:12px">'+p.n+' · '+doomEsc(p.title||host)+'</span>'
+      +'<span style="color:#c9a35a;font-size:10px;float:right">'+doomEsc(p.t||'')+' ↗</span>'
+      +(p.how?'<br><span style="color:rgba(220,190,140,.55);font-size:10.5px">'+doomEsc(p.how)+'</span>':'')
+      +'<br><span style="color:rgba(190,160,110,.45);font-size:10px;word-break:break-all">'+doomEsc(host)+'</span></a>';
+  }).join('');
 }
 
 // ── FROM BAM — the daemon's rendered batches + the autonomous TREND video awaiting your call ──
