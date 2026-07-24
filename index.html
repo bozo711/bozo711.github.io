@@ -3625,7 +3625,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784880624';
+var BAM_BUILD='1784881641';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -4150,7 +4150,7 @@ async function ytBamPendingHTML(base,tok){
   if(!p || p.status==='none') return '';
   if(p.status==='published') return '<div class="biz-card" style="border-left-color:#3aa76b"><b style="color:#bde9cc">✓ Published: '+doomEsc(p.title)+'</b>'+(p.url?'&nbsp;<a href="'+p.url+'" target="_blank" style="color:#7fd6a4">'+p.url+'</a>':'')+'</div>';
   if(p.status!=='pending') return '';
-  var h='<div class="ac-hero" style="border-color:rgba(212,175,55,.45)"><div class="ac-hero-l"><div class="ac-kicker">Needs your approval — found by daily trend research</div>'
+  var h='<div class="ac-hero" style="border-color:rgba(212,175,55,.45)"><div class="ac-hero-l"><div class="ac-kicker">'+(p.boss?'🎬 The video YOU asked for — ready for your call':'Needs your approval — found by daily trend research')+'</div>'
     +'<h1 style="font-size:19px">🎯 '+doomEsc(p.title)+'</h1>'
     +(p.analysis?'<p style="margin:0 0 8px">'+doomEsc(p.analysis)+'</p>':'')
     +(p.viewEstimate&&p.viewEstimate.likely?'<div style="margin:6px 0;padding:8px 11px;border:1px solid rgba(212,175,55,.35);border-radius:9px;background:rgba(212,175,55,.06)"><b style="color:#e2c05c">📊 BAM predicts '+Number(p.viewEstimate.likely).toLocaleString()+' views</b> <span style="color:var(--text-d);font-size:11px">('+Number(p.viewEstimate.low||0).toLocaleString()+'–'+Number(p.viewEstimate.high||0).toLocaleString()+' range · '+doomEsc(p.viewEstimate.confidence||'low')+' confidence)</span>'+(p.viewEstimate.reasoning?'<br><span style="color:var(--text-d);font-size:11px">'+doomEsc(p.viewEstimate.reasoning)+'</span>':'')+'</div>':'')
