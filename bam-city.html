@@ -618,32 +618,40 @@ function windowTex(live,ratio,style){
   if(facadeCache[key]) return facadeCache[key];
   const cw=128,ch=256,c=document.createElement('canvas');
   c.width=cw;c.height=ch;const x=c.getContext('2d');
-  if(style==='glass'){
+  // per-facade dark backing so each material reads as its own texture
+  const bg={
+    glass:['#160a12','#251420'],
+    concrete:'#180a10',
+    brick:'#2a1218',
+    stone:'#221820',
+    obsidian:'#0a0a12',
+    copper:'#2a1408'
+  }[style]||'#180a10';
+  if(Array.isArray(bg)){
     const g=x.createLinearGradient(0,0,cw,ch);
-    g.addColorStop(0,'#160a12'); g.addColorStop(1,'#251420');
-    x.fillStyle=g;
-  } else if(style==='brick'){
-    x.fillStyle='#2a1218';
-  } else {
-    x.fillStyle='#180a10';
-  }
+    g.addColorStop(0,bg[0]); g.addColorStop(1,bg[1]); x.fillStyle=g;
+  } else x.fillStyle=bg;
   x.fillRect(0,0,cw,ch);
   x.fillStyle='rgba(0,0,0,.4)';
   for(let y=0;y<ch;y+=16) x.fillRect(0,y,cw,1);
 
-  const cols=(style==='glass')?10:8;
+  const cols=(style==='glass'||style==='obsidian')?10:8;
   const rows=32;
   const cellW=cw/cols, cellH=ch/rows;
   const pw=cellW*0.7, ph=cellH*0.55;
+  const offCol={
+    glass:'#1a0e18', concrete:'#12070d', brick:'#1a0810',
+    stone:'#1a0f14', obsidian:'#0f0f18', copper:'#1a0a04'
+  }[style]||'#12070d';
   for(let r=0;r<rows;r++)for(let k=0;k<cols;k++){
     const px=k*cellW+(cellW-pw)/2, py=r*cellH+(cellH-ph)/2;
     const s=r*cols+k+style.charCodeAt(0);
     if(!live){
-      x.fillStyle=style==='glass'?'#170a12':'#1a0c13';
+      x.fillStyle=offCol;
     } else {
       const lit=((s*13929)%97)/97 < ratio;
-      // BAM window palette: gold dominant, crimson accents
-      x.fillStyle = lit ? (s%9===0 ? '#a3143a' : s%5===0 ? '#ffcf6a' : '#e2c05c') : (style==='glass'?'#1a0e18':'#12070d');
+      // gold-dominant, crimson accents — every style shares the BAM palette
+      x.fillStyle = lit ? (s%9===0 ? '#a3143a' : s%5===0 ? '#ffcf6a' : '#e2c05c') : offCol;
     }
     x.fillRect(px,py,pw,ph);
   }
@@ -711,17 +719,43 @@ function paintDistricts(){
   }).join('');
 }
 
+/* Full-string ID hash — so 'usr_lg3z2h8_a2b' and 'usr_lg3z2h8_c1d' pick different styles */
+function idHash(id){
+  let h=2166136261;
+  for(let i=0;i<id.length;i++){ h ^= id.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return Math.abs(h);
+}
+
+/* Six real facades — each with its own base color, roughness, metalness */
+const FACADES=[
+  {style:'glass',    color:0x2a3a58, roughness:.28, metalness:.55},
+  {style:'concrete', color:0x604048, roughness:.85, metalness:.15},
+  {style:'brick',    color:0x3a1820, roughness:.90, metalness:.10},
+  {style:'stone',    color:0x4a3a3f, roughness:.78, metalness:.12},
+  {style:'obsidian', color:0x14141a, roughness:.35, metalness:.65},
+  {style:'copper',   color:0x5a2a1a, roughness:.42, metalness:.75}
+];
+
 /* ---- procedural tower — all pieces in one Group so BAM can grow/dispose it ---- */
 function makeTower(m, cx, cz){
   const live=m.status==='live';
   const dist=D_LOOKUP[m.district]||D_LOOKUP.ship;
   const primary=!!m.primary;
-  const base=(primary?9:7) + Math.min(3,m.priority);
-  const w=base, d=base;
-  const totalH = (primary? 22 : 14) + m.priority*(primary?5:3) + ((m.id.charCodeAt(0)*7)%7);
 
-  const styles=['glass','concrete','brick','glass','concrete','glass'];
-  const style=styles[(m.id.charCodeAt(0)+m.id.length)%styles.length];
+  // hash the FULL id + name so every tower reads as its own building
+  const h  = idHash(m.id + '|' + m.name);
+  const h1 = (h >> 3) & 0xff;
+  const h2 = (h >> 11) & 0xff;
+  const h3 = (h >> 19) & 0xff;
+
+  // shaft footprint varies +/- 30% (was fixed)
+  const baseW=(primary?9:7) + Math.min(3,m.priority);
+  const w = baseW + (h1 % 5) - 2;   // -2 … +2
+  const d = baseW + (h2 % 5) - 2;
+  const totalH = (primary? 22 : 14) + m.priority*(primary?5:3) + (h3 % 11);
+
+  const face=FACADES[h % FACADES.length];
+  const style=face.style;
 
   const staff=state.agents.filter(a=>a.assignment===m.id&&a.status==='working').length;
   const ratio=live?Math.min(.85,.22+staff*.22):0;
@@ -747,9 +781,9 @@ function makeTower(m, cx, cz){
   const tex=windowTex(live,ratio,style);
   tex.repeat.set(2, Math.max(3, Math.round(shaftH/5)));
   const mat=new THREE.MeshStandardMaterial({
-    color: style==='glass'?0x3a1828 : style==='brick'?0x3a1820 : 0x604048,
-    roughness: style==='glass'?.28:.85,
-    metalness: style==='glass'?.55:.15,
+    color: face.color,
+    roughness: face.roughness,
+    metalness: face.metalness,
     emissive:0xffffff, emissiveMap:tex, emissiveIntensity:0,
     map: live?null:tex
   });
@@ -1318,33 +1352,86 @@ const NEW_IDEAS={
     ['Package Vision','👁',['label OCR','filter']],
     ['Camera Grid','🎥',['multi-feed','motion','clip']]]
 };
-const usedNames = new Set();
+/* Endless unique names: 24 prefixes × 10 district-flavored stems = 240 combos per district,
+   picked randomly and de-duped, so no two towers ever share a name. */
+const NAME_PREFIX=['Verdant','Silent','Crimson','Ember','Obsidian','Meridian','Anchor','Vaulted',
+  'Signal','Prism','Copper','Zenith','Wren','Halcyon','Foxglove','Cinder','Nightingale','Marble',
+  'Onyx','Beacon','Ivy','Slate','Amber','Solstice'];
+const NAME_STEMS={
+  work:    ['Ledger','Vault','Forge','Bazaar','Mint','Exchange','Bureau','Concord','Guild','Merchant'],
+  life:    ['Refuge','Garden','Path','Hearth','Kiln','Grove','Sanctum','Chapel','Cove','Threshold'],
+  security:['Sentinel','Bulwark','Bastion','Watch','Aegis','Warden','Guardhouse','Rampart','Vantage','Palisade'],
+  mind:    ['Athenaeum','Observatory','Study','Codex','Chamber','Lyceum','Archive','Anthology','Cortex','Reliquary'],
+  ship:    ['Wharf','Rigging','Cargo','Manifest','Signal','Beacon','Foreman','Yard','Drydock','Foundry'],
+  senses:  ['Ear','Eye','Chime','Horn','Watchtower','Lantern','Sensor','Herald','Aviary','Wick']
+};
+const DIST_ICONS={
+  work:['💰','💵','🛒','📈','🏦','🪙','🧾','⚖','🔗','📦'],
+  life:['⚡','🌿','🛌','🕯','📓','🍵','🌅','🏡','🎋','🪴'],
+  security:['🛡','🚨','🔐','🗝','🔍','⛨','🧿','🚫','🕯','⛓'],
+  mind:['🧠','💡','📚','🔬','🧬','🧿','📜','🔎','🪞','⚗'],
+  ship:['🚀','⌸','🚚','📡','🐕','🛠','🧭','↩','🏁','🚩'],
+  senses:['👁','📢','🎙','🔔','📡','🎼','👂','🌦','🎥','💬']
+};
+
+let idCounter=0;
+function makeId(){
+  idCounter++;
+  return 'usr_'+Date.now().toString(36)+'_'+idCounter.toString(36)+'_'+Math.floor(Math.random()*1e6).toString(36);
+}
+
+function inventName(dId){
+  const stems=NAME_STEMS[dId]||NAME_STEMS.ship;
+  const existing=new Set(state.modules.map(m=>m.name.toLowerCase()));
+  // try up to 40 random combinations — 240 possible per district makes collisions rare
+  for(let i=0;i<40;i++){
+    const name = NAME_PREFIX[Math.floor(Math.random()*NAME_PREFIX.length)]
+               +' '+ stems[Math.floor(Math.random()*stems.length)];
+    if(!existing.has(name.toLowerCase())) return name;
+  }
+  // extremely unlikely, but keep growth going with a timestamp suffix
+  return NAME_PREFIX[Math.floor(Math.random()*NAME_PREFIX.length)]+' '+
+         stems[Math.floor(Math.random()*stems.length)]+' '+
+         Date.now().toString(36).slice(-3).toUpperCase();
+}
+function inventRoles(pool){
+  // pull 3-4 role phrases from the pool, mixing across entries so no two buildings share a role set
+  const bag=[];
+  pool.forEach(p=>p[2].forEach(r=>bag.push(r)));
+  const seen=new Set(); const out=[];
+  while(out.length<3+Math.floor(Math.random()*2) && seen.size<bag.length){
+    const r=bag[Math.floor(Math.random()*bag.length)];
+    if(!seen.has(r)){ seen.add(r); out.push(r); }
+  }
+  return out;
+}
+
 function autoNew(){
-  // pick district with fewest towers (round-robin bias)
+  // round-robin: fill the smallest district first so the city grows evenly
   const counts={};
   state.modules.forEach(m=>{counts[m.district]=(counts[m.district]||0)+1});
   const cands=DISTRICTS.filter(d=>d.id!=='core').sort((a,b)=>(counts[a.id]||0)-(counts[b.id]||0));
   const dId=cands[0].id;
   const pool=NEW_IDEAS[dId]||NEW_IDEAS.ship;
-  const existing=new Set(state.modules.map(m=>m.name));
-  // find first unused pool entry
-  let pick=pool.find(p=>!existing.has(p[0]) && !usedNames.has(p[0]));
+  const existing=new Set(state.modules.map(m=>m.name.toLowerCase()));
+  // prefer a fresh hand-crafted pool entry — feels human-designed
+  const pick=pool.find(p=>!existing.has(p[0].toLowerCase()));
   let name, icon, roles;
-  if(pick){ [name,icon,roles]=pick; usedNames.add(name); }
-  else {
-    // pool exhausted — synthesize procedural name so growth never stops
-    const stem = pool[Math.floor(Math.random()*pool.length)][0];
-    let n=2;
-    while(existing.has(stem+' '+n) || usedNames.has(stem+' '+n)) n++;
-    name = stem+' '+n;
-    icon = pool[Math.floor(Math.random()*pool.length)][1];
-    roles = pool[Math.floor(Math.random()*pool.length)][2];
-    usedNames.add(name);
+  if(pick){
+    [name,icon,roles]=pick;
+    // fresh copies of roles so no shared reference
+    roles=roles.slice();
+  } else {
+    // pool exhausted — invent a brand-new name (never a "Foo 2" copy)
+    name = inventName(dId);
+    const iconPool=DIST_ICONS[dId]||DIST_ICONS.ship;
+    icon = iconPool[Math.floor(Math.random()*iconPool.length)];
+    roles = inventRoles(pool);
   }
-  const id='usr_'+Date.now().toString(36)+'_'+Math.floor(Math.random()*1e5).toString(36);
   return {
-    id, name, icon, district:dId,
-    status: 'live',        // new BAM buildings always come online — stubs shouldn't grow themselves
+    id: makeId(),
+    name, icon, district:dId,
+    status: 'live',
     priority: 2+Math.floor(Math.random()*3),
     queue: 1+Math.floor(Math.random()*3),
     primary: false,
