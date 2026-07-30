@@ -1067,6 +1067,9 @@ strong{color:#e8d4b0}
 #brainapp.open{display:flex}
 #intercom{position:fixed;inset:0;z-index:443;background:radial-gradient(1000px 600px at 50% -10%,#141005,#0a0804 60%,#050402);display:none;flex-direction:column}
 #intercom.open{display:flex}
+#bamcity{position:fixed;inset:0;z-index:444;background:radial-gradient(1000px 600px at 50% -10%,#160a12,#0a0508 60%,#040207);display:none;flex-direction:column}
+#bamcity.open{display:flex}
+#bamcity iframe{flex:1;width:100%;height:100%;border:0;background:#010008}
 .sn-row{display:flex;align-items:center;gap:10px;padding:12px 15px;margin-bottom:8px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,251,240,.02)}
 .sn-row b{flex:1;color:#efe9db;font-size:13px}
 .sn-ok{color:#8fd6a4;font-size:12px;font-weight:700}.sn-warn{color:#e2c05c;font-size:12px;font-weight:700}.sn-bad{color:#f0919b;font-size:12px;font-weight:700}
@@ -1264,6 +1267,46 @@ strong{color:#e8d4b0}
 .ac-module .mc{color:#c9a244;font-size:10px;font-weight:700;white-space:nowrap;margin-top:5px;display:block;text-align:right;letter-spacing:.6px}
 .ac-module .mch{color:rgba(233,226,210,.4);font-size:13px;width:14px;text-align:center}
 .ac-mod-lessons{margin-left:4px;padding-left:11px;border-left:1px solid rgba(212,175,55,.14)}
+/* ── STUDY ROOM — videos + side notes + Bam's insights ── */
+.ac-studybtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:0 0 18px;padding:12px 18px;border-radius:11px;border:1px solid rgba(212,175,55,.4);background:linear-gradient(160deg,rgba(212,175,55,.12),rgba(212,175,55,.03));color:#e8d5a0;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:.15s}
+.ac-studybtn:hover{background:rgba(212,175,55,.2);transform:translateY(-1px)}
+.ac-study{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;align-items:start}
+.ac-topics{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:7px}
+.ac-topic{padding:7px 13px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);color:rgba(233,226,210,.7);font-family:inherit;font-size:11px;cursor:pointer;transition:.14s}
+.ac-topic:hover{border-color:rgba(212,175,55,.4)}
+.ac-topic.on{background:rgba(212,175,55,.16);border-color:rgba(212,175,55,.55);color:#f0e2b6;font-weight:700}
+.ac-vsearch{grid-column:1/-1;display:flex;gap:8px}
+.ac-vsearch input{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:var(--text);padding:10px 13px;font-family:inherit;font-size:13px;outline:none}
+.ac-vsearch input:focus{border-color:rgba(212,175,55,.45)}
+.ac-vsearch button{background:linear-gradient(160deg,#e2c05c,#a37a1e);border:none;border-radius:9px;color:#191204;font-family:inherit;font-weight:700;font-size:12px;letter-spacing:1px;padding:0 18px;cursor:pointer}
+.ac-player iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:14px;background:#000;box-shadow:0 24px 54px -24px rgba(0,0,0,.9)}
+.ac-nowtitle{color:#efe9db;font-size:13.5px;font-weight:600;line-height:1.4;margin-top:9px}
+.ac-nowtitle span{color:rgba(233,226,210,.45);font-weight:400;font-size:11.5px}
+.ac-vlist{display:flex;flex-direction:column;gap:8px;margin-top:13px}
+.ac-vrow{display:flex;align-items:center;gap:11px;padding:8px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,251,240,.02);cursor:pointer;transition:.14s}
+.ac-vrow:hover{border-color:rgba(212,175,55,.3)}
+.ac-vrow.on{border-color:rgba(212,175,55,.55);background:rgba(212,175,55,.07)}
+.ac-vrow img{width:96px;aspect-ratio:16/9;object-fit:cover;border-radius:7px;flex-shrink:0;background:#000}
+.ac-vrow .vt{flex:1;min-width:0}
+.ac-vrow .vt b{display:block;color:#efe9db;font-size:12.5px;line-height:1.35;font-weight:600}
+.ac-vrow .vt span{color:rgba(233,226,210,.45);font-size:10.5px}
+.ac-notesbox{border:1px solid rgba(212,175,55,.22);border-radius:15px;background:linear-gradient(165deg,rgba(212,175,55,.07),rgba(0,0,0,.2));padding:16px;position:sticky;top:10px}
+.ac-notesbox h4{margin:0 0 10px;color:#d8b95c;font-size:11px;letter-spacing:2.5px;text-transform:uppercase}
+.ac-notesbox textarea{width:100%;min-height:230px;resize:vertical;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.1);border-radius:11px;color:#f0ead9;padding:13px;font-family:Georgia,serif;font-size:14px;line-height:1.7;outline:none;box-sizing:border-box}
+.ac-notesbox textarea:focus{border-color:rgba(212,175,55,.45)}
+.ac-notesbox .ac-take{margin:12px 0 0}
+#ac-insights .ac-takeaways{margin:12px 0 0;font-size:14px}
+.ac-bamrow{display:flex;gap:8px;flex-wrap:wrap}
+.ac-bamrow .ac-take{flex:1;min-width:140px}
+#ac-bam{margin:12px 0 0}
+.ac-hl{background:linear-gradient(165deg,rgba(255,251,240,.03),rgba(0,0,0,.16));border:1px solid rgba(255,255,255,.08);border-left:3px solid #d4af37;border-radius:10px;padding:11px 13px;margin:0 0 9px}
+.ac-hl q{display:inline;quotes:none;font-family:Georgia,serif;font-size:13.5px;line-height:1.9;color:#171106;background:linear-gradient(104deg,rgba(226,192,92,.92),rgba(212,175,55,.78));border-radius:4px;padding:2px 7px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.ac-hl .why{display:block;margin-top:8px;color:rgba(233,226,210,.78);font-size:12.5px;line-height:1.55}
+.ac-hl .why b{color:#e8d5a0}
+.ac-margin{border:1px dashed rgba(212,175,55,.35);border-radius:10px;padding:11px 13px;margin:0 0 9px;background:rgba(212,175,55,.04)}
+.ac-margin h5{margin:0 0 8px;color:#d8b95c;font-size:10px;letter-spacing:2px;text-transform:uppercase}
+.ac-margin div{color:rgba(238,232,219,.82);font-size:12.5px;line-height:1.6;margin:0 0 6px}
+@media (max-width:920px){ .ac-study{grid-template-columns:1fr} .ac-notesbox{position:static} }
 @media (max-width:560px){ .ac-hero{flex-direction:column-reverse;align-items:flex-start;gap:16px} .ac-ring{width:88px;height:88px} .ac-hero h1{font-size:22px} }
 </style>
 <style id="immersive-css">
@@ -1782,6 +1825,18 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
   </div>
 </div>
 
+<!-- BAM CITY — every module + agent as a living 3D building. Iframe so the app keeps running behind it. -->
+<div id="bamcity">
+  <div class="biz-top">
+    <span class="biz-title">🏙 BAM CITY — 3D MAP OF EVERY MODULE</span>
+    <span style="flex:1"></span>
+    <button onclick="bamCityGrow()" title="Ask the city to grow one new building" style="font-size:12px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(212,175,55,.4);border-radius:6px;color:#e2c05c;background:rgba(60,20,0,.2);margin-right:6px;cursor:pointer;text-transform:uppercase">＋ Grow</button>
+    <button onclick="bamCityAuto()" id="bc-auto" title="Auto-grow one building every 8s" style="font-size:12px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(163,20,58,.5);border-radius:6px;color:#ffb0b8;background:rgba(60,10,20,.2);margin-right:6px;cursor:pointer;text-transform:uppercase">▶ Auto</button>
+    <button onclick="closeBamCity()">✕</button>
+  </div>
+  <iframe id="bc-iframe" src="about:blank" title="BAM City" loading="lazy"></iframe>
+</div>
+
 <!-- DECISION BAR — every yes/no Bam needs, floating above everything -->
 <div id="decision-bar">
   <div class="db-head">⚖️ <b id="db-title">BAM NEEDS A YES</b><span id="db-count"></span></div>
@@ -1852,6 +1907,7 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
         <button onclick="adGo(openNeuro)">🧠 <b>Neurolink</b><span>cortex · tools · agents</span></button>
         <button onclick="adGo(openPhys)">⚛ <b>Physics Lab</b><span>portal engineering</span></button>
         <div class="ad-sec">SHIP</div>
+        <button onclick="adGo(openBamCity)">🏙 <b>BAM City</b><span>every module as a living building</span></button>
         <button onclick="adGo(enter3D)" id="b3d-btn">🌐 <b>3D World</b><span>the holographic core</span></button>
         <button onclick="adGo(openDeck)" id="deck-btn">⌸ <b>Command Deck</b><span>every panel at once</span></button>
         <div class="ad-sec">SENSES</div>
@@ -2999,38 +3055,52 @@ const IQ_VERBAL=[
  {q:"Abundant most nearly means:",c:"plentiful",d:["scarce","empty","heavy"]},
  {q:"Fragile is most OPPOSITE to:",c:"sturdy",d:["delicate","thin","brittle"]},
 ];
+const IQ_VERBAL_HARD=[
+ {q:"Enervate most nearly means:",c:"to drain of energy",d:["to energize","to irritate","to strengthen"]},
+ {q:"Laconic most nearly means:",c:"using very few words",d:["lazy","musical","long-winded"]},
+ {q:"Obsequious most nearly means:",c:"excessively eager to please",d:["obedient in a healthy way","stubborn","observant"]},
+ {q:"Sanguine is most OPPOSITE to:",c:"pessimistic",d:["cheerful","calm","hopeful"]},
+ {q:"Perfidious most nearly means:",c:"treacherous",d:["flawless","loyal","cautious"]},
+ {q:"Recalcitrant most nearly means:",c:"stubbornly uncooperative",d:["repentant","forgetful","enthusiastic"]},
+ {q:"Prosaic is most OPPOSITE to:",c:"extraordinary",d:["ordinary","wordy","practical"]},
+ {q:"Equivocate most nearly means:",c:"use ambiguous language to avoid committing",d:["divide equally","speak plainly","agree fully"]},
+ {q:"Which word does NOT belong: garrulous, loquacious, verbose, taciturn?",c:"taciturn",d:["garrulous","loquacious","verbose"]},
+ {q:"Ephemeral is to permanence as candid is to ___",c:"deceit",d:["honesty","brightness","courage"]},
+ {q:"Miser is to generous as zealot is to ___",c:"indifferent",d:["passionate","religious","angry"]},
+ {q:"Ameliorate most nearly means:",c:"to make better",d:["to make worse","to postpone","to measure"]},
+];
 const IQ_SOFT={
  emotional:[
-  {q:"A friend suddenly snaps at you. The most emotionally intelligent first response is to:",c:"ask if something is wrong",d:["snap back at them","assume they hate you","ignore them for good"]},
-  {q:"You feel a surge of anger during a meeting. The best move is to:",c:"pause and breathe before responding",d:["express it loudly","bottle it up and pretend","walk out and quit"]},
-  {q:"Which response best shows empathy?",c:"That sounds really hard - tell me more.",d:["You should not feel that way.","Just get over it.","At least it is not worse."]},
-  {q:"Noticing an emotion in yourself the moment it arises is called:",c:"self-awareness",d:["repression","projection","denial"]},
-  {q:"The healthiest way to handle stress is to:",c:"acknowledge it and use a coping strategy",d:["pretend it is not there","take it out on others","never rest"]},
-  {q:"When someone is crying, the most caring move is to:",c:"stay present and listen",d:["tell them to stop","change the subject","leave immediately"]},
+  {q:"A friend is venting about a rough week. Usually they mostly want you to:",c:"listen and validate before offering anything",d:["jump straight to solutions","match it with a story of your own","point out the bright side immediately"]},
+  {q:"You get harsh feedback and feel your face flush. The strongest first move is to:",c:"name the feeling to yourself and slow your reply",d:["defend your work while it's fresh","laugh it off so no one notices","decide the person is just harsh"]},
+  {q:"You can't shake nerves before a big moment. Research says it works better to:",c:"reframe the arousal as excitement",d:["force yourself to be completely calm","avoid thinking about it at all","vent about it right beforehand"]},
+  {q:"A teammate says they're 'fine' but their tone is flat and clipped. The wise read is:",c:"words and tone conflict — gently check in",d:["take 'fine' at face value","assume it's about you","cheer them up with advice"]},
+  {q:"After a heated argument, the best time to resolve it is usually:",c:"after both sides have cooled down",d:["immediately, while feelings are raw","never — just let it fade","in front of others so it stays civil"]},
+  {q:"Suppressing an emotion during a hard conversation usually:",c:"leaks out and raises tension for both people",d:["makes the talk go smoother","makes the emotion disappear","reads as confidence"]},
  ],
  social:[
-  {q:"In a disagreement, the most persuasive approach is to:",c:"understand their view first, then respond",d:["talk the loudest","insult the opposing idea","refuse to listen"]},
-  {q:"A teammate takes credit for your work. The best approach is to:",c:"calmly address it in private with facts",d:["sabotage them quietly","complain to everyone else","say nothing and resent it"]},
-  {q:"Rapport is built mostly through:",c:"active listening and genuine interest",d:["talking about yourself","constant flattery","agreeing with everything"]},
-  {q:"Someone gives you tough but fair feedback. The mature response is to:",c:"consider it and thank them",d:["get defensive","attack their credibility","cut them off"]},
-  {q:"To make a strong first impression, focus on:",c:"being genuinely interested in them",d:["bragging","talking nonstop","checking your phone"]},
-  {q:"The best way to resolve a conflict is to:",c:"find the shared goal and compromise",d:["always win","avoid it forever","threaten them"]},
+  {q:"You want HONEST input on your idea. The best ask is:",c:"“What would make this fail?”",d:["“Pretty good, right?”","“You like it, don't you?”","“Any thoughts?” and leave it there"]},
+  {q:"In a negotiation, naming a specific first number usually:",c:"anchors the range in your favor",d:["offends the other side","weakens your position","should always be avoided"]},
+  {q:"A quiet person hasn't spoken all meeting. The socially sharp move is to:",c:"invite them in with a direct, easy question",d:["put them on the spot for a verdict","assume silence means agreement","summarize their view for them"]},
+  {q:"Right after a big request is refused, a much smaller request often succeeds. That's:",c:"the door-in-the-face effect",d:["the halo effect","sunk cost","plain luck"]},
+  {q:"You disagree, but the whole group agrees. Most effective:",c:"state your view once, with reasons, without demanding they switch",d:["stay silent to keep harmony","repeat your objection until it lands","agree publicly, complain privately"]},
+  {q:"Criticism lands best when you:",c:"describe the specific behavior and its impact",d:["soften it until it's barely there","deliver it publicly for accountability","save it all up for one big talk"]},
  ],
  self:[
-  {q:"The best way to learn your real strengths is to:",c:"reflect honestly and seek feedback",d:["assume you are good at everything","only compare yourself to others","ignore your weaknesses"]},
-  {q:"After a failure, people with a growth mindset:",c:"ask what they can learn",d:["blame other people","give up","pretend it did not happen"]},
-  {q:"Understanding WHY you react the way you do reflects:",c:"high self-awareness",d:["low intelligence","arrogance","pure luck"]},
-  {q:"A healthy way to handle a personal weakness is to:",c:"acknowledge it and work on or manage it",d:["hide it forever","deny it exists","let it define you"]},
-  {q:"Real self-confidence comes mostly from:",c:"competence built through effort",d:["other people's praise","ignoring all flaws","comparing down to others"]},
-  {q:"The most useful question after a hard day is:",c:"What can I learn from this?",d:["Whose fault is it?","Why me?","How do I hide it?"]},
+  {q:"You keep skipping your new habit. The fix with the best track record:",c:"shrink it until it's too easy to skip",d:["double the goal for motivation","wait until you feel more willpower","punish yourself for misses"]},
+  {q:"You're certain you're right in an argument. A well-calibrated mind first asks:",c:"“What evidence would change my mind?”",d:["“How do I prove it harder?”","“Why don't they get it?”","“Who else agrees with me?”"]},
+  {q:"Feeling like a fraud despite doing objectively well is most likely:",c:"impostor feelings, common in high performers",d:["proof you're actually behind","laziness surfacing","a sign to quit"]},
+  {q:"The planning fallacy predicts your project will take:",c:"longer than your gut says — so pad the estimate",d:["exactly what you planned","less time than planned","time you can't influence anyway"]},
+  {q:"You notice you only read opinions you already agree with. That habit mainly feeds:",c:"confirmation bias",d:["creativity","discipline","empathy"]},
+  {q:"After a big win, the most useful reflex is to ask:",c:"“How much was skill, how much was luck?”",d:["“How do I celebrate loudest?”","nothing — wins need no review","“Who doubted me?”"]},
  ],
  creative:[
-  {q:"Which approach is MOST creative for an everyday problem?",c:"combine two unrelated ideas in a new way",d:["copy exactly what everyone else does","do nothing and wait","follow only the existing rules"]},
-  {q:"Listing many possible uses for a brick mainly measures:",c:"creative flexibility",d:["memory","physical strength","vocabulary"]},
-  {q:"Creativity grows most when you:",c:"expose yourself to diverse ideas and play",d:["avoid all new experiences","memorize one fixed method","fear making mistakes"]},
-  {q:"When brainstorming, the best first step is to:",c:"generate many ideas without judging",d:["judge each idea immediately","pick the very first idea","stop after one idea"]},
-  {q:"Innovation often comes from:",c:"asking what if and challenging assumptions",d:["doing what is comfortable","following the crowd","avoiding risk entirely"]},
-  {q:"A good way to spark new ideas is to:",c:"connect ideas from a different field",d:["repeat past solutions","wait for inspiration only","never take breaks"]},
+  {q:"You're stuck on a hard problem. The research-backed move is to:",c:"step away — incubation lets ideas connect",d:["push through without any breaks","start over from zero","hand it off immediately"]},
+  {q:"The 'first idea trap' is dangerous because:",c:"early ideas anchor you and crowd out better ones",d:["first ideas are always wrong","it slows brainstorming down","it only affects beginners"]},
+  {q:"Which condition most often BOOSTS creativity?",c:"tight constraints that force new combinations",d:["unlimited time and options","working only when inspired","removing all rules"]},
+  {q:"Random-word prompts and far-field analogies work because they:",c:"force your brain off its default path",d:["add useful pressure","guarantee good ideas","replace the need for expertise"]},
+  {q:"A team brainstorm keeps producing safe, similar ideas. Best fix:",c:"have everyone write ideas alone first, then share",d:["brainstorm louder and longer","let the boss set direction first","vote on ideas earlier"]},
+  {q:"The best single predictor of producing a great idea is:",c:"producing a large number of ideas",d:["waiting for one perfect idea","raw IQ alone","working in total isolation"]},
  ],
 };
 let iqQs=[], iqIdx=0, iqAns=[], iqTime=[], iqT0=0, iqTimer=null;
@@ -3062,19 +3132,39 @@ function gSpSolid(){ var s=[["a cube","edges","12"],["a cube","faces","6"],["a c
 function gSpNet(){ return iqMC("spatial","A flat plus-shaped (+) net of 6 squares folds into which solid?","cube",["sphere","pyramid","cylinder"],1,35); }
 function gMemDigit(){ var len=5+iqRand(2),ds=[]; for(var i=0;i<len;i++)ds.push(iqRand(10)); var k=1+iqRand(len),ans=String(ds[k-1]); var dd=[]; ds.forEach(function(x,i){ if(i!==k-1) dd.push(String(x)); }); return iqMC("memory","What was digit number "+k+" in the sequence?",ans,dd,1,0,"Memorize this sequence:\n\n"+ds.join("    ")); }
 function gMemWords(){ var p=iqShuffle(IQ_WORDS.slice()),shown=p.slice(0,3),not=p[3]; return iqMC("memory","Which of these words was NOT in the list you saw?",not,shown.slice(),1,0,"Memorize these words:\n\n"+shown.join("     ")); }
-function gMemRev(){ var len=4+iqRand(2),ds=[]; for(var i=0;i<len;i++)ds.push(iqRand(9)+1); var rev=ds.slice().reverse().join(", "),fwd=ds.join(", "),rot=ds.slice(1).concat(ds[0]).join(", "),sw=ds.slice(); var t=sw[0]; sw[0]=sw[len-1]; sw[len-1]=t; return iqMC("memory","What was that sequence REVERSED?",rev,[fwd,rot,sw.join(", ")],1,0,"Memorize this sequence:\n\n"+ds.join("    ")); }
-function gMemEnds(){ var len=6,ds=[]; for(var i=0;i<len;i++)ds.push(iqRand(9)+1); return iqMC("memory","Which two numbers were at the ENDS (first and last)?",ds[0]+" and "+ds[len-1],[ds[1]+" and "+ds[len-2],ds[0]+" and "+ds[len-2],ds[2]+" and "+ds[3]],2,0,"Memorize this sequence:\n\n"+ds.join("    ")); }
+function gMemRev(){ var len=4+iqRand(2),ds=iqShuffle([1,2,3,4,5,6,7,8,9]).slice(0,len); var rev=ds.slice().reverse().join(", "),fwd=ds.join(", "),rot=ds.slice(1).concat(ds[0]).join(", "),sw=ds.slice(); var t=sw[0]; sw[0]=sw[len-1]; sw[len-1]=t; return iqMC("memory","What was that sequence REVERSED?",rev,[fwd,rot,sw.join(", ")],1,0,"Memorize this sequence:\n\n"+ds.join("    ")); }
+function gMemEnds(){ var len=6,ds=iqShuffle([1,2,3,4,5,6,7,8,9]).slice(0,len); return iqMC("memory","Which two numbers were at the ENDS (first and last)?",ds[0]+" and "+ds[len-1],[ds[1]+" and "+ds[len-2],ds[0]+" and "+ds[len-2],ds[2]+" and "+ds[3]],2,0,"Memorize this sequence:\n\n"+ds.join("    ")); }
+// ---- ADVANCED tier — heavier weights (d 3-4), designed to actually hurt ----
+function gLogLiar(){ var n=iqPickN(IQ_NAMES,2); return iqMC("logic",n[0]+' says: "'+n[1]+' is lying." '+n[1]+' says: "'+n[0]+' and I are both lying." Who is telling the truth?',n[0]+" only",[n[1]+" only","Both of them","Neither of them"],4,60); }
+function gLogVenn(){ var s=8+iqRand(8),c=5+iqRand(6),b=2+iqRand(3),r=2+iqRand(6),N=s+c-b+r; return iqMC("logic","In a class of "+N+" students, "+s+" play soccer, "+c+" play chess, and "+b+" play both. How many play neither?",String(r),[String(r+b),String(r+2),String(Math.max(0,r-2))],3,60); }
+function gLogAffirm(){ var t=[["it rains","the streets get wet","The streets ARE wet"],["I study","I pass the test","I DID pass the test"],["the engine runs","the fan spins","The fan IS spinning"]][iqRand(3)]; return iqMC("logic","If "+t[0]+", then "+t[1]+". "+t[2]+". What can you conclude for CERTAIN?","Nothing certain — the cause may or may not have happened",["The first thing definitely happened","The first thing definitely did not happen","The if-then rule must be false"],3,60); }
+function gNumAlt(){ var v=2+iqRand(4),k=1+iqRand(3),seq=[v]; for(var i=0;i<5;i++){ v=(i%2===0)?v*2:v-k; seq.push(v); } var ans=v-k; return iqMC("numerical","What comes next: "+seq.join(", ")+", ?",String(ans),[String(v*2),String(ans+k),String(ans-1)],3,60); }
+function gNumQuad(){ var a=1+iqRand(5),d0=2+iqRand(3),st=1+iqRand(2),seq=[a],v=a; for(var i=0;i<4;i++){ v+=d0+st*i; seq.push(v); } var ans=v+d0+st*4; return iqMC("numerical","What comes next: "+seq.join(", ")+", ?",String(ans),[String(v+d0+st*3),String(ans+st),String(ans-1)],3,60); }
+function gNumInter(){ var a=1+iqRand(5),s=2+iqRand(4),b=15+iqRand(10),t=3+iqRand(4),seq=[],i; for(i=0;i<3;i++){ seq.push(a+s*i); seq.push(b-t*i); } var ans=a+s*3; return iqMC("numerical","Two patterns are woven together. What comes next: "+seq.join(", ")+", ?",String(ans),[String(b-t*3),String(ans+s),String(ans+t)],4,60); }
+function gNumRate(){ var per=5+iqRand(11),t=[20,30,40][iqRand(3)],m=per*t/10,T=t+(iqRand(2)?10:20),ans=per*T/10; return iqMC("numerical","A train covers "+m+" miles in "+t+" minutes. At the same speed, how many miles in "+T+" minutes?",String(ans),[String(m+10),String(ans+per),String(m+T-t)],3,60); }
+function gSpMirror(){ var sym=["A","H","I","M","O","T","U","V","W","X","Y"],asym=["F","G","J","K","L","N","P","Q","R","S","Z","B","E"]; return iqMC("spatial","Which of these letters looks EXACTLY the same in a mirror?",sym[iqRand(sym.length)],iqPickN(asym,3),3,45); }
+function gSpFold(){ var n=1+iqRand(3),ans=Math.pow(2,n),pool=["1","2","3","4","6","8","16"].filter(function(x){return x!==String(ans);}); return iqMC("spatial","Fold a square sheet of paper in half "+n+" time"+(n>1?"s":"")+", then punch ONE hole through all layers. How many holes when you unfold it?",String(ans),iqPickN(pool,3),3,60); }
+function gSpCount(){ if(iqRand(2)===0) return iqMC("spatial","A 2x2 grid of unit squares — how many squares of ANY size (including the big one)?","5",["4","6","8"],3,60); return iqMC("spatial","A 3x3 grid of unit squares — how many squares of ANY size in total?","14",["9","13","10"],4,60); }
+function gMemLong(){ var len=7+iqRand(2),ds=[]; for(var i=0;i<len;i++)ds.push(iqRand(10)); var k=1+iqRand(len),ans=String(ds[k-1]),dd=[]; ds.forEach(function(x,i){ if(i!==k-1) dd.push(String(x)); }); return iqMC("memory","What was digit number "+k+" in the sequence?",ans,iqShuffle(dd),2,0,"Memorize this sequence:\n\n"+ds.join("   ")); }
+function gMemPairs(){ var Ls=iqPickN(["K","M","T","R","B","J","P","F"],4),digs=iqPickN(["1","2","3","4","5","6","7","8","9"],4),pairs=[],i; for(i=0;i<4;i++)pairs.push(Ls[i]+" — "+digs[i]); var k=iqRand(4); return iqMC("memory","Which number was paired with the letter "+Ls[k]+"?",digs[k],digs.filter(function(x,j){return j!==k;}),3,0,"Memorize these pairs:\n\n"+pairs.join("\n")); }
+function gMemCount(){ var ds=[],i; for(i=0;i<9;i++)ds.push(iqRand(10)); var tgt=ds[iqRand(9)],cnt=0; ds.forEach(function(x){ if(x===tgt)cnt++; }); return iqMC("memory","How many times did the digit "+tgt+" appear?",String(cnt),[String(cnt+1),String(Math.max(0,cnt-1)),String(cnt+2)],3,0,"Memorize this sequence:\n\n"+ds.join("   ")); }
+function iqGens(pool,n){ return iqShuffle(pool.slice()).slice(0,n).map(function(g){ return g(); }); }
 function iqGenQuiz(){
   var qs=[];
-  qs.push(gLogSyll(),gLogTrans(),gLogOdd(),gLogModus(),[gLogSyll,gLogTrans,gLogOdd][iqRand(3)]());
-  qs.push(gNumArith(),gNumGeo(),gNumPct(),gNumDisc(),gNumFib(),[gNumArith,gNumGeo,gNumPct][iqRand(3)]());
-  iqPickN(IQ_VERBAL,5).forEach(function(v){ qs.push(iqMC("verbal",v.q,v.c,v.d.slice(),2,40)); });
-  qs.push(gSpClock(),gSpRot(),gSpCube(),gSpSolid(),gSpNet());
-  qs.push(gMemDigit(),gMemWords(),gMemRev(),gMemEnds(),gMemDigit());
+  qs=qs.concat(iqGens([gLogSyll,gLogTrans,gLogOdd,gLogModus],2));            // warm-up
+  qs.push(gLogLiar(),gLogVenn(),gLogAffirm());                               // advanced
+  qs=qs.concat(iqGens([gNumArith,gNumGeo,gNumPct,gNumDisc,gNumFib],3));
+  qs=qs.concat(iqGens([gNumAlt,gNumQuad,gNumInter,gNumRate],3));
+  iqPickN(IQ_VERBAL,2).forEach(function(v){ qs.push(iqMC("verbal",v.q,v.c,v.d.slice(),2,40)); });
+  iqPickN(IQ_VERBAL_HARD,3).forEach(function(v){ qs.push(iqMC("verbal",v.q,v.c,v.d.slice(),3,45)); });
+  qs=qs.concat(iqGens([gSpClock,gSpRot,gSpCube,gSpSolid,gSpNet],2));
+  qs.push(gSpMirror(),gSpFold(),gSpCount());
+  qs=qs.concat(iqGens([gMemDigit,gMemWords,gMemRev,gMemEnds],2));
+  qs.push(gMemLong(),gMemPairs(),gMemCount());
   ["emotional","social","self","creative"].forEach(function(fk){ iqPickN(IQ_SOFT[fk],4).forEach(function(v){ qs.push(iqMC(fk,v.q,v.c,v.d.slice(),1,0)); }); });
   return qs;
 }
-function iqGet(){ try{return JSON.parse(localStorage.getItem("jv-iq")||"{}");}catch(e){return {};} }
+function iqGet(){ try{ var d=JSON.parse(localStorage.getItem("jv-iq")||"{}"); if((d.baseline||d.latest)&&d.v!==2){ d={v:2}; iqSave(d); } d.v=2; return d; }catch(e){ return {v:2}; } }   // v2 = harder test — old easy-test scores don't compare, so wipe once
 function iqSave(d){ try{localStorage.setItem("jv-iq",JSON.stringify(d));}catch(e){} }
 function iqErf(x){ var t=1/(1+0.3275911*Math.abs(x)); var y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return x>=0?y:-y; }
 function iqCdf(z){ return 0.5*(1+iqErf(z/Math.SQRT2)); }
@@ -3090,7 +3180,7 @@ function iqIntro(){
       +(cmp?('<br>Latest '+d.latest.date+' — index '+d.latest.index+' ('+(d.latest.index-d.baseline.index>=0?'+':'')+(d.latest.index-d.baseline.index)+' index, '+(d.latest.overall-d.baseline.overall>=0?'+':'')+(d.latest.overall-d.baseline.overall)+' pts)'):'')+'</div>'; }
   b.innerHTML='<div class="ac-wrap" style="max-width:680px"><div class="ac-hero"><h1>Intelligence Profile</h1>'
     +'<p>A rigorous, full-spectrum measurement across 10 dimensions — logical, numerical, verbal, spatial, working memory, processing speed, emotional (EQ), social, self-awareness and creative. Every attempt uses <b>freshly generated questions</b>, so it is never the same twice. Set your <b>baseline</b> now, then retake at the end to see how much you grew.</p>'
-    +'<div style="color:var(--text-d);font-size:11px">42 questions · cognitive items are timed · memory items flash then hide · difficulty-weighted → 100/SD-15 index + percentile. As accurate as a self-test gets; a proctored WAIS is the only official clinical score.</div></div>'
+    +'<div style="color:var(--text-d);font-size:11px">42 questions · standard + advanced tiers · cognitive items are timed · memory items flash then hide · difficulty-weighted (advanced items count more) → 100/SD-15 index + percentile. As accurate as a self-test gets; a proctored WAIS is the only official clinical score.</div></div>'
     +status
     +'<button class="pt-btn" onclick="iqBegin()">'+(d.baseline?"Retake assessment ▸":"Begin baseline ▸")+'</button>'
     +(d.latest&&d.latest.facets?'<button class="pt-btn" style="margin-left:8px;background:rgba(255,255,255,.1);color:#fff" onclick="iqResultsView()">See last results</button>':'')
@@ -3585,6 +3675,31 @@ async function brMac(){
 }
 async function brMacDel(i){ var mb=window._macBrain||[]; mb.splice(i,1); try{ await dbAPI('brain',{brain:mb}); }catch(e){} brMac(); toast('forgotten on the Mac'); }
 
+// ═══ BAM CITY — every module + agent as a 3D building; loaded lazily in an iframe ═══
+function openBamCity(){
+  var el=document.getElementById('bamcity');
+  var f =document.getElementById('bc-iframe');
+  if(f.src==='about:blank' || !f.src) f.src='bam-city.html';
+  el.classList.add('open');
+}
+function closeBamCity(){ document.getElementById('bamcity').classList.remove('open'); }
+function bamCityPost(action, arg){
+  var f=document.getElementById('bc-iframe');
+  try{ f && f.contentWindow && f.contentWindow.postMessage({type:'bam-city', action:action, arg:arg}, '*'); }catch(e){}
+}
+function bamCityGrow(){ bamCityPost('grow'); }
+function bamCityAuto(){
+  var b=document.getElementById('bc-auto');
+  var on=!b.classList.contains('on'); b.classList.toggle('on',on);
+  b.textContent = on ? '■ AUTO' : '▶ AUTO';
+  b.style.background = on ? 'rgba(120,20,40,.5)' : 'rgba(60,10,20,.2)';
+  bamCityPost(on?'startAuto':'stopAuto');
+}
+// exposed helpers the BAM daemon/chat can call to grow the city from elsewhere in the app:
+window.bamCityAdd    = function(mod){ bamCityPost('add', mod); };
+window.bamCityUpdate = function(id, patch){ bamCityPost('update', {id:id, patch:patch}); };
+window.bamCityRemove = function(id){ bamCityPost('remove', id); };
+
 // ═══ INTERCOM — hold to talk; the Mac hears you and Bam answers in the room ═══
 function openIntercom(){ document.getElementById('intercom').classList.add('open'); icWire(); }
 function closeIntercom(){ document.getElementById('intercom').classList.remove('open'); }
@@ -3625,7 +3740,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1784881641';
+var BAM_BUILD='1785394646';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -4461,7 +4576,7 @@ async function deckChatSend(){
 
 function openAcademy(){ document.getElementById('academy').classList.add('open'); acRenderGrid(); }
 function closeAcademy(){ document.getElementById('academy').classList.remove('open'); }
-function acBack(){ if(acView==='lesson'){ acRenderCourse(acCourse); } else { acRenderGrid(); } }
+function acBack(){ if(acView==='lesson'||acView==='study'){ acRenderCourse(acCourse); } else { acRenderGrid(); } }
 
 function acRenderGrid(){
   acView='grid'; acCourse=null;
@@ -4508,6 +4623,8 @@ function acRenderCourse(key){
     +'<span>'+done.length+' / '+total+' lessons · '+(c.modules||[]).length+' modules</span>'
     +'<div class="ac-pb" style="margin-top:9px;--a1:rgba(255,255,255,.95);--a2:rgba(255,255,255,.72)"><i style="width:'+pct+'%"></i></div></div><div class="ring">'+pct+'%</div>';
   wrap.appendChild(head);
+  const sb=document.createElement('button'); sb.className='ac-studybtn'; sb.textContent='🎬 Study Room — watch videos, take notes, get insights';
+  sb.onclick=()=>acOpenStudy(key); wrap.appendChild(sb);
   const mods=c.modules||[], per=Math.max(1,Math.round(c.lessons.length/(mods.length||1)));
   // default-open the first module that isn't fully complete
   let firstOpen=-1;
@@ -4561,11 +4678,12 @@ function acRenderLesson(key,idx,lt,d){
   let html='<div class="ac-lesson-content"><h3>'+doomEsc(lt)+'</h3>'+acMd(d.lesson||'')+'</div>';
   if((d.keyterms||[]).length){ html+='<div class="ac-takeaways"><h4>📘 Key terms</h4>'; d.keyterms.forEach(t=>{ const term=typeof t==='string'?t:(t.term||''); const def=typeof t==='string'?'':(t.def||''); html+='<b>'+doomEsc(term)+'</b>'+(def?' — '+doomEsc(def):'')+'<br>'; }); html+='</div>'; }
   if((d.takeaways||[]).length){ html+='<div class="ac-takeaways"><h4>✦ Key takeaways</h4>'; d.takeaways.forEach(t=>{ html+='• '+doomEsc(t)+'<br>'; }); html+='</div>'; }
-  html+='<div style="display:flex;gap:9px;flex-wrap:wrap"><button class="ac-take" id="ac-learned">Mark as learned ✓</button><button class="ac-take" id="ac-take" style="background:transparent;border:1px solid rgba(255,255,255,.18)">Check yourself (optional) →</button></div><div id="ac-quiz"></div>';
+  html+='<div style="display:flex;gap:9px;flex-wrap:wrap"><button class="ac-take" id="ac-learned">Mark as learned ✓</button><button class="ac-take" id="ac-take" style="background:transparent;border:1px solid rgba(255,255,255,.18)">Check yourself (optional) →</button><button class="ac-take" id="ac-vids" style="background:transparent;border:1px solid rgba(212,175,55,.4);color:#e8d5a0">🎬 Watch videos on this</button></div><div id="ac-quiz"></div>';
   wrap.innerHTML=html; body.innerHTML=''; body.appendChild(wrap); body.scrollTop=0;
   const quiz=d.quiz||[];
   document.getElementById('ac-learned').onclick=()=>acFinish(key,idx);
   document.getElementById('ac-take').onclick=()=>acRenderQuiz(key,idx,quiz);
+  document.getElementById('ac-vids').onclick=()=>acOpenStudy(key,lt);
 }
 
 function acRenderQuiz(key,idx,quiz){
@@ -4589,6 +4707,115 @@ function acAnswer(btn,chosen,answer){
 }
 
 function acFinish(key,idx){ acSaveDone(key,idx); acRenderCourse(key); }
+
+// ── STUDY ROOM — watch real videos on a course topic, take notes beside them, get Bam's insights ──
+let acStudy={key:null,topic:'',video:null,list:[]};
+function acNotesAll(){ try{ return JSON.parse(localStorage.getItem('jv-acnotes')||'{}'); }catch(e){ return {}; } }
+function acNoteSave(){ const ta=document.getElementById('ac-nta'); if(!ta||!acStudy.key) return; const n=acNotesAll(); if(ta.value.trim()) n[acStudy.key]=ta.value; else delete n[acStudy.key]; try{ localStorage.setItem('jv-acnotes',JSON.stringify(n)); }catch(e){} }
+
+function acOpenStudy(key,topic){
+  acView='study'; acCourse=key;
+  const c=ACADEMY.find(x=>x.key===key);
+  document.getElementById('ac-back').style.display='';
+  document.getElementById('ac-title').textContent='🎬 Study Room · '+c.title;
+  const body=document.getElementById('ac-body'); body.scrollTop=0;
+  if(!cfg.ytKey && !cfg.apiUrl){ body.innerHTML='<div class="ac-lesson-content">Add a YouTube API key (or your Server Vault URL) in ⚙ Settings to watch videos here.</div>'; return; }
+  acStudy={key:key,topic:topic||c.title,video:null,list:[]};
+  const wrap=document.createElement('div'); wrap.className='ac-study';
+  let chips='<div class="ac-topics"><button class="ac-topic" data-q="">'+c.icon+' All of '+doomEsc(c.title)+'</button>';
+  (c.modules||[]).forEach(m=>{ chips+='<button class="ac-topic" data-q="'+doomEsc(m).replace(/"/g,'&quot;')+'">'+doomEsc(m)+'</button>'; });
+  chips+='</div>';
+  wrap.innerHTML=chips
+    +'<div class="ac-vsearch"><input id="ac-vq" placeholder="Search videos on anything in '+doomEsc(c.title)+'…"><button onclick="acStudySearch()">Search</button></div>'
+    +'<div><div class="ac-player" id="ac-player"></div><div class="ac-vlist" id="ac-vlist"></div></div>'
+    +'<div class="ac-notesbox"><h4>📝 My notes</h4><textarea id="ac-nta" placeholder="Write what clicks while you watch — Bam reads these and tells you what you nailed, what to sharpen, and how to remember it."></textarea>'
+    +'<div class="ac-bamrow"><button class="ac-take" id="ac-ins-btn" onclick="acInsights()">✨ Bam, read my notes</button><button class="ac-take" id="ac-hl-btn" onclick="acBamMarkup()" style="background:transparent;border:1px solid rgba(212,175,55,.4);color:#e8d5a0">🖍 Bam, mark up my notes</button></div><div id="ac-bam"></div><div id="ac-insights"></div></div>';
+  body.innerHTML=''; body.appendChild(wrap);
+  wrap.querySelectorAll('.ac-topic').forEach(b=>{
+    if((b.dataset.q||c.title)===acStudy.topic) b.classList.add('on');
+    b.onclick=()=>{ wrap.querySelectorAll('.ac-topic').forEach(x=>x.classList.remove('on')); b.classList.add('on'); document.getElementById('ac-vq').value=''; acStudy.topic=b.dataset.q||c.title; acStudyLoad(); };
+  });
+  const ta=document.getElementById('ac-nta');
+  ta.value=acNotesAll()[key]||'';
+  ta.oninput=()=>{ clearTimeout(ta._t); ta._t=setTimeout(acNoteSave,400); };
+  const bm=acBamAll()[key]; if(bm) acBamRender(bm);
+  const vq=document.getElementById('ac-vq');
+  if(topic && topic!==c.title && !(c.modules||[]).includes(topic)) vq.value=topic;
+  vq.onkeydown=e=>{ if(e.key==='Enter') acStudySearch(); };
+  acStudyLoad();
+}
+
+function acStudyQuery(){
+  const c=ACADEMY.find(x=>x.key===acStudy.key), t=acStudy.topic;
+  if(t===c.title) return c.title;
+  const ctx=c.title.replace(/\(.*?\)/g,'').trim();
+  return t.toLowerCase().includes(ctx.toLowerCase())? t : t+' '+ctx;   // module names need course context or YouTube goes generic
+}
+async function acStudyLoad(){
+  const pl=document.getElementById('ac-player'), ls=document.getElementById('ac-vlist');
+  pl.innerHTML='<div class="ac-lesson-content" style="max-width:none;padding:20px">🎬 Finding the best videos on “'+doomEsc(acStudy.topic)+'”…</div>'; ls.innerHTML='';
+  let vids=[]; try{ vids=await doomFetchVideos(acStudyQuery()); }catch(e){}
+  if(!vids||!vids.length){ pl.innerHTML='<div class="ac-lesson-content" style="max-width:none;padding:20px">No videos found — try another topic or search.</div>'; return; }
+  acStudy.list=vids; acStudyPlay(0);
+}
+function acStudyPlay(i){
+  const v=acStudy.list[i]; if(!v) return; acStudy.video=v;
+  document.getElementById('ac-player').innerHTML='<iframe src="https://www.youtube.com/embed/'+encodeURIComponent(v.id)+'?rel=0&modestbranding=1" allow="encrypted-media;picture-in-picture" allowfullscreen></iframe>'
+    +'<div class="ac-nowtitle">'+doomEsc(v.title)+' <span>· '+doomEsc(v.channel||'')+'</span></div>';
+  let h=''; acStudy.list.forEach((x,xi)=>{
+    h+='<div class="ac-vrow'+(xi===i?' on':'')+'" onclick="acStudyPlay('+xi+')"><img src="https://i.ytimg.com/vi/'+encodeURIComponent(x.id)+'/mqdefault.jpg" loading="lazy" alt=""><div class="vt"><b>'+doomEsc(x.title)+'</b><span>'+doomEsc(x.channel||'')+'</span></div></div>';
+  });
+  document.getElementById('ac-vlist').innerHTML=h;
+}
+function acStudySearch(){
+  const q=document.getElementById('ac-vq').value.trim(); if(!q) return;
+  document.querySelectorAll('.ac-topic').forEach(x=>x.classList.remove('on'));
+  acStudy.topic=q; acStudyLoad();
+}
+
+async function acInsights(){
+  const c=ACADEMY.find(x=>x.key===acStudy.key);
+  const notes=((document.getElementById('ac-nta')||{}).value||'').trim();
+  const out=document.getElementById('ac-insights'), btn=document.getElementById('ac-ins-btn');
+  if(!notes){ out.innerHTML='<div class="ac-takeaways">Write a few notes first — then I can work with them.</div>'; return; }
+  if(!(cfg.apikey||cfg.apiUrl)){ out.innerHTML='<div class="ac-takeaways">Add your API key or Server Vault URL in ⚙ Settings to get insights.</div>'; return; }
+  acNoteSave();
+  btn.disabled=true; btn.textContent='🧠 Reading your notes…';
+  const sys='You are Bam, my personal mentor inside my private Academy. I have been watching videos in the course "'+c.title+'" (current topic: "'+acStudy.topic+'") and taking notes. Study MY notes and reply in markdown with exactly these bold sections: **What you nailed** (the 1-2 strongest ideas in my notes and why they matter), **Sharpen this** (correct any misconception or vague point — quote my own words back to me), **The deeper connection** (one insight linking my notes to the bigger picture of '+c.title+'), **Remember it like this** (one vivid analogy or memory hook), **Prove it to yourself** (one short question or 5-minute exercise). Be specific to what I actually wrote, warm and direct, under 250 words.';
+  try{
+    const r=await callAPIWithPrompt(sys,[{role:'user',content:(acStudy.video?'Video I just watched: "'+acStudy.video.title+'".\n\n':'')+'My notes:\n\n'+notes}],()=>{});
+    out.innerHTML='<div class="ac-takeaways"><h4>✨ Bam’s insights</h4>'+acMd(r)+'</div>';
+  }catch(e){ out.innerHTML='<div class="ac-takeaways">Insights failed — check your connection and try again.</div>'; }
+  btn.disabled=false; btn.textContent='✨ Bam, read my notes';
+}
+
+// ── Bam's markup — gold-highlights the lines in MY notes it would mark + its own margin remarks ──
+function acBamAll(){ try{ return JSON.parse(localStorage.getItem('jv-acbam')||'{}'); }catch(e){ return {}; } }
+function acBamRender(d){
+  const out=document.getElementById('ac-bam'); if(!out||!d) return;
+  let h='';
+  (d.highlights||[]).forEach(x=>{ if(!x||!(x.quote||'').trim()) return;
+    h+='<div class="ac-hl"><q>'+doomEsc(x.quote)+'</q><span class="why"><b>🖍 Bam:</b> '+doomEsc(x.remark||'')+'</span></div>'; });
+  if((d.margin||[]).length){ h+='<div class="ac-margin"><h5>In the margin — what I’d add</h5>'; d.margin.forEach(m=>{ h+='<div>✦ '+doomEsc(m)+'</div>'; }); h+='</div>'; }
+  out.innerHTML=h;
+}
+async function acBamMarkup(){
+  const c=ACADEMY.find(x=>x.key===acStudy.key);
+  const notes=((document.getElementById('ac-nta')||{}).value||'').trim();
+  const out=document.getElementById('ac-bam'), btn=document.getElementById('ac-hl-btn');
+  if(!notes){ out.innerHTML='<div class="ac-takeaways">Write a few notes first — then I’ll get my highlighter out.</div>'; return; }
+  if(!(cfg.apikey||cfg.apiUrl)){ out.innerHTML='<div class="ac-takeaways">Add your API key or Server Vault URL in ⚙ Settings first.</div>'; return; }
+  acNoteSave();
+  btn.disabled=true; btn.textContent='🖍 Marking up…';
+  const sys='You are Bam, my mentor, going through my study notes with a gold highlighter — like a coach writing in the margins of my notebook. Course: "'+c.title+'", topic: "'+acStudy.topic+'". Return JSON only: {"highlights":[{"quote":"","remark":""}],"margin":["",""]}. "highlights" = the 2-4 lines of MY notes you would highlight: "quote" must be a SHORT phrase copied word-for-word from my notes (max ~15 words, exact wording), "remark" = one punchy sentence on why THAT line is the one that matters. "margin" = 2-3 remarks of your OWN — things I did NOT write down but should have, the points YOU would have highlighted from this topic'+(acStudy.video?' and the video':'')+'. Every remark under 25 words, direct and personal.';
+  try{
+    const r=await callAPIWithPrompt(sys,[{role:'user',content:(acStudy.video?'Video I’m watching: "'+acStudy.video.title+'".\n\n':'')+'My notes:\n\n'+notes}],()=>{});
+    const d=JSON.parse((r.match(/\{[\s\S]*\}/)||[r])[0]);
+    const all=acBamAll(); all[acStudy.key]=d; try{ localStorage.setItem('jv-acbam',JSON.stringify(all)); }catch(e){}
+    acBamRender(d);
+  }catch(e){ out.innerHTML='<div class="ac-takeaways">Markup failed — try again in a moment.</div>'; }
+  btn.disabled=false; btn.textContent='🖍 Bam, mark up my notes';
+}
 
 // ── BACKUP / RESTORE (survives iOS clearing localStorage) ──
 async function exportSettings() {

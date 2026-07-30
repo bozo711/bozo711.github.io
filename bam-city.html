@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BAM CITY — 3D capability map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&display=swap">
+<style>
+  /* palette pulled straight from BAM's index.html :root */
+  :root{
+    --bg:#010008; --bg2:#05000f;
+    --red:#6b0020; --red-h:#a3143a; --red-b:rgba(100,0,30,.35);
+    --gold:#8a6800; --gold-h:#e2c05c; --gold-b:rgba(138,104,0,.32);
+    --panel:rgba(4,0,14,.97);
+    --text:#eedcd8; --text-d:rgba(230,200,200,.7); --muted:rgba(200,90,90,.55);
+    --mono: 'Courier New', ui-monospace, Menlo, monospace;
+    --serif: 'Cinzel', serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);overflow:hidden;font-family:var(--mono);font-size:14px}
+  #stage{position:fixed;inset:0}
+  canvas{display:block}
+
+  /* HUD — matches BAM's crimson-panel look */
+  .hud{position:fixed;top:14px;left:16px;z-index:5;pointer-events:none;user-select:none;
+       background:var(--panel);border:1px solid var(--red-b);border-left:2px solid var(--red);
+       border-radius:10px;padding:12px 16px;box-shadow:0 20px 40px rgba(0,0,0,.5)}
+  .hud h1{margin:0;font-family:var(--serif);font-size:14px;font-weight:700;letter-spacing:.55em;
+       color:var(--red);text-transform:uppercase;text-shadow:0 0 12px rgba(140,0,30,.55)}
+  .hud .sub{margin-top:5px;font-size:8.5px;letter-spacing:.32em;color:var(--muted);text-transform:uppercase}
+  .hud .truth{margin-top:10px;font-size:9.5px;letter-spacing:.14em;color:var(--text-d)}
+  .hud .truth b{color:var(--gold-h);font-weight:700;text-shadow:0 0 8px rgba(184,134,11,.4)}
+
+  .note{position:fixed;top:14px;right:16px;z-index:5;font-size:9px;letter-spacing:.14em;
+        color:var(--text-d);text-align:right;max-width:260px;line-height:1.8;pointer-events:none;
+        background:var(--panel);border:1px solid var(--red-b);border-right:2px solid var(--gold);
+        padding:10px 14px;border-radius:10px}
+
+  .bar{position:fixed;bottom:14px;left:16px;right:16px;z-index:5;display:flex;gap:14px;
+       align-items:center;flex-wrap:wrap;font-size:9px;letter-spacing:.14em;color:var(--text-d);
+       text-transform:uppercase;background:var(--panel);border:1px solid var(--red-b);
+       border-radius:10px;padding:10px 14px;box-shadow:0 20px 40px rgba(0,0,0,.5)}
+  .bar button{font:inherit;letter-spacing:.14em;text-transform:uppercase;background:rgba(50,0,15,.4);
+       color:var(--gold-h);border:1px solid var(--red-b);padding:7px 12px;cursor:pointer;
+       border-radius:6px;transition:all .15s}
+  .bar button:hover{border-color:var(--red-h);color:#fff;background:rgba(90,10,30,.55)}
+  .bar button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .bar button.on{color:#fff;border-color:var(--red-h);background:linear-gradient(135deg,rgba(120,0,30,.55),rgba(80,0,20,.35));
+       box-shadow:0 0 12px rgba(140,0,30,.4)}
+  .bar i{width:8px;height:8px;display:inline-block;margin-right:5px;vertical-align:-1px;border-radius:50%}
+  .sun{display:flex;align-items:center;gap:10px}
+  .sun input{-webkit-appearance:none;appearance:none;width:170px;height:2px;
+       background:linear-gradient(90deg,#12040c,#a3143a 45%,#e2c05c 55%,#12040c);outline:none}
+  .sun input::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--gold-h);cursor:pointer;border:2px solid var(--bg)}
+  .sun input::-moz-range-thumb{width:11px;height:11px;border-radius:50%;background:var(--gold-h);cursor:pointer;border:2px solid var(--bg)}
+  .sun b{color:var(--gold-h);font-weight:700;min-width:52px}
+  .hint{color:rgba(230,200,200,.35);text-transform:none;letter-spacing:.06em}
+
+  /* district legend — mirrors the APPS drawer sections */
+  .districts{position:fixed;top:110px;left:16px;z-index:5;display:flex;flex-direction:column;gap:4px;
+              font-size:8px;letter-spacing:.35em;text-transform:uppercase;pointer-events:none;
+              font-weight:700}
+  .districts span{padding:5px 10px 5px 22px;background:var(--panel);border-left:2px solid;
+       position:relative;border-radius:0 6px 6px 0}
+  .districts span::before{content:'';position:absolute;left:8px;top:50%;width:6px;height:6px;
+       border-radius:50%;transform:translateY(-50%);background:currentColor;
+       box-shadow:0 0 8px currentColor}
+
+  .tip{position:fixed;z-index:6;pointer-events:none;padding:6px 10px;background:var(--panel);
+       border:1px solid var(--red-b);border-left:2px solid var(--red);border-radius:5px;
+       font-size:9px;letter-spacing:.15em;color:var(--text);
+       white-space:nowrap;transform:translate(-50%,-140%);opacity:0;transition:opacity .12s}
+  .bub{position:fixed;z-index:6;pointer-events:none;padding:5px 9px;background:var(--panel);
+       border:1px solid var(--gold-b);font-size:8.5px;letter-spacing:.08em;color:var(--gold-h);
+       white-space:nowrap;transform:translate(-50%,-100%);border-radius:5px}
+
+  /* side panel — reads like the BAM app's biz-panel style */
+  #panel{position:fixed;z-index:7;top:0;right:0;height:100%;width:360px;padding:30px 26px;
+    background:linear-gradient(90deg,rgba(4,0,14,0) 0%,var(--panel) 22%);
+    border-left:1px solid var(--red-b);
+    transform:translateX(102%);transition:transform .38s cubic-bezier(.2,.8,.2,1);overflow-y:auto}
+  #panel.open{transform:none}
+  #panel h2{margin:40px 0 4px;font-family:var(--serif);font-size:16px;font-weight:700;
+    letter-spacing:.24em;text-transform:uppercase}
+  #panel .st{font-size:9px;letter-spacing:.24em;text-transform:uppercase}
+  #panel .meta{font-size:9px;letter-spacing:.14em;color:rgba(200,90,90,.5);margin-bottom:8px}
+  #panel .district{display:inline-block;font-size:8.5px;letter-spacing:.32em;text-transform:uppercase;
+    padding:3px 10px;margin-bottom:20px;border:1px solid currentColor;border-radius:3px;font-weight:700}
+  #panel .icon{font-size:22px;margin-right:8px;vertical-align:-3px}
+  .role{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid rgba(100,0,30,.25)}
+  .role .n{font-size:8px;color:rgba(200,90,90,.35);letter-spacing:.1em;width:16px;font-weight:700}
+  .role .r{font-size:10px;letter-spacing:.14em;text-transform:uppercase;flex:1}
+  .role .who{font-size:8px;letter-spacing:.13em;text-align:right;max-width:150px;line-height:1.5;font-weight:700}
+  .dot{width:6px;height:6px;border-radius:50%;flex:none;box-shadow:0 0 6px currentColor}
+  #panel .foot{margin-top:24px;font-size:9px;letter-spacing:.10em;color:rgba(200,90,90,.45);line-height:1.9;
+    padding-top:14px;border-top:1px solid rgba(100,0,30,.3)}
+  #panel .close{position:absolute;top:26px;right:26px;font:inherit;font-size:9px;letter-spacing:.24em;
+    text-transform:uppercase;background:transparent;border:1px solid var(--red-b);
+    color:var(--text-d);padding:6px 10px;cursor:pointer;border-radius:4px;font-weight:700}
+  #panel .close:hover{color:#fff;border-color:var(--red-h);background:rgba(90,0,20,.3)}
+  input[type=file]{display:none}
+
+  /* build modal — matches BAM cfg-sec */
+  #build{position:fixed;z-index:8;top:50%;left:50%;transform:translate(-50%,-50%) scale(.94);
+    width:min(420px,92vw);background:var(--panel);border:1px solid var(--red-b);border-left:2px solid var(--red);
+    border-radius:12px;padding:22px 22px 18px;box-shadow:0 40px 80px rgba(0,0,0,.7);
+    opacity:0;pointer-events:none;transition:opacity .18s, transform .18s cubic-bezier(.2,.9,.3,1)}
+  #build.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+  #build h3{margin:0 0 4px;font-family:var(--serif);font-size:14px;letter-spacing:.32em;color:var(--red);text-transform:uppercase}
+  #build .subh{font-size:9px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-bottom:16px}
+  #build .row{display:flex;gap:8px;margin-bottom:9px;align-items:center}
+  #build label{flex:0 0 78px;font-size:9px;letter-spacing:.14em;color:var(--text-d);text-transform:uppercase}
+  #build input,#build select,#build textarea{flex:1;background:rgba(100,0,0,.08);border:1px solid var(--red-b);
+    color:var(--text);border-radius:6px;font:inherit;font-size:12px;padding:7px 9px;outline:none}
+  #build input:focus,#build select:focus,#build textarea:focus{border-color:var(--red-h)}
+  #build textarea{min-height:52px;resize:vertical;font-family:var(--mono)}
+  #build .btns{display:flex;gap:8px;margin-top:14px}
+  #build .btns button{flex:1;font:inherit;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    padding:9px;cursor:pointer;border-radius:6px}
+  #build .cancel{background:transparent;border:1px solid var(--red-b);color:var(--text-d)}
+  #build .cancel:hover{border-color:var(--red-h);color:#fff}
+  #build .random{background:linear-gradient(135deg,rgba(90,40,10,.5),rgba(60,20,5,.4));
+    border:1px solid var(--gold-b);color:var(--gold-h)}
+  #build .random:hover{border-color:var(--gold-h);color:#fff}
+  #build .go{background:linear-gradient(135deg,var(--red),#3a0010);border:1px solid var(--red-h);
+    color:#fff;font-weight:700;text-shadow:0 0 8px rgba(120,0,30,.6)}
+  #build .go:hover{box-shadow:0 0 18px rgba(140,0,30,.5)}
+  .backdrop{position:fixed;inset:0;z-index:7;background:rgba(2,0,6,.55);opacity:0;pointer-events:none;transition:opacity .18s}
+  .backdrop.open{opacity:1;pointer-events:auto}
+
+  /* toast */
+  #toasts{position:fixed;right:20px;bottom:80px;z-index:8;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+  .toast{background:var(--panel);border:1px solid var(--gold-b);border-left:3px solid var(--gold-h);
+    padding:10px 14px;border-radius:8px;font-size:10px;letter-spacing:.16em;color:var(--gold-h);
+    text-transform:uppercase;opacity:0;transform:translateX(20px);
+    transition:opacity .3s, transform .3s;box-shadow:0 12px 26px rgba(0,0,0,.5);max-width:290px;line-height:1.6}
+  .toast.on{opacity:1;transform:none}
+  .toast .name{color:#fff;letter-spacing:.1em;font-weight:700}
+
+  @media (max-width:680px){#panel{width:100%} .sun input{width:110px} .districts{display:none} .note{max-width:180px}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+
+<div class="hud">
+  <h1>BAM City</h1>
+  <div class="sub">Every drawer app · every service · every mind</div>
+  <div class="truth" id="truth"></div>
+</div>
+
+<div class="districts" id="districts"></div>
+
+<div class="note" id="note"></div>
+
+<div class="bar">
+  <div class="sun">
+    <span>sun</span>
+    <input type="range" id="time" min="0" max="24" step="0.1" value="10">
+    <b id="clock">10:00</b>
+  </div>
+  <button id="bDay" class="on">Day</button>
+  <button id="bDusk">Dusk</button>
+  <button id="bNight">Night</button>
+  <button id="grow">＋ Grow</button>
+  <button id="auto" title="BAM builds a new tower every 8 seconds">▶ Auto</button>
+  <button id="load">Load city_state.json</button>
+  <button id="reset">Reset view</button>
+  <button id="wipe" title="Clear BAM's saved additions and restore the seed city">Wipe</button>
+  <span><i style="background:#e2c05c;box-shadow:0 0 6px #e2c05c"></i>live</span>
+  <span><i style="background:#a3143a;box-shadow:0 0 6px #a3143a"></i>working</span>
+  <span><i style="background:#5a5560"></i>stub</span>
+  <span class="hint">daylight shows every tower — night shows which ones are alive</span>
+</div>
+<input type="file" id="file" accept=".json">
+
+<div class="tip" id="tip"></div>
+
+<aside id="panel">
+  <button class="close" id="close">Close</button>
+  <div id="pbody"></div>
+</aside>
+
+<div class="backdrop" id="backdrop"></div>
+<div id="build">
+  <h3>Grow BAM City</h3>
+  <div class="subh">Add a new tower — or let BAM invent one</div>
+  <div class="row"><label>District</label><select id="bDist"></select></div>
+  <div class="row"><label>Name</label><input id="bName" placeholder="e.g. Kokoro TTS"></div>
+  <div class="row"><label>Icon</label><input id="bIcon" placeholder="🎵" maxlength="4" style="flex:0 0 90px"></div>
+  <div class="row"><label>Status</label>
+    <select id="bStatus"><option value="live">live — spawns a mind to staff it</option><option value="stub">stub — spec only, no mind</option></select>
+  </div>
+  <div class="row"><label>Priority</label><input id="bPrio" type="number" min="1" max="5" value="3" style="flex:0 0 90px"></div>
+  <div class="row"><label>Queue</label><input id="bQueue" type="number" min="0" value="0" style="flex:0 0 90px"></div>
+  <div class="row"><label>Drawer?</label>
+    <select id="bPrimary" style="flex:0 0 200px"><option value="0">no — backend service</option><option value="1">yes — drawer app</option></select>
+  </div>
+  <div class="row"><label>Roles</label><textarea id="bRoles" placeholder="comma-separated · e.g. synthesize, cache, stream"></textarea></div>
+  <div class="btns">
+    <button class="cancel" id="bCancel">Cancel</button>
+    <button class="random" id="bRandom">🎲 Let BAM pick</button>
+    <button class="go" id="bGo">＋ Build</button>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ==================================================================
+   BAM CITY 3D — mirrors the BAM app: same 6 drawer sections as districts,
+   same crimson/gold palette, same icons. Renders city_state.json,
+   invents nothing, and every backend service tucks in with its drawer app.
+================================================================== */
+
+const RED=0xa3143a, GOLD=0xe2c05c, WORKING=0xff5570;
+
+/* Districts — EXACT drawer sections + order from /Users/bam/Downloads/index.html.
+   Positioned as a hexagonal ring around the central COMMAND CORE. */
+const RING_R = 110;
+const DISTRICTS=[
+  {id:'work',     name:'WORK',     icon:'💼', color:'#e2c05c', hex:0xe2c05c, ang:-Math.PI/2},                // north
+  {id:'life',     name:'LIFE',     icon:'⚡', color:'#c58a3a', hex:0xc58a3a, ang:-Math.PI/2+Math.PI/3},      // ne
+  {id:'security', name:'SECURITY', icon:'🛡', color:'#a3143a', hex:0xa3143a, ang:-Math.PI/2+2*Math.PI/3},    // se
+  {id:'mind',     name:'MIND',     icon:'🧠', color:'#7b2b5a', hex:0x7b2b5a, ang:Math.PI/2},                 // south
+  {id:'ship',     name:'SHIP',     icon:'🚀', color:'#c07028', hex:0xc07028, ang:Math.PI/2+Math.PI/3},       // sw
+  {id:'senses',   name:'SENSES',   icon:'👁', color:'#d0a058', hex:0xd0a058, ang:-Math.PI/2-Math.PI/3}       // nw
+];
+DISTRICTS.forEach(d=>{ d.x=Math.cos(d.ang)*RING_R; d.z=Math.sin(d.ang)*RING_R; });
+DISTRICTS.push({id:'core',name:'COMMAND CORE',icon:'⌸',color:'#e2c05c',hex:0xe2c05c,x:0,z:0});
+const D_LOOKUP=Object.fromEntries(DISTRICTS.map(d=>[d.id,d]));
+
+/* SEED — Every APPS-drawer button = a primary tower.
+   Backend/infrastructure = smaller supporting towers tucked into the same district.
+   Icons match the drawer emoji so the city reads like the app. */
+const SEED={
+  modules:[
+    /* ═══ WORK — /Users/bam/Downloads/index.html §1877 ═══ */
+    {id:'ventures',  district:'work', icon:'💰', name:'Ventures',        status:'live', priority:5, queue:4, primary:true,  roles:['50 money plays','status cycle','playbook chat','wired to hands']},
+    {id:'webagent',  district:'work', icon:'🕹', name:'Web Agent',       status:'live', priority:5, queue:2, primary:true,  roles:['playwright headed','data-bam tags','approval gates','route trail']},
+    {id:'leadssites',district:'work', icon:'🏢', name:'Leads & Sites',   status:'live', priority:4, queue:2, primary:true,  roles:['find leads','enrich','pitch','build site','pipeline']},
+    {id:'ytstudio',  district:'work', icon:'📹', name:'YouTube Studio',  status:'live', priority:5, queue:2, primary:true,  roles:['plan','make','From-Bam approval','publish']},
+    {id:'blood',     district:'work', icon:'🩸', name:'Blood Terminal',  status:'live', priority:5, queue:6, primary:true,  roles:['paper positions','mark-to-market','settlement','risk rails']},
+    {id:'ledger',    district:'work', icon:'💵', name:'Finance Ledger',  status:'live', priority:3, queue:0, roles:['append-only','24h aggregate']},
+    {id:'strat',     district:'work', icon:'🎲', name:'Strategy Lab',    status:'live', priority:3, queue:0, roles:['10 strategies','whale leaderboard','weekly standings']},
+    {id:'gumroad',   district:'work', icon:'🛒', name:'Gumroad Publish', status:'stub', priority:5, queue:0, roles:['listing','asset','payout — BLOCKED']},
+
+    /* ═══ LIFE — §1883 ═══ */
+    {id:'powers',    district:'life', icon:'⚡', name:'Powers',          status:'live', priority:5, queue:0, primary:true,  roles:['body','mind','life','home','family','world','builds']},
+
+    /* ═══ SECURITY — §1885 ═══ */
+    {id:'sentinel',  district:'security', icon:'🛡', name:'Sentinel',    status:'live', priority:5, queue:0, primary:true,  roles:['token age','tunnel status','authfail count','lockdown']},
+    {id:'tripwire',  district:'security', icon:'🚨', name:'Tripwire',    status:'live', priority:5, queue:0, roles:['honeypots','8-fail rule','auto-lockdown','threat log']},
+    {id:'creds',     district:'security', icon:'🔐', name:'Creds Vault', status:'live', priority:5, queue:0, roles:['AES-256-GCM','Keychain key','migrate + destroy plaintext']},
+    {id:'backup',    district:'security', icon:'💾', name:'Backup',      status:'live', priority:4, queue:0, roles:['tar + openssl','keep 14','iCloud copy']},
+    {id:'authgate',  district:'security', icon:'🚫', name:'IP Blocker',  status:'live', priority:4, queue:0, roles:['30-min block','8 bad/hr','honeypot 401']},
+    {id:'hashwatch', district:'security', icon:'🔍', name:'Hash Alarm',  status:'live', priority:3, queue:0, roles:['md5 core files','diff-stat alert']},
+    {id:'kill',      district:'security', icon:'⏻',  name:'Killswitch',  status:'live', priority:5, queue:0, roles:['lockdown flag','tunnel down','no restart']},
+
+    /* ═══ MIND — §1887 ═══ */
+    {id:'brain',     district:'mind', icon:'🧠', name:'Brain',           status:'live', priority:3, queue:0, primary:true,  roles:['local jv-brain','Mac facts','category']},
+    {id:'ideas1k',   district:'mind', icon:'💡', name:'1000 Ideas',      status:'live', priority:2, queue:0, primary:true,  roles:['50 domains','search','status chips','0 built']},
+    {id:'academy',   district:'mind', icon:'🎓', name:'Academy',         status:'live', priority:5, queue:0, primary:true,  roles:['11 lineage minds','teach','exam','trait','spawn agent']},
+    {id:'doom',      district:'mind', icon:'🌀', name:'Doomscroll',      status:'live', priority:2, queue:0, primary:true,  roles:['insights','videos','games']},
+    {id:'neuro',     district:'mind', icon:'🧬', name:'Neurolink',       status:'live', priority:3, queue:0, primary:true,  roles:['cortex','tools','agents']},
+    {id:'physics',   district:'mind', icon:'⚛', name:'Physics Lab',      status:'live', priority:2, queue:0, primary:true,  roles:['portal engineering','speculative chemistry']},
+    {id:'memory',    district:'mind', icon:'🧿', name:'Memory Spine',    status:'live', priority:5, queue:0, roles:['nomic-embed','vector store','recall inject','25k cap']},
+    {id:'research',  district:'mind', icon:'🔬', name:'Deep Research',   status:'live', priority:5, queue:1, roles:['Firecrawl','DDG fallback','Jina reader','fact extract']},
+    {id:'lessons',   district:'mind', icon:'📖', name:'Post-Mortems',    status:'live', priority:3, queue:0, roles:['journal tail','lesson extract','inject on next task']},
+    {id:'rules',     district:'mind', icon:'📏', name:'Rules Extractor', status:'live', priority:2, queue:0, roles:['detect pushback','imperative rule','store']},
+    {id:'viewest',   district:'mind', icon:'📊', name:'View Estimator',  status:'live', priority:3, queue:0, roles:['self-calibrate','history features','predict']},
+
+    /* ═══ SHIP — §1894 ═══ */
+    {id:'threedee',  district:'ship', icon:'🌐', name:'3D World',        status:'live', priority:5, queue:0, primary:true,  roles:['this city','holographic core','navigator']},
+    {id:'deck',      district:'ship', icon:'⌸',  name:'Command Deck',    status:'live', priority:5, queue:0, primary:true,  roles:['every panel at once','decision bar','one-yes UX']},
+    {id:'missions',  district:'ship', icon:'🎯', name:'Missions',        status:'live', priority:5, queue:2, roles:['70B plan 2-6 steps','approve/abort','step runner']},
+    {id:'const',     district:'ship', icon:'📜', name:'Constitution',    status:'live', priority:5, queue:0, roles:['11 rules','inject into agent','safety layer']},
+    {id:'codes',     district:'ship', icon:'🛠', name:'BAM CODES',        status:'live', priority:5, queue:0, roles:['claude -p headless','snapshot + restore','reviewer','deploy']},
+    {id:'routines',  district:'ship', icon:'⏰', name:'Routines',        status:'live', priority:3, queue:0, roles:['time + day','queue agent tasks']},
+    {id:'queue',     district:'ship', icon:'📦', name:'Agent Queue',     status:'live', priority:4, queue:1, roles:['poll 25s','next when idle','journal']},
+    {id:'fallback',  district:'ship', icon:'🔀', name:'Model Fallback',  status:'live', priority:4, queue:0, roles:['70B → 8b-instant → local 3B','light path']},
+    {id:'watchdog',  district:'ship', icon:'🐕', name:'Daemon Watchdog', status:'live', priority:5, queue:0, roles:['restart API','tunnel rotate','2-strike','prune videos']},
+
+    /* ═══ SENSES — §1897 ═══ */
+    {id:'intercom',  district:'senses', icon:'📢', name:'Intercom',       status:'live', priority:4, queue:0, primary:true,  roles:['hold-to-talk','whisper STT','say TTS']},
+    {id:'lookonce',  district:'senses', icon:'👁', name:'Look Once',      status:'stub', priority:3, queue:0, primary:true,  roles:['screen grab','camera frame','vision → chat']},
+    {id:'watch',     district:'senses', icon:'📡', name:'Watch Mode',     status:'stub', priority:3, queue:0, primary:true,  roles:['continuous vision','diff detection']},
+    {id:'handsfree', district:'senses', icon:'🗣', name:'Hands-free',     status:'stub', priority:2, queue:0, primary:true,  roles:['open conversation','turn-taking']},
+    {id:'wake',      district:'senses', icon:'🎙', name:'Wake Word',      status:'stub', priority:2, queue:0, primary:true,  roles:['say Bam','activate']},
+    {id:'telegram',  district:'senses', icon:'📱', name:'Telegram Line',  status:'live', priority:5, queue:3, roles:['long-poll','two-way chat','decision commands','mirror alerts']},
+    {id:'discord',   district:'senses', icon:'💬', name:'Discord Bot',    status:'live', priority:5, queue:2, roles:['gateway','MESSAGE CONTENT','blast alerts','commands']},
+    {id:'agentmail', district:'senses', icon:'✉', name:'AgentMail',       status:'live', priority:4, queue:1, roles:['inbox poll','send','auto-reply','drip']},
+    {id:'push',      district:'senses', icon:'🔔', name:'Web Push',       status:'live', priority:3, queue:0, roles:['VAPID sign','lock-screen','subscribe']},
+    {id:'voice',     district:'senses', icon:'🔊', name:'Cloned Voice',   status:'live', priority:3, queue:0, roles:['ravenspire :8765','edge-tts','say fallback']}
+  ],
+  /* the 11 lineage minds from ~/.jarvis/minds/roster.json */
+  agents:[
+    {id:'m1', name:'SAGE',   skills:['money','strategy'],       assignment:'ventures',  status:'working', floor:0},
+    {id:'m2', name:'SCOUT',  skills:['trends','research'],      assignment:'research',  status:'working', floor:1},
+    {id:'m3', name:'QUILL',  skills:['writing','scripts'],      assignment:'ytstudio',  status:'working', floor:1},
+    {id:'m4', name:'LEDGER', skills:['markets','trading'],      assignment:'blood',     status:'working', floor:2},
+    {id:'m5', name:'WARDEN', skills:['security','ops'],         assignment:'sentinel',  status:'working', floor:0},
+    {id:'m6', name:'MUSE',   skills:['creative','visuals'],     assignment:'neuro',     status:'working', floor:0},
+    {id:'m7', name:'SOL',    skills:['coaching','morale'],      assignment:'powers',    status:'idle',    floor:0},
+    {id:'m8', name:'CORTEX', skills:['code','tools'],           assignment:'codes',     status:'working', floor:2},
+    {id:'m9', name:'ECHO',   skills:['memory','summarizing'],   assignment:'memory',    status:'working', floor:1},
+    {id:'m10',name:'NOVA',   skills:['wildcard','reasoning'],   assignment:'missions',  status:'working', floor:1},
+    {id:'m11',name:'INSPIRO',skills:['ideation','frontier'],    assignment:'ideas1k',   status:'idle',    floor:0}
+  ],
+  messages:[
+    {from:'m1',to:'m4',body:'ventures queue 4 — payout blocked'},
+    {from:'m4',to:'m1',body:'6 open positions, drawdown 1.8%'},
+    {from:'m2',to:'m3',body:'trend spike: minimalist finance'},
+    {from:'m9',to:'m10',body:'recalled 3 lessons for mission'},
+    {from:'m5',to:'m8',body:'hash clean — deploy allowed'},
+    {from:'m6',to:'m3',body:'12 visuals rendered'}
+  ]
+};
+
+/* fit weights for the scheduler */
+const FIT={
+  ventures:['money','strategy'], webagent:['research','web'], leadssites:['research','money','writing'],
+  ytstudio:['writing','creative','scripts'], blood:['markets','trading'],
+  ledger:['records'], strat:['markets','strategy'], gumroad:['money','writing'],
+  powers:['coaching','morale'],
+  sentinel:['security','ops'], tripwire:['security'], creds:['security'], backup:['security','ops'],
+  authgate:['security'], hashwatch:['security','code'], kill:['security'],
+  brain:['memory'], ideas1k:['ideation','frontier'], academy:['coaching','memory'],
+  doom:['research'], neuro:['creative','tools'], physics:['reasoning','frontier'],
+  memory:['memory','summarizing'], research:['research','trends','web'], lessons:['memory','learning'],
+  rules:['learning'], viewest:['research'],
+  threedee:['creative'], deck:['ops'], missions:['reasoning','strategy'], const:['ops'],
+  codes:['code','tools'], routines:['ops'], queue:['ops'], fallback:['code','ops'], watchdog:['ops','security'],
+  intercom:['voice'], lookonce:['vision'], watch:['vision'], handsfree:['voice'], wake:['voice'],
+  telegram:['messaging'], discord:['messaging'], agentmail:['messaging','writing'], push:['messaging'], voice:['voice']
+};
+
+/* ---------------- renderer ---------------- */
+const stage=document.getElementById('stage');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFShadowMap;
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.0;
+stage.appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x0a0208,0.006);
+const camera=new THREE.PerspectiveCamera(46,1,0.1,5000);
+
+const ambient=new THREE.HemisphereLight(0xd6b9b4, 0x1a0810, 0.55); scene.add(ambient);
+const fill=new THREE.AmbientLight(0x201017, 0.35); scene.add(fill);
+
+const sun=new THREE.DirectionalLight(0xffffff,1.5);
+sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);
+sun.shadow.camera.left=-240; sun.shadow.camera.right=240;
+sun.shadow.camera.top=240;  sun.shadow.camera.bottom=-240;
+sun.shadow.camera.near=1;   sun.shadow.camera.far=640;
+sun.shadow.bias=-0.0005;
+scene.add(sun);
+
+const moon=new THREE.DirectionalLight(0xa8b8d8,0.0);
+moon.position.set(-160,200,-100); scene.add(moon);
+
+const coreGlow=new THREE.PointLight(RED,0.0,240,2); coreGlow.position.set(0,20,0); scene.add(coreGlow);
+
+/* ---------------- sky dome (BAM crimson gradient) ---------------- */
+const skyGeo=new THREE.SphereGeometry(3200,32,20);
+const skyUniforms={
+  topColor:{value:new THREE.Color(0x0a1830)},
+  midColor:{value:new THREE.Color(0x5a6f8c)},
+  botColor:{value:new THREE.Color(0xd8a878)},
+  offset:{value:0}, exponent:{value:0.65}
+};
+const skyMat=new THREE.ShaderMaterial({
+  uniforms:skyUniforms,
+  vertexShader:`varying vec3 vWorld; void main(){vWorld=(modelMatrix*vec4(position,1.)).xyz; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`
+    uniform vec3 topColor,midColor,botColor; uniform float offset,exponent;
+    varying vec3 vWorld;
+    void main(){
+      float h=normalize(vWorld+vec3(0.,offset,0.)).y;
+      float t=clamp(h*1.5,0.,1.);
+      float b=clamp(-h*3.,0.,1.);
+      vec3 col=mix(midColor,topColor,pow(t,exponent));
+      col=mix(col,botColor,b);
+      gl_FragColor=vec4(col,1.);
+    }`,
+  side:THREE.BackSide, depthWrite:false
+});
+const sky=new THREE.Mesh(skyGeo,skyMat); scene.add(sky);
+
+const starGeo=new THREE.BufferGeometry();
+const starPos=new Float32Array(400*3);
+for(let i=0;i<400;i++){
+  const r=2600, th=Math.random()*Math.PI*2, ph=Math.acos(2*Math.random()-1)*0.55;
+  starPos[i*3]=r*Math.sin(ph)*Math.cos(th);
+  starPos[i*3+1]=r*Math.cos(ph)+400;
+  starPos[i*3+2]=r*Math.sin(ph)*Math.sin(th);
+}
+starGeo.setAttribute('position',new THREE.BufferAttribute(starPos,3));
+const stars=new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffe8d0,size:1.4,sizeAttenuation:false,transparent:true,opacity:0}));
+scene.add(stars);
+
+const sunDisc=new THREE.Mesh(new THREE.CircleGeometry(20,32),
+  new THREE.MeshBasicMaterial({color:0xffe6ba,transparent:true,opacity:0.9,depthWrite:false}));
+scene.add(sunDisc);
+
+/* ---------------- ground (dark burgundy asphalt — planet-scale) ---------------- */
+const groundMat=new THREE.MeshStandardMaterial({color:0x1a0e14,roughness:.95,metalness:.03});
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(6000,6000),groundMat);
+ground.rotation.x=-Math.PI/2; ground.position.y=-0.02; ground.receiveShadow=true; scene.add(ground);
+
+const grid=new THREE.GridHelper(6000,300,0x2a0e18,0x1a0810);
+grid.material.transparent=true; grid.material.opacity=.22; grid.position.y=0.01; scene.add(grid);
+
+/* Central core plaza — represents the JARVIS core / 3D World anchor */
+const corePlaza=new THREE.Mesh(new THREE.CircleGeometry(38,64),
+  new THREE.MeshStandardMaterial({color:0x2a0a18,roughness:.85,metalness:.08,emissive:0x400820,emissiveIntensity:.15}));
+corePlaza.rotation.x=-Math.PI/2; corePlaza.position.set(0,0.03,0); corePlaza.receiveShadow=true;
+scene.add(corePlaza);
+for(let i=0;i<3;i++){
+  const ring=new THREE.Mesh(new THREE.RingGeometry(38+i*4,38.8+i*4,96),
+    new THREE.MeshBasicMaterial({color:i%2?0xe2c05c:0xa3143a,transparent:true,opacity:.55-i*.15}));
+  ring.rotation.x=-Math.PI/2; ring.position.set(0,0.04+i*0.001,0); scene.add(ring);
+}
+
+/* District plazas */
+DISTRICTS.filter(d=>d.id!=='core').forEach(d=>{
+  const plaza=new THREE.Mesh(new THREE.CircleGeometry(48,48),
+    new THREE.MeshStandardMaterial({color:d.hex,roughness:.85,metalness:.05,transparent:true,opacity:.07}));
+  plaza.rotation.x=-Math.PI/2; plaza.position.set(d.x,0.03,d.z); plaza.receiveShadow=true;
+  scene.add(plaza);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(47,48.4,64),
+    new THREE.MeshBasicMaterial({color:d.hex,transparent:true,opacity:.35}));
+  ring.rotation.x=-Math.PI/2; ring.position.set(d.x,0.04,d.z); scene.add(ring);
+});
+
+/* Radial streets — extend from core out to the planet's edge (BAM's city sprawls) */
+function laneMat(){ return new THREE.MeshStandardMaterial({color:0x0e0509,roughness:.94,metalness:.02}); }
+const RADIAL_LEN = 1400;
+DISTRICTS.filter(d=>d.id!=='core').forEach(d=>{
+  const road=new THREE.Mesh(new THREE.PlaneGeometry(14,RADIAL_LEN),laneMat());
+  road.rotation.x=-Math.PI/2;
+  road.position.set(Math.cos(d.ang)*RADIAL_LEN/2, 0.02, Math.sin(d.ang)*RADIAL_LEN/2);
+  road.rotation.z = -d.ang + Math.PI/2;
+  road.receiveShadow=true; scene.add(road);
+});
+/* Multiple beltway rings — one inner (drawer plazas), plus outer rings for sprawl */
+[RING_R, RING_R*2.2, RING_R*3.6, RING_R*5.2].forEach((R,i)=>{
+  const road=new THREE.Mesh(new THREE.RingGeometry(R-7, R+7, 128), laneMat());
+  road.rotation.x=-Math.PI/2; road.position.y=0.02; road.receiveShadow=true; scene.add(road);
+  const stripe=new THREE.Mesh(new THREE.RingGeometry(R-.35, R+.35, 128, 1),
+    new THREE.MeshBasicMaterial({color:0xe2c05c,transparent:true,opacity:.35 - i*0.06}));
+  stripe.rotation.x=-Math.PI/2; stripe.position.y=0.04; scene.add(stripe);
+});
+
+/* ---------------- streetlights (lightweight: emissive only, shared geometry) ---------------- */
+const lamps=[];
+const puddles=[];
+// shared geometry + materials — no per-lamp allocation
+const LAMP_POST_G=new THREE.CylinderGeometry(.18,.24,7,8);
+const LAMP_ARM_G =new THREE.BoxGeometry(2.6,.18,.18);
+const LAMP_BULB_G=new THREE.SphereGeometry(.28,8,8);
+const LAMP_POST_M=new THREE.MeshStandardMaterial({color:0x1a1015,roughness:.6,metalness:.7});
+const PUDDLE_G   =new THREE.CircleGeometry(3.4,20);
+// puddle texture — soft warm glow, single shared canvas
+function puddleTex(){
+  const s=64,c=document.createElement('canvas');c.width=c.height=s;
+  const x=c.getContext('2d');
+  const g=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  g.addColorStop(0,'rgba(255,180,90,0.85)');
+  g.addColorStop(.5,'rgba(255,140,60,0.35)');
+  g.addColorStop(1,'rgba(255,120,50,0)');
+  x.fillStyle=g;x.fillRect(0,0,s,s);
+  const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; return t;
+}
+const PUDDLE_TEX=puddleTex();
+
+function addLamp(x,z){
+  const g=new THREE.Group();
+  const post=new THREE.Mesh(LAMP_POST_G, LAMP_POST_M); post.position.y=3.5; g.add(post);
+  const arm =new THREE.Mesh(LAMP_ARM_G, LAMP_POST_M);  arm.position.set(1.05,6.9,0); g.add(arm);
+  // bulb — one material per lamp so we can tune emissive individually at night
+  const bulbMat=new THREE.MeshBasicMaterial({color:0x1a0f0a});
+  const bulb=new THREE.Mesh(LAMP_BULB_G, bulbMat); bulb.position.set(2.2,6.85,0); g.add(bulb);
+  g.position.set(x,0,z); scene.add(g);
+  // ground puddle — additive-blended, no shader light cost
+  const puddleMat=new THREE.MeshBasicMaterial({
+    map:PUDDLE_TEX, transparent:true, opacity:0, depthWrite:false,
+    blending:THREE.AdditiveBlending
+  });
+  const puddle=new THREE.Mesh(PUDDLE_G, puddleMat);
+  puddle.rotation.x=-Math.PI/2;
+  puddle.position.set(x+2.2, 0.05, z);
+  scene.add(puddle);
+  lamps.push({bulb:bulbMat, puddle:puddleMat});
+}
+/* SPARSE placement — 5-ish lamps per district, no plaza rings */
+DISTRICTS.filter(d=>d.id!=='core').forEach(d=>{
+  const dx=d.x/RING_R, dz=d.z/RING_R;
+  const nx=-dz, nz=dx;
+  // 4 lamps along street (2 pairs) + 1 at plaza edge
+  for(const t of [0.35, 0.75]){
+    addLamp(d.x*t+nx*9, d.z*t+nz*9);
+    addLamp(d.x*t-nx*9, d.z*t-nz*9);
+  }
+  addLamp(d.x-nx*14, d.z-nz*14);
+});
+/* 4 lamps ringing the core plaza */
+for(let a=0;a<4;a++){
+  const th=a/4*Math.PI*2+Math.PI/4;
+  addLamp(Math.cos(th)*44, Math.sin(th)*44);
+}
+
+/* ---------------- sun / time of day ---------------- */
+const C={
+  nightTop:new THREE.Color(0x040713), nightMid:new THREE.Color(0x0a0812), nightBot:new THREE.Color(0x1a0812),
+  duskTop:new THREE.Color(0x2a1030),  duskMid:new THREE.Color(0x6b1030),  duskBot:new THREE.Color(0xff7a3c),
+  dayTop:new THREE.Color(0x1c3a6e),   dayMid:new THREE.Color(0x8ea6c8),   dayBot:new THREE.Color(0xe4c8a8),
+  nightGround:new THREE.Color(0x0a0508), dayGround:new THREE.Color(0x1a0e14),
+  /* buildings: warm crimson-stone tone in daylight, near-black at night */
+  nightLive:new THREE.Color(0x14080f),  dayLive:new THREE.Color(0xb28068),
+  nightStub:new THREE.Color(0x0a060c),  dayStub:new THREE.Color(0x605058),
+  dawnSun:new THREE.Color(0xff8a3d),    noonSun:new THREE.Color(0xfff4e2)
+};
+let hour=10, daylight=1;
+
+function setTime(h){
+  hour=h;
+  const ang=((h-6)/12)*Math.PI;
+  const up=Math.sin(ang);
+  daylight=Math.max(0,Math.min(1,up*1.35));
+  const dusky=Math.max(0,Math.min(1,1-Math.abs(up)*2.6));
+
+  sun.position.set(Math.cos(ang)*180, Math.max(-60,up*160), 80);
+  sun.intensity=daylight*1.7;
+  sun.color.copy(C.dawnSun).lerp(C.noonSun,Math.min(1,daylight*1.4));
+  sun.castShadow=daylight>0.06;
+  sunDisc.position.copy(sun.position).multiplyScalar(4.4);
+  sunDisc.lookAt(0,0,0);
+  sunDisc.material.color.copy(sun.color);
+  sunDisc.visible=up>-0.05;
+  sunDisc.material.opacity=Math.max(0,Math.min(1,0.15+daylight+dusky*0.6));
+
+  moon.intensity=Math.max(0,1-daylight)*0.55;
+  ambient.intensity=0.08+daylight*0.68;
+  fill.intensity=0.45-daylight*0.25;
+  coreGlow.intensity=(1-daylight)*1.5;
+
+  skyUniforms.topColor.value.copy(C.nightTop).lerp(C.duskTop,dusky).lerp(C.dayTop,daylight);
+  skyUniforms.midColor.value.copy(C.nightMid).lerp(C.duskMid,dusky).lerp(C.dayMid,daylight);
+  skyUniforms.botColor.value.copy(C.nightBot).lerp(C.duskBot,dusky).lerp(C.dayBot,daylight);
+  scene.fog.color.copy(skyUniforms.midColor.value);
+  scene.fog.density=0.0028+(1-daylight)*0.0058;
+
+  stars.material.opacity=Math.max(0,1-daylight*2.2);
+
+  groundMat.color.copy(C.nightGround).lerp(C.dayGround,daylight);
+  grid.material.opacity=0.06+daylight*0.24;
+
+  const lampOn=Math.max(0, 1-daylight*1.4);
+  lamps.forEach(l=>{
+    l.bulb.color.setRGB(0.10+lampOn*0.95, 0.09+lampOn*0.7, 0.06+lampOn*0.4);
+    l.puddle.opacity=lampOn*0.55;
+  });
+
+  beacons.forEach(b=>{ b.baseOpacity=0.35+(1-daylight)*0.65; });
+
+  towers.forEach(t=>{
+    const live=t.status==='live';
+    t.mesh.material.color.copy(live?C.nightLive:C.nightStub)
+      .lerp(live?C.dayLive:C.dayStub,daylight);
+    t.mesh.material.emissiveIntensity=live?(1-daylight)*1.25:0;
+    (t.tops||[]).forEach(m=>{
+      m.material.color.copy(live?C.nightLive:C.nightStub)
+        .lerp(live?C.dayLive:C.dayStub,daylight);
+      m.material.emissiveIntensity=live?(1-daylight)*1.25:0;
+    });
+    t.edge.material.opacity=live?(0.32+(1-daylight)*0.6):(0.14+daylight*0.38);
+    t.edge.material.color.setHex(live?(daylight>.4?0x6b1030:0x8a3020):(daylight>.4?0x3a2028:0x180810));
+    if(t.cap) t.cap.material.color.setHex(live? (daylight>.5?t.districtHex:GOLD) : (daylight>.5?0x3a2028:0x180810));
+  });
+  agents.forEach(a=>{
+    const work=a.status==='working';
+    a.halo.material.opacity=work?(0.30+(1-daylight)*0.65):(0.10+(1-daylight)*0.18);
+  });
+
+  const hh=Math.floor(h)%24, mm=Math.floor((h%1)*60);
+  document.getElementById('clock').textContent=`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+}
+
+/* ---------------- camera orbit ---------------- */
+const cam={theta:-0.7,phi:0.95,r:220,target:new THREE.Vector3(0,4,0)};
+const goal={theta:-0.7,phi:0.95,r:220,target:new THREE.Vector3(0,4,0)};
+function applyCam(){
+  cam.theta+=(goal.theta-cam.theta)*.12;
+  cam.phi  +=(goal.phi-cam.phi)*.12;
+  cam.r    +=(goal.r-cam.r)*.09;
+  cam.target.lerp(goal.target,.09);
+  camera.position.set(
+    cam.target.x+cam.r*Math.sin(cam.phi)*Math.cos(cam.theta),
+    cam.target.y+cam.r*Math.cos(cam.phi),
+    cam.target.z+cam.r*Math.sin(cam.phi)*Math.sin(cam.theta));
+  camera.lookAt(cam.target);
+}
+
+/* ---------------- textures ---------------- */
+const facadeCache={};
+function windowTex(live,ratio,style){
+  const key=live+'_'+Math.round(ratio*100)+'_'+style;
+  if(facadeCache[key]) return facadeCache[key];
+  const cw=128,ch=256,c=document.createElement('canvas');
+  c.width=cw;c.height=ch;const x=c.getContext('2d');
+  if(style==='glass'){
+    const g=x.createLinearGradient(0,0,cw,ch);
+    g.addColorStop(0,'#160a12'); g.addColorStop(1,'#251420');
+    x.fillStyle=g;
+  } else if(style==='brick'){
+    x.fillStyle='#2a1218';
+  } else {
+    x.fillStyle='#180a10';
+  }
+  x.fillRect(0,0,cw,ch);
+  x.fillStyle='rgba(0,0,0,.4)';
+  for(let y=0;y<ch;y+=16) x.fillRect(0,y,cw,1);
+
+  const cols=(style==='glass')?10:8;
+  const rows=32;
+  const cellW=cw/cols, cellH=ch/rows;
+  const pw=cellW*0.7, ph=cellH*0.55;
+  for(let r=0;r<rows;r++)for(let k=0;k<cols;k++){
+    const px=k*cellW+(cellW-pw)/2, py=r*cellH+(cellH-ph)/2;
+    const s=r*cols+k+style.charCodeAt(0);
+    if(!live){
+      x.fillStyle=style==='glass'?'#170a12':'#1a0c13';
+    } else {
+      const lit=((s*13929)%97)/97 < ratio;
+      // BAM window palette: gold dominant, crimson accents
+      x.fillStyle = lit ? (s%9===0 ? '#a3143a' : s%5===0 ? '#ffcf6a' : '#e2c05c') : (style==='glass'?'#1a0e18':'#12070d');
+    }
+    x.fillRect(px,py,pw,ph);
+  }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping;
+  t.encoding=THREE.sRGBEncoding;
+  facadeCache[key]=t; return t;
+}
+function glowTex(rgb){
+  const s=64,c=document.createElement('canvas');c.width=c.height=s;
+  const x=c.getContext('2d');
+  const g=x.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  g.addColorStop(0,`rgba(${rgb},1)`);g.addColorStop(.35,`rgba(${rgb},.45)`);g.addColorStop(1,`rgba(${rgb},0)`);
+  x.fillStyle=g;x.fillRect(0,0,s,s);
+  return new THREE.CanvasTexture(c);
+}
+const GOLD_GLOW=glowTex('226,192,92'), RED_GLOW=glowTex('163,20,58'),
+      DIM_GLOW=glowTex('120,80,90'),  BEACON_GLOW=glowTex('255,60,80');
+
+/* icon sprite — cached per emoji, shared material */
+const iconTexCache={};
+function iconSprite(emoji){
+  let tex=iconTexCache[emoji];
+  if(!tex){
+    const s=128, c=document.createElement('canvas'); c.width=c.height=s;
+    const x=c.getContext('2d');
+    x.font='84px "Apple Color Emoji","Segoe UI Emoji",sans-serif';
+    x.textAlign='center'; x.textBaseline='middle';
+    x.fillText(emoji, s/2, s/2+4);
+    tex=new THREE.CanvasTexture(c); tex.encoding=THREE.sRGBEncoding;
+    iconTexCache[emoji]=tex;
+  }
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));
+  sp.scale.setScalar(4.5);
+  return sp;
+}
+
+/* ---------------- world ---------------- */
+let state=null,towers=[],agents=[],msgs=[],focus=null,hover=null,usingSeed=true,clock=0;
+let beacons=[];
+const world=new THREE.Group(); scene.add(world);
+const pickables=[];
+
+function ingest(raw){
+  state={
+    modules:(raw.modules||[]).filter(m=>m&&m.id).map(m=>({
+      id:m.id, name:m.name||m.id, district:m.district||'ship',
+      icon:m.icon||'▦', primary:!!m.primary,
+      status:(m.status==='live'||m.status===true)?'live':'stub',
+      priority:m.priority||1, queue:m.queue||0,
+      roles:(m.roles&&m.roles.length)?m.roles:['(no roles declared)']})),
+    agents:(raw.agents||[]).filter(a=>a&&a.id).map(a=>({
+      id:a.id, name:a.name||a.id, skills:a.skills||[],
+      assignment:a.assignment||null, status:a.status||'idle', floor:a.floor??0})),
+    messages:raw.messages||[]
+  };
+  build(); paintTruth(); paintDistricts(); setTime(hour);
+}
+
+function paintDistricts(){
+  const box=document.getElementById('districts');
+  const inCity={};
+  state.modules.forEach(m=>{ inCity[m.district]=(inCity[m.district]||0)+1; });
+  box.innerHTML=DISTRICTS.filter(d=>d.id!=='core' && inCity[d.id]).map(d=>{
+    return `<span style="color:${d.color};border-color:${d.color}">${d.icon} ${d.name} · ${inCity[d.id]}</span>`;
+  }).join('');
+}
+
+/* ---- procedural tower — all pieces in one Group so BAM can grow/dispose it ---- */
+function makeTower(m, cx, cz){
+  const live=m.status==='live';
+  const dist=D_LOOKUP[m.district]||D_LOOKUP.ship;
+  const primary=!!m.primary;
+  const base=(primary?9:7) + Math.min(3,m.priority);
+  const w=base, d=base;
+  const totalH = (primary? 22 : 14) + m.priority*(primary?5:3) + ((m.id.charCodeAt(0)*7)%7);
+
+  const styles=['glass','concrete','brick','glass','concrete','glass'];
+  const style=styles[(m.id.charCodeAt(0)+m.id.length)%styles.length];
+
+  const staff=state.agents.filter(a=>a.assignment===m.id&&a.status==='working').length;
+  const ratio=live?Math.min(.85,.22+staff*.22):0;
+
+  const g=new THREE.Group();
+  const disposables=[];   // {mat?, geo?} for cleanup on remove
+  const track=(mesh)=>{ if(mesh.material)disposables.push({mat:mesh.material}); if(mesh.geometry)disposables.push({geo:mesh.geometry}); return mesh; };
+
+  const plinthH=3;
+  const plinth=track(new THREE.Mesh(new THREE.BoxGeometry(w+2,plinthH,d+2),
+    new THREE.MeshStandardMaterial({color:0x2a0e18,roughness:.9,metalness:.15})));
+  plinth.position.set(cx,plinthH/2,cz); plinth.castShadow=true; plinth.receiveShadow=true;
+  g.add(plinth);
+
+  if(live){
+    const lintel=track(new THREE.Mesh(new THREE.BoxGeometry(w*.7,.3,d+2.15),
+      new THREE.MeshBasicMaterial({color:dist.hex,transparent:true,opacity:.7})));
+    lintel.position.set(cx, 0.4, cz);
+    g.add(lintel);
+  }
+
+  const shaftH=totalH*0.62;
+  const tex=windowTex(live,ratio,style);
+  tex.repeat.set(2, Math.max(3, Math.round(shaftH/5)));
+  const mat=new THREE.MeshStandardMaterial({
+    color: style==='glass'?0x3a1828 : style==='brick'?0x3a1820 : 0x604048,
+    roughness: style==='glass'?.28:.85,
+    metalness: style==='glass'?.55:.15,
+    emissive:0xffffff, emissiveMap:tex, emissiveIntensity:0,
+    map: live?null:tex
+  });
+  const shaft=track(new THREE.Mesh(new THREE.BoxGeometry(w,shaftH,d),mat));
+  shaft.position.set(cx, plinthH+shaftH/2, cz);
+  shaft.castShadow=true; shaft.receiveShadow=true;
+  shaft.userData.id=m.id;
+  g.add(shaft); pickables.push(shaft);
+
+  const trimMat=new THREE.MeshStandardMaterial({color:0x0a0508,roughness:.4,metalness:.7});
+  disposables.push({mat:trimMat});
+  const trimGeo=new THREE.BoxGeometry(.3,shaftH,.3);
+  disposables.push({geo:trimGeo});
+  for(const [sx,sz] of [[1,1],[1,-1],[-1,1],[-1,-1]]){
+    const t=new THREE.Mesh(trimGeo,trimMat);
+    t.position.set(cx+sx*w/2, plinthH+shaftH/2, cz+sz*d/2);
+    g.add(t);
+  }
+
+  const s1H=totalH*0.24, s1W=w*0.78, s1D=d*0.78;
+  const tex1=windowTex(live,ratio*0.9,style);
+  tex1.repeat.set(2, Math.max(2,Math.round(s1H/5)));
+  const s1Mat=mat.clone(); s1Mat.emissiveMap=tex1; s1Mat.map=live?null:tex1;
+  disposables.push({mat:s1Mat});
+  const set1=track(new THREE.Mesh(new THREE.BoxGeometry(s1W,s1H,s1D),s1Mat));
+  set1.position.set(cx, plinthH+shaftH+s1H/2, cz);
+  set1.castShadow=true; set1.receiveShadow=true;
+  g.add(set1);
+  // set1 was tracked with s1Mat AGAIN in track — but disposing twice is safe
+
+  let set2=null;
+  const tops=[set1];
+  if(m.priority>=4 || primary){
+    const s2H=totalH*0.14, s2W=w*0.55, s2D=d*0.55;
+    const tex2=windowTex(live,ratio*0.8,style);
+    tex2.repeat.set(2,Math.max(1,Math.round(s2H/5)));
+    const s2Mat=mat.clone(); s2Mat.emissiveMap=tex2; s2Mat.map=live?null:tex2;
+    set2=track(new THREE.Mesh(new THREE.BoxGeometry(s2W,s2H,s2D),s2Mat));
+    set2.position.set(cx, plinthH+shaftH+s1H+s2H/2, cz);
+    set2.castShadow=true; set2.receiveShadow=true;
+    g.add(set2); tops.push(set2);
+  }
+
+  const roofY = plinthH+shaftH+s1H+(set2? set2.geometry.parameters.height : 0);
+  const roofMat=new THREE.MeshStandardMaterial({color:0x1e1218,roughness:.85,metalness:.2});
+  disposables.push({mat:roofMat});
+  const hvac=track(new THREE.Mesh(new THREE.BoxGeometry(w*.35,1.2,d*.4),roofMat));
+  hvac.position.set(cx-w*.12, roofY+0.6, cz+d*.12); hvac.castShadow=true;
+  g.add(hvac);
+  const tank=track(new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,2.2,10),roofMat));
+  tank.position.set(cx+w*.18, roofY+1.1, cz-d*.15); tank.castShadow=true;
+  g.add(tank);
+
+  const antH=live? 4+m.priority*(primary?1.6:1.1) : 3;
+  const antMat=new THREE.MeshStandardMaterial({color:0x120a10,roughness:.4,metalness:.85});
+  disposables.push({mat:antMat});
+  const ant=track(new THREE.Mesh(new THREE.CylinderGeometry(.08,.14,antH,8),antMat));
+  ant.position.set(cx, roofY+antH/2, cz);
+  g.add(ant);
+  const beaconMesh=track(new THREE.Mesh(new THREE.SphereGeometry(.35,10,10),
+    new THREE.MeshBasicMaterial({color:0xff3050,transparent:true,opacity:.4})));
+  beaconMesh.position.set(cx, roofY+antH+0.2, cz);
+  g.add(beaconMesh);
+  const beaconGlow=new THREE.Sprite(new THREE.SpriteMaterial({
+    map:BEACON_GLOW,transparent:true,opacity:.2,depthWrite:false,blending:THREE.AdditiveBlending}));
+  beaconGlow.scale.setScalar(3.6);
+  beaconGlow.position.copy(beaconMesh.position);
+  disposables.push({mat:beaconGlow.material});
+  g.add(beaconGlow);
+  const beaconEntry={mesh:beaconMesh, phase:Math.random()*6.28, baseOpacity:.4, glow:beaconGlow};
+  beacons.push(beaconEntry);
+
+  const cap=track(new THREE.Mesh(new THREE.BoxGeometry(2.6,0.32,2.6),
+    new THREE.MeshBasicMaterial({color:live?dist.hex:0x3a2028})));
+  cap.position.set(cx, roofY+0.18, cz); g.add(cap);
+
+  if(primary && m.icon){
+    const iconSp=iconSprite(m.icon);
+    iconSp.position.set(cx, roofY+antH+3.4, cz);
+    iconSp.scale.setScalar(primary?5:3.5);
+    disposables.push({mat:iconSp.material});
+    g.add(iconSp);
+  }
+
+  const edgeGeo=new THREE.EdgesGeometry(shaft.geometry);
+  disposables.push({geo:edgeGeo});
+  const edgeMat=new THREE.LineBasicMaterial({color:0x6b1030,transparent:true,opacity:.5});
+  disposables.push({mat:edgeMat});
+  const edge=new THREE.LineSegments(edgeGeo, edgeMat);
+  edge.position.copy(shaft.position); g.add(edge);
+
+  const slabs=new THREE.Group(); slabs.visible=false;
+  m.roles.forEach((role,fi)=>{
+    const fy=plinthH+((shaftH)/(m.roles.length+1))*(fi+1);
+    const slab=track(new THREE.Mesh(new THREE.BoxGeometry(w*.94,.22,d*.94),
+      new THREE.MeshBasicMaterial({color:live?0x3a1a26:0x2e1a24,transparent:true,opacity:.9})));
+    slab.position.set(cx,fy,cz); slabs.add(slab);
+    const occupied=state.agents.some(a=>a.assignment===m.id&&a.status==='working'&&a.floor===fi);
+    const spMat=new THREE.SpriteMaterial({
+      map:occupied?GOLD_GLOW:DIM_GLOW,transparent:true,
+      opacity:occupied?.95:.28,depthWrite:false,blending:THREE.AdditiveBlending});
+    disposables.push({mat:spMat});
+    const sp=new THREE.Sprite(spMat);
+    sp.scale.setScalar(occupied?4.6:2.6);
+    sp.position.set(cx,fy+1.6,cz); slabs.add(sp);
+  });
+  g.add(slabs);
+
+  world.add(g);
+
+  return {
+    id:m.id, group:g, mesh:shaft, tops, edge, cap, slabs, cx, cz, h:roofY, w,
+    district:m.district, districtHex:dist.hex, disposables, beaconEntry,
+    growth:{t:1, target:1}   // default full-grown; addTower overrides for animation
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   COLLISION-SAFE WEDGE PLACEMENT
+   Each of the 6 districts owns a 60° wedge from CORE (0,0).
+   findSlot spirals outward inside the wedge until it hits empty space.
+   No tower ever overlaps another — the city sprawls outward forever.
+═══════════════════════════════════════════════════════════════════ */
+const WEDGE = Math.PI * 2 / 6;
+const WEDGE_GAP = 0.06;   // small buffer between neighboring districts
+const TOWER_MIN_GAP = 4;  // walkway padding between towers
+
+function footprintRadius(w, primary){
+  return (w||8) * 0.71 + TOWER_MIN_GAP + (primary?1:0);
+}
+function collides(x, z, r){
+  for(const t of towers){
+    const other = footprintRadius(t.w, t.primary);
+    const dx = x - t.cx, dz = z - t.cz;
+    if(dx*dx + dz*dz < (r + other)*(r + other)) return true;
+  }
+  return false;
+}
+function findSlot(dId, primary, footprint){
+  const d = D_LOOKUP[dId] || D_LOOKUP.ship;
+  const centerAng = Math.atan2(d.z, d.x);           // angle of district plaza from core
+  const halfWedge = WEDGE/2 - WEDGE_GAP;
+  // primaries land near/at the plaza; backend starts just past it
+  const startR = primary ? RING_R - 6 : RING_R + 22;
+  for(let r = startR; r < 4000; r += 3){
+    const arcLen = 2 * halfWedge * r;
+    const steps = Math.max(6, Math.min(80, Math.floor(arcLen / 11)));
+    for(let i = 0; i < steps; i++){
+      // ping-pong offsets: 0, +1, -1, +2, -2 … keeps growth centered in wedge
+      const half = Math.floor(i/2);
+      const sign = i%2===0 ? 1 : -1;
+      const off  = half / Math.max(1, Math.floor(steps/2));
+      const ang  = centerAng + sign * off * halfWedge;
+      const x = Math.cos(ang) * r;
+      const z = Math.sin(ang) * r;
+      if(!collides(x, z, footprint)) return {x, z};
+    }
+  }
+  // last-resort — should never fire because search goes to 4000
+  return {x:d.x, z:d.z};
+}
+
+/* build a single tower — used both at startup and when BAM grows the city */
+function addTower(m, opts={}){
+  const existing=towers.find(t=>t.id===m.id);
+  if(existing){ updateTowerFields(existing, m); return existing; }
+
+  const primary=!!m.primary;
+  const w=(primary?9:7) + Math.min(3, m.priority||1);
+  const fp=footprintRadius(w, primary);
+  const pos = (m.cx!==undefined && m.cz!==undefined)
+    ? {x:m.cx, z:m.cz}
+    : findSlot(m.district, primary, fp);
+  const built=makeTower(m, pos.x, pos.z);
+  const tower={...m, ...built};
+  towers.push(tower);
+  tower.growth = {t: opts.instant ? 1 : 0.02, target: 1};
+  tower.group.scale.y = tower.growth.t;
+  return tower;
+}
+
+function updateTowerFields(t, patch){
+  Object.assign(t, patch);
+  // if status flipped, cap color needs a refresh via setTime pass
+  setTime(hour);
+}
+
+/* dispose a tower's meshes/materials and remove from the scene */
+function disposeTower(t){
+  if(!t) return;
+  world.remove(t.group);
+  t.disposables.forEach(d=>{ if(d.mat)d.mat.dispose(); if(d.geo)d.geo.dispose(); });
+  const bi=beacons.indexOf(t.beaconEntry); if(bi>=0) beacons.splice(bi,1);
+  const pi=pickables.indexOf(t.mesh); if(pi>=0) pickables.splice(pi,1);
+  const ti=towers.indexOf(t); if(ti>=0) towers.splice(ti,1);
+}
+
+/* full rebuild — used on ingest() and wipe */
+function build(){
+  // dispose existing towers cleanly
+  [...towers].forEach(disposeTower);
+  towers.length=0; pickables.length=0; agents.length=0; msgs.length=0; beacons.length=0;
+  // also strip static world children so ingest can safely rebuild center + agents
+  while(world.children.length) world.remove(world.children[0]);
+  document.querySelectorAll('.bub').forEach(n=>n.remove());
+  // primaries first (they claim inner-ring slots), then backend
+  const primaries=state.modules.filter(m=>m.primary);
+  const backend=state.modules.filter(m=>!m.primary);
+  [...primaries, ...backend].forEach(m=>addTower(m, {instant:true}));
+
+  /* CENTER — the JARVIS command core arc-reactor beacon */
+  const coreRing=new THREE.Mesh(
+    new THREE.TorusGeometry(6,0.35,16,64),
+    new THREE.MeshStandardMaterial({color:0xa3143a,emissive:0xa3143a,emissiveIntensity:.9,roughness:.3,metalness:.7}));
+  coreRing.rotation.x=Math.PI/2; coreRing.position.set(0,2.5,0); world.add(coreRing);
+  const coreRing2=new THREE.Mesh(
+    new THREE.TorusGeometry(4,0.28,16,64),
+    new THREE.MeshStandardMaterial({color:0xe2c05c,emissive:0xe2c05c,emissiveIntensity:.7,roughness:.3,metalness:.7}));
+  coreRing2.rotation.x=Math.PI/2; coreRing2.position.set(0,2.8,0); world.add(coreRing2);
+  const coreOrb=new THREE.Mesh(new THREE.SphereGeometry(1.6,32,32),
+    new THREE.MeshBasicMaterial({color:0xffe8c0}));
+  coreOrb.position.set(0,2.6,0); world.add(coreOrb);
+  const coreOrbGlow=new THREE.Sprite(new THREE.SpriteMaterial({
+    map:GOLD_GLOW,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending}));
+  coreOrbGlow.scale.setScalar(14); coreOrbGlow.position.copy(coreOrb.position); world.add(coreOrbGlow);
+
+  /* AGENTS — 11 lineage minds walk between towers */
+  state.agents.forEach((a,i)=>{
+    const work=a.status==='working';
+    const dot=new THREE.Mesh(new THREE.SphereGeometry(.7,16,16),
+      new THREE.MeshBasicMaterial({color:work?0xffcf5a:0x604048}));
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({
+      map:work?GOLD_GLOW:DIM_GLOW,transparent:true,opacity:.6,depthWrite:false,blending:THREE.AdditiveBlending}));
+    halo.scale.setScalar(work?7.2:4);
+    /* mind name label */
+    const lc=document.createElement('canvas'); lc.width=256; lc.height=64;
+    const lx=lc.getContext('2d');
+    lx.font='700 22px "Courier New",monospace';
+    lx.textAlign='center'; lx.fillStyle=work?'#e2c05c':'#8a6070';
+    lx.shadowColor='#000'; lx.shadowBlur=6;
+    lx.fillText(a.name, 128, 34);
+    const lt=new THREE.CanvasTexture(lc); lt.encoding=THREE.sRGBEncoding;
+    const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:lt,transparent:true,depthWrite:false}));
+    lbl.scale.set(6,1.5,1); lbl.position.set(0,2.6,0);
+
+    const g=new THREE.Group(); g.add(dot); g.add(halo); g.add(lbl);
+    const t=towers.find(x=>x.id===a.assignment);
+    const home=t? new THREE.Vector3(t.cx+7,1.5,t.cz+7)
+                : new THREE.Vector3(-150+i*8,1.5,150);
+    g.position.copy(home); world.add(g);
+    agents.push({...a,obj:g,dot,halo,lbl,goal:home.clone(),phase:Math.random()*6.28});
+  });
+
+  msgs=(state.messages||[]).slice(-6).map(m=>({...m,life:1.5+Math.random()*4,el:null}));
+  frameCity();
+}
+
+function frameCity(){ goal.target.set(0,10,0); goal.r=280; goal.phi=0.95; goal.theta=-0.7; }
+
+function paintTruth(){
+  const live=state.modules.filter(m=>m.status==='live').length;
+  const work=state.agents.filter(a=>a.status==='working').length;
+  const pop=state.modules.length;
+  document.getElementById('truth').innerHTML=
+    `population <b>${pop}</b> · <b>${live}</b> live · <b>${work}</b> / ${state.agents.length} minds working`;
+  document.getElementById('note').textContent=usingSeed
+    ? 'no city_state.json found — showing the BAM app itself. every drawer app is a tower; every ＋ Grow adds one more; the city sprawls outward without limit.'
+    : 'live from city_state.json — poll every 30s';
+}
+
+/* ---------------- scheduler ---------------- */
+function schedule(){
+  const open=towers.filter(t=>t.status==='live'&&t.queue>0);
+  agents.forEach(a=>{
+    if(a.status==='working')return;
+    let best=null,bs=0;
+    open.forEach(t=>{
+      const fit=(FIT[t.id]||[]).some(s=>a.skills.includes(s))?1:.25;
+      const taken=agents.filter(x=>x.assignment===t.id).length;
+      const sc=t.priority*fit*t.queue/(1+taken);
+      if(sc>bs){bs=sc;best=t;}
+    });
+    if(best&&bs>1){
+      a.assignment=best.id; a.status='working';
+      a.floor=Math.floor(Math.random()*best.roles.length);
+      a.dot.material.color.setHex(0xffcf5a);
+      a.halo.material.map=GOLD_GLOW; a.halo.scale.setScalar(7.2);
+      a.goal.set(best.cx+7,1.5,best.cz+7);
+      setTime(hour);
+    }
+  });
+}
+
+/* ---------------- panel ---------------- */
+const panel=document.getElementById('panel'), pbody=document.getElementById('pbody');
+function openTower(id){
+  const t=towers.find(x=>x.id===id); if(!t)return;
+  focus=id;
+  towers.forEach(o=>{
+    const on=o.id===id;
+    o.slabs.visible=on;
+    o.mesh.material.transparent=on;
+    o.mesh.material.opacity=on?0.22:1;
+    o.mesh.castShadow=!on;
+    o.mesh.material.needsUpdate=true;
+  });
+  goal.target.set(t.cx,t.h*.5,t.cz); goal.r=t.h*1.8+36; goal.phi=1.05;
+  const live=t.status==='live';
+  const dist=D_LOOKUP[t.district]||{color:'#8a8aa0',name:t.district,icon:''};
+  pbody.innerHTML=`
+    <div class="st" style="color:${live?'#e2c05c':'#7a5060'}">${live?'verified — real execution':'stub — nothing runs here'}</div>
+    <h2 style="color:${live?'#a3143a':'#7a5060'}"><span class="icon">${t.icon||''}</span>${t.name}</h2>
+    <div class="meta">priority ${t.priority} &nbsp;·&nbsp; queue ${t.queue} &nbsp;·&nbsp; ${t.roles.length} role${t.roles.length===1?'':'s'}${t.primary?' &nbsp;·&nbsp; drawer app':''}</div>
+    <span class="district" style="color:${dist.color}">${dist.icon} ${dist.name}</span>
+    ${t.roles.map((r,i)=>{
+      const who=agents.find(a=>a.assignment===t.id&&a.status==='working'&&a.floor===i);
+      const col=who?'#e2c05c':'#3a2028';
+      return `<div class="role">
+        <span class="n">${String(i+1).padStart(2,'0')}</span>
+        <span class="dot" style="background:${col};color:${col}"></span>
+        <span class="r" style="color:${live?'#eedcd8':'#7a5060'}">${r}</span>
+        <span class="who" style="color:${who?'#e2c05c':'#5a3040'}">${who?who.name:(live?'unstaffed':'not implemented')}</span>
+      </div>`}).join('')}
+    <div class="foot">${live
+      ? (t.primary
+        ? 'this is a drawer button — open BAM, tap the APPS drawer, and you land right here. agents route in on their own when there\'s real queue.'
+        : 'backend service — no drawer button, but the district it lives in wires into it automatically.')
+      : 'stub. the roles above are the spec — build one, set status to live, and the tower lights at night.'}</div>`;
+  panel.classList.add('open');
+}
+function closeTower(){
+  focus=null; panel.classList.remove('open');
+  towers.forEach(o=>{o.slabs.visible=false;o.mesh.material.opacity=1;o.mesh.material.transparent=false;o.mesh.castShadow=true;});
+  frameCity();
+}
+document.getElementById('close').onclick=closeTower;
+document.getElementById('reset').onclick=closeTower;
+addEventListener('keydown',e=>{if(e.key==='Escape')closeTower();});
+
+/* ---------------- input ---------------- */
+let drag=null;
+const ray=new THREE.Raycaster(), ptr=new THREE.Vector2();
+const tip=document.getElementById('tip');
+const cvs=renderer.domElement;
+
+cvs.addEventListener('contextmenu',e=>e.preventDefault());
+cvs.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,btn:e.button,moved:0};cvs.setPointerCapture(e.pointerId);});
+cvs.addEventListener('pointermove',e=>{
+  if(drag){
+    const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+    drag.moved+=Math.abs(dx)+Math.abs(dy);
+    if(drag.btn===2||e.shiftKey){
+      const f=cam.r*0.0016;
+      const right=new THREE.Vector3().subVectors(camera.position,cam.target).cross(new THREE.Vector3(0,1,0)).normalize();
+      goal.target.addScaledVector(right,-dx*f);
+      const fwd=new THREE.Vector3().subVectors(cam.target,camera.position).setY(0).normalize();
+      goal.target.addScaledVector(fwd,-dy*f);
+    }else{
+      goal.theta-=dx*0.006;
+      goal.phi=Math.max(0.10,Math.min(1.50,goal.phi-dy*0.005));
+    }
+    drag.x=e.clientX; drag.y=e.clientY; tip.style.opacity=0; return;
+  }
+  ptr.x=(e.clientX/innerWidth)*2-1; ptr.y=-(e.clientY/innerHeight)*2+1;
+  ray.setFromCamera(ptr,camera);
+  const hit=ray.intersectObjects(pickables,false)[0];
+  hover=hit?hit.object.userData.id:null;
+  if(hover){
+    const t=towers.find(x=>x.id===hover);
+    const dist=D_LOOKUP[t.district]||{name:''};
+    tip.textContent=`${t.icon||''} ${t.name.toUpperCase()} · ${t.status==='live'?'LIVE':'STUB'} · ${dist.name}`;
+    tip.style.left=e.clientX+'px'; tip.style.top=e.clientY+'px'; tip.style.opacity=1;
+    cvs.style.cursor='pointer';
+  }else{ tip.style.opacity=0; cvs.style.cursor='grab'; }
+});
+cvs.addEventListener('pointerup',e=>{
+  const wasDrag=drag&&drag.moved>6, btn=drag?drag.btn:0; drag=null;
+  if(wasDrag||btn!==0)return;
+  ptr.x=(e.clientX/innerWidth)*2-1; ptr.y=-(e.clientY/innerHeight)*2+1;
+  ray.setFromCamera(ptr,camera);
+  const hit=ray.intersectObjects(pickables,false)[0];
+  if(hit) openTower(hit.object.userData.id); else closeTower();
+});
+cvs.addEventListener('wheel',e=>{e.preventDefault();goal.r=Math.max(24,Math.min(3000,goal.r+e.deltaY*0.28));},{passive:false});
+
+/* ---------------- bubbles ---------------- */
+function updateBubbles(){
+  msgs.forEach(m=>{
+    m.life-=0.005;
+    const a=agents.find(x=>x.id===m.from);
+    if(!a||m.life<=0){ if(m.el){m.el.remove();m.el=null;} return; }
+    if(!m.el){ m.el=document.createElement('div'); m.el.className='bub'; m.el.textContent=m.body; document.body.appendChild(m.el); }
+    const v=a.obj.position.clone().add(new THREE.Vector3(0,3.8,0)).project(camera);
+    if(v.z>1){m.el.style.opacity=0;return;}
+    m.el.style.left=((v.x*.5+.5)*innerWidth)+'px';
+    m.el.style.top=((-v.y*.5+.5)*innerHeight)+'px';
+    m.el.style.opacity=Math.min(1,m.life);
+  });
+  msgs=msgs.filter(m=>m.life>0||m.el);
+}
+
+/* ---------------- loop ---------------- */
+let tick=0;
+function easeOutBack(t){ const c=1.4; return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2); }
+function easeInQuad(t){ return t*t; }
+function animate(){
+  requestAnimationFrame(animate);
+  clock+=0.016;
+  applyCam();
+  agents.forEach(a=>{
+    a.obj.position.lerp(a.goal,0.03);
+    if(a.lbl) a.lbl.material.rotation=0;
+    if(a.status==='working'){
+      a.halo.scale.setScalar(7.2*(1+0.26*Math.sin(clock*2.4+a.phase)));
+      a.dot.position.y=Math.sin(clock*1.5+a.phase)*0.25;
+    }
+  });
+  // growth animation — buildings rise/sink smoothly
+  const toDispose=[];
+  towers.forEach(t=>{
+    if(!t.growth) return;
+    const step=0.024;
+    if(t.growth.t < t.growth.target){ t.growth.t=Math.min(t.growth.target, t.growth.t+step); }
+    else if(t.growth.t > t.growth.target){ t.growth.t=Math.max(t.growth.target, t.growth.t-step*1.4); }
+    // apply eased scale
+    const eased = t.growth.target>0.5 ? easeOutBack(Math.max(0,Math.min(1,t.growth.t))) : easeInQuad(t.growth.t);
+    t.group.scale.y = Math.max(0.001, eased);
+    if(t.growth.target===0 && t.growth.t<=0.02) toDispose.push(t);
+  });
+  toDispose.forEach(disposeTower);
+
+  beacons.forEach(b=>{
+    const on = (Math.sin(clock*2.2+b.phase)+1)*0.5;
+    b.mesh.material.opacity = b.baseOpacity * (0.25 + on*0.85);
+    if(b.glow) b.glow.material.opacity = b.baseOpacity * (0.08 + on*0.45);
+  });
+  coreGlow.position.set(Math.sin(clock*0.2)*8,20,Math.cos(clock*0.2)*8);
+  if(++tick%220===0) schedule();
+  updateBubbles();
+  renderer.render(scene,camera);
+}
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);
+
+/* ---------------- controls ---------------- */
+const slider=document.getElementById('time');
+const btns={bDay:10,bDusk:18.4,bNight:1};
+slider.addEventListener('input',()=>{setTime(parseFloat(slider.value));syncBtns();});
+Object.keys(btns).forEach(k=>{
+  document.getElementById(k).onclick=()=>{slider.value=btns[k];setTime(btns[k]);syncBtns();};
+});
+function syncBtns(){
+  Object.keys(btns).forEach(k=>{
+    document.getElementById(k).classList.toggle('on',Math.abs(parseFloat(slider.value)-btns[k])<1.2);
+  });
+}
+document.getElementById('load').onclick=()=>document.getElementById('file').click();
+document.getElementById('file').onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const fr=new FileReader();
+  fr.onload=()=>{try{ingest(JSON.parse(fr.result));usingSeed=false;paintTruth();closeTower();}
+    catch(err){document.getElementById('note').textContent='that file is not valid JSON — fix it and load again.';}};
+  fr.readAsText(f);
+};
+
+/* ═══════════════════════════════════════════════════════════════════
+   BAM CITY CONTROL — window.BamCity is the whole city's steering wheel.
+   Every mutation flows through here so growth is animated + persisted.
+═══════════════════════════════════════════════════════════════════ */
+const LS_KEY='bam-city-state';
+
+function toast(html){
+  const box=document.getElementById('toasts');
+  // cap: keep at most 4 on screen so long auto-grow sessions don't stack forever
+  while(box.children.length>3) box.removeChild(box.firstChild);
+  const t=document.createElement('div'); t.className='toast'; t.innerHTML=html;
+  box.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('on'));
+  setTimeout(()=>{t.classList.remove('on'); setTimeout(()=>t.remove(),400);},4200);
+}
+
+function swoop(cx, h, cz){
+  goal.target.set(cx, h*0.5+2, cz);
+  goal.r=Math.max(60, h*2.4+30);
+  goal.phi=1.02;
+  goal.theta=Math.atan2(cz-cx, cx-cz)-1.1;
+  setTimeout(()=>{ if(!focus) frameCity(); }, 4500);
+}
+
+/* Auto-invent a plausible next capability BAM might build. Pools are deep so
+   auto-grow can run for a long time without dupes; when a pool runs out, a
+   procedural fallback numbers new ones so growth never stops. */
+const NEW_IDEAS={
+  work:[
+    ['Kokoro Voice Studio','🎧',['premium TTS','audiobook render','licensing']],
+    ['Ad Alchemist','📣',['creative variants','platform target','KPI loop']],
+    ['Refund Sentinel','🧾',['inbox scan','apology + resolve']],
+    ['Affiliate Router','🔗',['link mint','click ledger','payout claim']],
+    ['Bundle Forge','📦',['pair products','discount curve','upsell page']],
+    ['Cohort Analyst','📈',['sign-ups','retention','revenue']],
+    ['Landing Split','🧪',['variant deploy','stat sig','winner']],
+    ['Wholesale Bridge','🚚',['catalog sync','order push','MSRP guard']],
+    ['Course Machine','🏫',['outline','modules','quiz','cert']],
+    ['Auction Sniper','🔨',['watch','bid ladder','wallet gate']],
+    ['NFT Mint Assistant','🖼',['collection art','contract','list']],
+    ['Sponsor Finder','🤝',['brand match','pitch','contract']],
+    ['Client Portal','🚪',['files','invoices','messages']],
+    ['Merch Print','👕',['designs','POD sync','listings']],
+    ['Book Ghostwriter','✒',['outline','chapters','edit pass']],
+    ['Podcast Feed','🎙',['episodes','RSS','distribute']]],
+  life:[
+    ['Sleep Coach','🛌',['bedtime nudge','wind-down','wake report']],
+    ['Focus Timer','⏳',['pomodoro','block sites','streak']],
+    ['Journal Streak','📓',['daily prompt','entropy check']],
+    ['Meal Planner','🍳',['macros','shopping','prep']],
+    ['Workout Log','🏋',['sets','PR watch','rest timer']],
+    ['Hydration Ping','💧',['nudge','streak','trend']],
+    ['Money Mirror','🪞',['spend vs plan','anomaly','trim ideas']],
+    ['Habit Chain','🔗',['stack','trigger','anchor']],
+    ['Breathwork','🌬',['box','478','coherence']],
+    ['Read List','📚',['queue','notes','recall quiz']],
+    ['Skill Ladder','🪜',['level','drill','test up']],
+    ['Gratitude Log','🙏',['nightly','recall','pattern']]],
+  security:[
+    ['Anomaly Hunter','🐺',['ratio stats','burst catch','review']],
+    ['Perimeter Scan','🔭',['open ports','header audit']],
+    ['Password Rotate','🔑',['inventory','age','rotate']],
+    ['Cert Watch','📜',['expiry','renew','alert']],
+    ['Device Ledger','📇',['registered','last-seen','revoke']],
+    ['Phish Filter','🎣',['header check','link risk','quarantine']],
+    ['Data Vault','🗄',['encrypt','shard','recover']],
+    ['Access Log','📖',['who touched what','diff','alert']],
+    ['Bounty Watch','🎯',['CVE feed','impact score','patch']]],
+  mind:[
+    ['Idea Distillery','⚗',['scrape','concept','dossier']],
+    ['Debate Room','🗣',['pro/con','steel-man','judge']],
+    ['Skill Tree','🌳',['gap detect','curriculum','test']],
+    ['Mind Map','🕸',['nodes','links','navigate']],
+    ['Socratic Coach','❓',['question ladder','stuck detect']],
+    ['Reading Room','🪶',['ingest','summarize','link to memory']],
+    ['Dream Log','💭',['record','tag','pattern']],
+    ['Fact Check','🔎',['source rank','triangulate','verdict']],
+    ['Tutor Persona','👩‍🏫',['diagnose','explain','practice']],
+    ['Chess Trainer','♟',['position','engine','narrate']],
+    ['Language Drill','🗣',['SRS','pronounce','conversation']],
+    ['Model Menagerie','🐘',['try model','A/B','score']]],
+  ship:[
+    ['A/B Compass','🧭',['variant deploy','stat sig','winner']],
+    ['Rollback Rail','↩',['snapshot','signed diff','revert']],
+    ['Cost Meter','💠',['token count','$/day','budget alert']],
+    ['Release Bot','🚚',['tag','changelog','announce']],
+    ['Doc Forge','📄',['crawl code','sections','publish']],
+    ['Alert Router','🔔',['classify','dedup','deliver']],
+    ['Uptime Ping','📡',['heartbeat','SLO','page']],
+    ['Feature Flag','🚩',['gate','rollout','revert']],
+    ['Queue Runner','🏁',['worker pool','retry','DLQ']],
+    ['CI Cache','⏩',['deps','artifacts','warm']]],
+  senses:[
+    ['Ambient Sound','🎼',['hum detect','tag event']],
+    ['Doorbell Watch','🔔',['motion','faces','notify']],
+    ['Whistle Cue','🎵',['gesture','trigger','confirm']],
+    ['Room Presence','🚶',['occupancy','count','log']],
+    ['Weather Ear','🌦',['storm alert','commute','plan']],
+    ['License Read','🚗',['plate OCR','allowed list']],
+    ['Shipment Ear','📦',['carrier ping','ETA','photo']],
+    ['Package Vision','👁',['label OCR','filter']],
+    ['Camera Grid','🎥',['multi-feed','motion','clip']]]
+};
+const usedNames = new Set();
+function autoNew(){
+  // pick district with fewest towers (round-robin bias)
+  const counts={};
+  state.modules.forEach(m=>{counts[m.district]=(counts[m.district]||0)+1});
+  const cands=DISTRICTS.filter(d=>d.id!=='core').sort((a,b)=>(counts[a.id]||0)-(counts[b.id]||0));
+  const dId=cands[0].id;
+  const pool=NEW_IDEAS[dId]||NEW_IDEAS.ship;
+  const existing=new Set(state.modules.map(m=>m.name));
+  // find first unused pool entry
+  let pick=pool.find(p=>!existing.has(p[0]) && !usedNames.has(p[0]));
+  let name, icon, roles;
+  if(pick){ [name,icon,roles]=pick; usedNames.add(name); }
+  else {
+    // pool exhausted — synthesize procedural name so growth never stops
+    const stem = pool[Math.floor(Math.random()*pool.length)][0];
+    let n=2;
+    while(existing.has(stem+' '+n) || usedNames.has(stem+' '+n)) n++;
+    name = stem+' '+n;
+    icon = pool[Math.floor(Math.random()*pool.length)][1];
+    roles = pool[Math.floor(Math.random()*pool.length)][2];
+    usedNames.add(name);
+  }
+  const id='usr_'+Date.now().toString(36)+'_'+Math.floor(Math.random()*1e5).toString(36);
+  return {
+    id, name, icon, district:dId,
+    status: 'live',        // new BAM buildings always come online — stubs shouldn't grow themselves
+    priority: 2+Math.floor(Math.random()*3),
+    queue: 1+Math.floor(Math.random()*3),
+    primary: false,
+    roles
+  };
+}
+
+/* ─── Agent name pool + spawner: every new tower gets a mind so it's live, not sitting empty ─── */
+const AGENT_NAMES=['TALLY','GLYPH','VANE','PRISM','RUNE','WISP','HELIX','FALCON','FORGE','EMBER',
+  'HARBOR','PACER','KESTREL','CROW','VIGIL','PILOT','HERALD','VESPER','SABLE','CORAL',
+  'DIAL','KILN','MIRA','VESSEL','TERRA','PIXEL','HALO','VECTOR','MOMENT','DRIFT',
+  'PIVOT','BRIDGE','NORTH','TITAN','ORBIT','WEDGE','THORN','MENDER','PILGRIM','COMPASS',
+  'SIREN','CIPHER','ANCHOR','VALIANT','KEEPER','MERIDIAN','ATLAS','SIGIL','LATTICE','SPARK',
+  'BEACON','QUARTZ','HAVEN','CIRRUS','SOLARIS','RIVEN','MOTIF','GRAIL','HEDGE','CARBON'];
+
+function nextAgentName(){
+  const taken=new Set(state.agents.map(a=>a.name));
+  for(const n of AGENT_NAMES) if(!taken.has(n)) return n;
+  // pool exhausted — number them so growth never stalls
+  let n=state.agents.length+1;
+  while(taken.has('AGENT-'+n)) n++;
+  return 'AGENT-'+n;
+}
+
+const DISTRICT_SKILLS={
+  work:['money','strategy','markets','writing'],
+  life:['coaching','morale','discipline'],
+  security:['security','ops','code'],
+  mind:['research','reasoning','memory','summarizing'],
+  ship:['ops','code','tools','strategy'],
+  senses:['voice','vision','messaging']
+};
+
+function spawnAgentsFor(mod){
+  const distSkills=DISTRICT_SKILLS[mod.district]||['ops'];
+  const modSkills=FIT[mod.id]||[];
+  const skills=[...new Set([...distSkills, ...modSkills])].slice(0,3);
+  const cnt = 1 + (mod.priority>=4 ? 1 : 0);   // 1-2 minds per building, more on high priority
+  const spawned=[];
+  for(let i=0;i<cnt;i++){
+    const roleFloors = mod.roles ? mod.roles.length : 1;
+    const a={
+      id: 'ag_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6)+'_'+i,
+      name: nextAgentName(),
+      skills: skills.slice(),
+      assignment: mod.id,
+      status: 'working',
+      floor: i % roleFloors
+    };
+    state.agents.push(a);
+    spawned.push(a);
+  }
+  return spawned;
+}
+
+/* Add ONE agent's mesh to the scene without a full rebuild — cheap on the running frame */
+function spawnAgentVisual(a, i){
+  const work=a.status==='working';
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(.7,16,16),
+    new THREE.MeshBasicMaterial({color:work?0xffcf5a:0x604048}));
+  const halo=new THREE.Sprite(new THREE.SpriteMaterial({
+    map:work?GOLD_GLOW:DIM_GLOW,transparent:true,opacity:.6,depthWrite:false,blending:THREE.AdditiveBlending}));
+  halo.scale.setScalar(work?7.2:4);
+  const lc=document.createElement('canvas'); lc.width=256; lc.height=64;
+  const lx=lc.getContext('2d');
+  lx.font='700 22px "Courier New",monospace';
+  lx.textAlign='center'; lx.fillStyle=work?'#e2c05c':'#8a6070';
+  lx.shadowColor='#000'; lx.shadowBlur=6;
+  lx.fillText(a.name, 128, 34);
+  const lt=new THREE.CanvasTexture(lc); lt.encoding=THREE.sRGBEncoding;
+  const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:lt,transparent:true,depthWrite:false}));
+  lbl.scale.set(6,1.5,1); lbl.position.set(0,2.6,0);
+  const g=new THREE.Group(); g.add(dot); g.add(halo); g.add(lbl);
+  const t=towers.find(x=>x.id===a.assignment);
+  const home = t
+    ? new THREE.Vector3(t.cx + 6 + (i||0)*2.4, 1.5, t.cz + 6 + (i||0)*2.4)
+    : new THREE.Vector3(-150 + agents.length*8, 1.5, 150);
+  g.position.copy(home); world.add(g);
+  agents.push({...a, obj:g, dot, halo, lbl, goal:home.clone(), phase:Math.random()*6.28});
+}
+
+function autoNew(){
+  // pick the district with the fewest towers
+  const counts={};
+  state.modules.forEach(m=>{counts[m.district]=(counts[m.district]||0)+1});
+  const cands=DISTRICTS.filter(d=>d.id!=='core').sort((a,b)=>(counts[a.id]||0)-(counts[b.id]||0));
+  const dId=cands[0].id;
+  const pool=NEW_IDEAS[dId]||NEW_IDEAS.ship;
+  // avoid picking a name that already exists
+  const existing=new Set(state.modules.map(m=>m.name));
+  const pick=pool.find(p=>!existing.has(p[0])) || pool[Math.floor(Math.random()*pool.length)];
+  const [name,icon,roles]=pick;
+  const id='usr_'+Date.now().toString(36)+'_'+Math.floor(Math.random()*1000).toString(36);
+  return {
+    id, name, icon, district:dId,
+    status: Math.random()<0.35 ? 'live' : 'stub',
+    priority: 2+Math.floor(Math.random()*3),
+    queue: 0,
+    primary: false,
+    roles
+  };
+}
+
+const BamCity = {
+  add(mod, opts={}){
+    if(!mod||!mod.id||!mod.district) mod=Object.assign(autoNew(), mod||{});
+    if(state.modules.some(m=>m.id===mod.id)){ this.update(mod.id, mod); return; }
+    // buildings BAM adds are always live + staffed — otherwise the city fills with empty stubs
+    if(!mod.status) mod.status='live';
+    state.modules.push(mod);
+    const t=addTower(mod);
+    // spawn 1-2 minds to staff the new tower unless the caller opted out
+    let spawned=[];
+    if(!opts.noStaff && mod.status==='live'){
+      spawned=spawnAgentsFor(mod);
+      spawned.forEach((a,i)=>spawnAgentVisual(a,i));
+      // refresh window textures on the new tower so lit-window ratio reflects the staff
+      setTime(hour);
+    }
+    paintTruth(); paintDistricts(); save();
+    if(!opts.quiet){
+      const d=D_LOOKUP[mod.district]||{name:mod.district,color:'#e2c05c'};
+      const crewLine = spawned.length ? ` — staffed by <span class="name">${spawned.map(a=>a.name).join(' + ')}</span>` : '';
+      toast(`BAM built <span class="name" style="color:${d.color}">${mod.icon||'▦'} ${mod.name}</span> in ${d.name}${crewLine}`);
+      if(!opts.noSwoop && !autoTimer) swoop(t.cx, t.h, t.cz);
+    }
+    return t;
+  },
+  update(id, patch){
+    const m=state.modules.find(x=>x.id===id); if(!m) return;
+    Object.assign(m, patch);
+    const t=towers.find(x=>x.id===id); if(t) Object.assign(t, patch);
+    setTime(hour); paintTruth(); save();
+  },
+  remove(id){
+    state.modules=state.modules.filter(m=>m.id!==id);
+    const t=towers.find(x=>x.id===id);
+    if(t) t.growth={t:t.growth?t.growth.t:1, target:0};
+    paintTruth(); paintDistricts(); save();
+  },
+  addAgent(a){
+    if(!a||!a.id) return;
+    if(state.agents.some(x=>x.id===a.id)) return;
+    state.agents.push(a);
+    // rebuild agent visuals (cheap — few agents)
+    rebuildAgents();
+    paintTruth(); save();
+  },
+  grow(){ return this.add(autoNew()); },
+  startAuto(){ setAuto(true); },
+  stopAuto(){ setAuto(false); },
+  state(){ return JSON.parse(JSON.stringify(state)); },
+  save(){ save(); },
+  load(json){
+    try{ const parsed=typeof json==='string'?JSON.parse(json):json; ingest(parsed); usingSeed=false; save(); }
+    catch(e){ toast('bad state JSON'); }
+  },
+  wipe(){ localStorage.removeItem(LS_KEY); ingest(SEED); usingSeed=true; paintTruth(); toast('city reset to seed'); }
+};
+window.BamCity = BamCity;
+
+/* rebuild only the agents (cheaper than full build) */
+function rebuildAgents(){
+  agents.forEach(a=>{ world.remove(a.obj); });
+  agents.length=0;
+  state.agents.forEach((a,i)=>{
+    const work=a.status==='working';
+    const dot=new THREE.Mesh(new THREE.SphereGeometry(.7,16,16),
+      new THREE.MeshBasicMaterial({color:work?0xffcf5a:0x604048}));
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({
+      map:work?GOLD_GLOW:DIM_GLOW,transparent:true,opacity:.6,depthWrite:false,blending:THREE.AdditiveBlending}));
+    halo.scale.setScalar(work?7.2:4);
+    const lc=document.createElement('canvas'); lc.width=256; lc.height=64;
+    const lx=lc.getContext('2d');
+    lx.font='700 22px "Courier New",monospace';
+    lx.textAlign='center'; lx.fillStyle=work?'#e2c05c':'#8a6070';
+    lx.shadowColor='#000'; lx.shadowBlur=6;
+    lx.fillText(a.name, 128, 34);
+    const lt=new THREE.CanvasTexture(lc); lt.encoding=THREE.sRGBEncoding;
+    const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:lt,transparent:true,depthWrite:false}));
+    lbl.scale.set(6,1.5,1); lbl.position.set(0,2.6,0);
+    const g=new THREE.Group(); g.add(dot); g.add(halo); g.add(lbl);
+    const t=towers.find(x=>x.id===a.assignment);
+    const home=t? new THREE.Vector3(t.cx+7,1.5,t.cz+7) : new THREE.Vector3(-150+i*8,1.5,150);
+    g.position.copy(home); world.add(g);
+    agents.push({...a,obj:g,dot,halo,lbl,goal:home.clone(),phase:Math.random()*6.28});
+  });
+}
+
+/* ─── persistence ─── */
+function save(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+}
+function loadSaved(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ return null; }
+}
+
+/* ─── poll city_state.json when hosted (skipped on file://) ─── */
+let lastRemoteHash=null;
+async function pollRemote(){
+  if(location.protocol==='file:') return;
+  try{
+    const r=await fetch('city_state.json',{cache:'no-store'});
+    if(!r.ok) return;
+    const text=await r.text();
+    let hash=0; for(let i=0;i<text.length;i++) hash=((hash<<5)-hash+text.charCodeAt(i))|0;
+    if(hash===lastRemoteHash) return;
+    lastRemoteHash=hash;
+    const remote=JSON.parse(text);
+    // diff-apply: add new modules with growth animation, remove missing
+    const remoteIds=new Set((remote.modules||[]).map(m=>m.id));
+    const localIds =new Set(state.modules.map(m=>m.id));
+    (remote.modules||[]).forEach(m=>{
+      if(!localIds.has(m.id)) BamCity.add(m);
+      else BamCity.update(m.id, m);
+    });
+    state.modules.filter(m=>!remoteIds.has(m.id)).forEach(m=>BamCity.remove(m.id));
+  }catch(e){}
+}
+setInterval(pollRemote, 30000);
+
+/* ─── postMessage from parent iframe (BAM PWA can drive the city) ─── */
+addEventListener('message', e=>{
+  const d=e.data||{}; if(d.type!=='bam-city' || !d.action) return;
+  const fn=BamCity[d.action]; if(typeof fn==='function') fn(d.arg);
+});
+
+/* ─── build modal wiring ─── */
+const buildEl=document.getElementById('build'), backdrop=document.getElementById('backdrop');
+function openBuild(){
+  const dSel=document.getElementById('bDist');
+  dSel.innerHTML=DISTRICTS.filter(d=>d.id!=='core').map(d=>
+    `<option value="${d.id}">${d.icon} ${d.name}</option>`).join('');
+  buildEl.classList.add('open'); backdrop.classList.add('open');
+  document.getElementById('bName').focus();
+}
+function closeBuild(){ buildEl.classList.remove('open'); backdrop.classList.remove('open'); }
+document.getElementById('grow').onclick=openBuild;
+document.getElementById('bCancel').onclick=closeBuild;
+backdrop.onclick=closeBuild;
+document.getElementById('bRandom').onclick=()=>{
+  const m=autoNew();
+  document.getElementById('bDist').value=m.district;
+  document.getElementById('bName').value=m.name;
+  document.getElementById('bIcon').value=m.icon;
+  document.getElementById('bStatus').value=m.status;
+  document.getElementById('bPrio').value=m.priority;
+  document.getElementById('bQueue').value=m.queue;
+  document.getElementById('bPrimary').value=m.primary?'1':'0';
+  document.getElementById('bRoles').value=m.roles.join(', ');
+};
+document.getElementById('bGo').onclick=()=>{
+  const name=document.getElementById('bName').value.trim();
+  if(!name){ document.getElementById('bName').focus(); return; }
+  const id='usr_'+Date.now().toString(36);
+  const roles=document.getElementById('bRoles').value.split(',').map(s=>s.trim()).filter(Boolean);
+  BamCity.add({
+    id, name,
+    icon: document.getElementById('bIcon').value.trim() || '▦',
+    district: document.getElementById('bDist').value,
+    status: document.getElementById('bStatus').value,
+    priority: parseInt(document.getElementById('bPrio').value)||3,
+    queue: parseInt(document.getElementById('bQueue').value)||0,
+    primary: document.getElementById('bPrimary').value==='1',
+    roles: roles.length ? roles : ['(no roles declared)']
+  });
+  closeBuild();
+  // clear form
+  document.getElementById('bName').value=''; document.getElementById('bIcon').value='';
+  document.getElementById('bRoles').value='';
+};
+document.getElementById('wipe').onclick=()=>{
+  if(confirm('Wipe all of BAM\'s saved city changes and restore the seed?')) BamCity.wipe();
+};
+
+/* ─── auto-grow ─── */
+const AUTO_KEY='bam-city-auto';
+let autoTimer=null;
+const autoBtn=document.getElementById('auto');
+function setAuto(on){
+  if(on){
+    autoBtn.classList.add('on'); autoBtn.textContent='■ Auto';
+    autoTimer=setInterval(()=>{ BamCity.grow(); }, 8000);
+    localStorage.setItem(AUTO_KEY,'1');
+  } else {
+    autoBtn.classList.remove('on'); autoBtn.textContent='▶ Auto';
+    if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
+    localStorage.removeItem(AUTO_KEY);
+  }
+}
+autoBtn.onclick=()=>setAuto(!autoTimer);
+
+addEventListener('keydown',e=>{if(e.key==='Escape'&&buildEl.classList.contains('open'))closeBuild();});
+
+(async()=>{
+  resize();
+  const saved=loadSaved();
+  if(saved && saved.modules && saved.modules.length){
+    ingest(saved); usingSeed=false;
+    document.getElementById('note').textContent="loaded BAM's saved city (localStorage) — every ＋ Grow persists";
+  } else {
+    try{
+      if(location.protocol!=='file:'){
+        const r=await fetch('city_state.json',{cache:'no-store'});
+        if(!r.ok)throw 0;
+        ingest(await r.json()); usingSeed=false;
+      } else { throw 0; }
+    } catch(_){ ingest(SEED); usingSeed=true; }
+  }
+  paintTruth(); setTime(10); animate();
+  if(localStorage.getItem(AUTO_KEY)==='1') setAuto(true);
+  console.log('%cBamCity ready','color:#e2c05c;font-weight:700',
+    '— try  BamCity.grow()  or  BamCity.add({...})  or  ＋ Grow in the HUD');
+})();
+</script>
+</body>
+</html>
