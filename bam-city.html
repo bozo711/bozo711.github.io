@@ -948,6 +948,24 @@ function findSlot(dId, primary, footprint){
 }
 
 /* build a single tower — used both at startup and when BAM grows the city */
+const SHADOW_POP_CAP=80;
+function refreshShadowLOD(){
+  const heavy = towers.length > SHADOW_POP_CAP;
+  towers.forEach(t=>{
+    if(t.mesh) t.mesh.castShadow = !heavy;
+    if(t.tops) t.tops.forEach(m=>{ m.castShadow=!heavy; });
+    // walk the tower group for plinth/HVAC/tank pieces too
+    if(t.group){
+      t.group.children.forEach(c=>{
+        if(c.isMesh && c.geometry && c.geometry.type!=='EdgesGeometry') c.castShadow = !heavy;
+      });
+    }
+  });
+  // sun shadow map density scales down too — no point wasting 1024² on nothing
+  if(heavy){ sun.shadow.mapSize.set(512,512); }
+  else     { sun.shadow.mapSize.set(1024,1024); }
+}
+
 function addTower(m, opts={}){
   const existing=towers.find(t=>t.id===m.id);
   if(existing){ updateTowerFields(existing, m); return existing; }
@@ -963,6 +981,14 @@ function addTower(m, opts={}){
   towers.push(tower);
   tower.growth = {t: opts.instant ? 1 : 0.02, target: 1};
   tower.group.scale.y = tower.growth.t;
+  // once we cross the pop cap, flip the whole city into shadow-off mode
+  if(towers.length===SHADOW_POP_CAP+1) refreshShadowLOD();
+  else if(towers.length > SHADOW_POP_CAP){
+    // still large — just make sure this new tower is shadow-off too
+    tower.mesh.castShadow=false;
+    (tower.tops||[]).forEach(m=>m.castShadow=false);
+    tower.group.children.forEach(c=>{ if(c.isMesh) c.castShadow=false; });
+  }
   return tower;
 }
 
@@ -1043,6 +1069,7 @@ function build(){
   });
 
   msgs=(state.messages||[]).slice(-6).map(m=>({...m,life:1.5+Math.random()*4,el:null}));
+  refreshShadowLOD();   // apply shadow LOD after full rebuild
   frameCity();
 }
 
@@ -1192,10 +1219,12 @@ function updateBubbles(){
 
 /* ---------------- loop ---------------- */
 let tick=0;
+let paused=false;
 function easeOutBack(t){ const c=1.4; return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2); }
 function easeInQuad(t){ return t*t; }
 function animate(){
   requestAnimationFrame(animate);
+  if(paused) return;   // panel hidden — skip render + math so the parent app stays snappy
   clock+=0.016;
   applyCam();
   agents.forEach(a=>{
@@ -1589,6 +1618,22 @@ const BamCity = {
   startAuto(){ setAuto(true); },
   stopAuto(){ setAuto(false); },
   backfill(){ return backfillCity(); },
+  pause(){
+    if(paused) return;
+    paused=true;
+    // pause auto-grow too — no work happens while hidden
+    if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
+  },
+  resume(){
+    if(!paused && localStorage.getItem(AUTO_KEY)!=='1') return;
+    paused=false;
+    // restore auto-grow if it was on before
+    if(localStorage.getItem(AUTO_KEY)==='1' && !autoTimer){
+      autoTimer=setInterval(()=>{ BamCity.grow(); }, 8000);
+      const b=document.getElementById('auto');
+      if(b){ b.classList.add('on'); b.textContent='■ Auto'; }
+    }
+  },
   state(){ return JSON.parse(JSON.stringify(state)); },
   save(){ save(); },
   load(json){
@@ -1714,6 +1759,11 @@ setInterval(pollRemote, 30000);
 addEventListener('message', e=>{
   const d=e.data||{}; if(d.type!=='bam-city' || !d.action) return;
   const fn=BamCity[d.action]; if(typeof fn==='function') fn(d.arg);
+});
+
+/* auto-pause when the browser hides us (iframe display:none propagates to visibilityState) */
+addEventListener('visibilitychange', ()=>{
+  if(document.hidden) BamCity.pause(); else BamCity.resume();
 });
 
 /* ─── build modal wiring ─── */

@@ -3682,8 +3682,14 @@ function openBamCity(){
   var f =document.getElementById('bc-iframe');
   if(f.src==='about:blank' || !f.src) f.src='bam-city.html';
   el.classList.add('open');
+  // resume the render loop — first-load will just no-op, subsequent opens un-pause
+  setTimeout(function(){ bamCityPost('resume'); }, 50);
 }
-function closeBamCity(){ document.getElementById('bamcity').classList.remove('open'); }
+function closeBamCity(){
+  document.getElementById('bamcity').classList.remove('open');
+  // freeze the iframe so its 3D loop doesn't chew GPU while you're using the rest of BAM
+  bamCityPost('pause');
+}
 function bamCityPost(action, arg){
   var f=document.getElementById('bc-iframe');
   try{ f && f.contentWindow && f.contentWindow.postMessage({type:'bam-city', action:action, arg:arg}, '*'); }catch(e){}
@@ -3742,7 +3748,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1785498551';
+var BAM_BUILD='1785498978';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
