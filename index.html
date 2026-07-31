@@ -1832,6 +1832,7 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
     <span style="flex:1"></span>
     <button onclick="bamCityGrow()" title="Ask the city to grow one new building" style="font-size:12px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(212,175,55,.4);border-radius:6px;color:#e2c05c;background:rgba(60,20,0,.2);margin-right:6px;cursor:pointer;text-transform:uppercase">＋ Grow</button>
     <button onclick="bamCityAuto()" id="bc-auto" title="Auto-grow one building every 8s" style="font-size:12px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(163,20,58,.5);border-radius:6px;color:#ffb0b8;background:rgba(60,10,20,.2);margin-right:6px;cursor:pointer;text-transform:uppercase">▶ Auto</button>
+    <button onclick="bamCityFix()" title="Rename dupes · upgrade stubs to live · staff every unstaffed tower" style="font-size:12px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(180,140,60,.5);border-radius:6px;color:#e2c05c;background:rgba(30,20,5,.3);margin-right:6px;cursor:pointer;text-transform:uppercase">🔧 Fix</button>
     <button onclick="closeBamCity()">✕</button>
   </div>
   <iframe id="bc-iframe" src="about:blank" title="BAM City" loading="lazy"></iframe>
@@ -3688,6 +3689,7 @@ function bamCityPost(action, arg){
   try{ f && f.contentWindow && f.contentWindow.postMessage({type:'bam-city', action:action, arg:arg}, '*'); }catch(e){}
 }
 function bamCityGrow(){ bamCityPost('grow'); }
+function bamCityFix(){ bamCityPost('backfill'); }
 function bamCityAuto(){
   var b=document.getElementById('bc-auto');
   var on=!b.classList.contains('on'); b.classList.toggle('on',on);
@@ -3740,7 +3742,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1785396611';
+var BAM_BUILD='1785498551';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){

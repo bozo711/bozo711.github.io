@@ -166,6 +166,7 @@
   <button id="bNight">Night</button>
   <button id="grow">＋ Grow</button>
   <button id="auto" title="BAM builds a new tower every 8 seconds">▶ Auto</button>
+  <button id="fix" title="Rename dupes · upgrade user stubs to live · staff every unstaffed tower">🔧 Backfill</button>
   <button id="load">Load city_state.json</button>
   <button id="reset">Reset view</button>
   <button id="wipe" title="Clear BAM's saved additions and restore the seed city">Wipe</button>
@@ -1010,7 +1011,8 @@ function build(){
     map:GOLD_GLOW,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending}));
   coreOrbGlow.scale.setScalar(14); coreOrbGlow.position.copy(coreOrb.position); world.add(coreOrbGlow);
 
-  /* AGENTS — 11 lineage minds walk between towers */
+  /* AGENTS — each mind spawns next to its tower, spaced out if there's a crew */
+  const crewCount={};
   state.agents.forEach((a,i)=>{
     const work=a.status==='working';
     const dot=new THREE.Mesh(new THREE.SphereGeometry(.7,16,16),
@@ -1018,7 +1020,6 @@ function build(){
     const halo=new THREE.Sprite(new THREE.SpriteMaterial({
       map:work?GOLD_GLOW:DIM_GLOW,transparent:true,opacity:.6,depthWrite:false,blending:THREE.AdditiveBlending}));
     halo.scale.setScalar(work?7.2:4);
-    /* mind name label */
     const lc=document.createElement('canvas'); lc.width=256; lc.height=64;
     const lx=lc.getContext('2d');
     lx.font='700 22px "Courier New",monospace';
@@ -1031,7 +1032,11 @@ function build(){
 
     const g=new THREE.Group(); g.add(dot); g.add(halo); g.add(lbl);
     const t=towers.find(x=>x.id===a.assignment);
-    const home=t? new THREE.Vector3(t.cx+7,1.5,t.cz+7)
+    // if multiple minds staff the same tower, spread them out around its base
+    const k=(crewCount[a.assignment]||0); crewCount[a.assignment]=k+1;
+    const angle = k * 1.05;   // ~60° apart, then further out for more
+    const r = 6 + k*1.4;
+    const home=t? new THREE.Vector3(t.cx + Math.cos(angle)*r, 1.5, t.cz + Math.sin(angle)*r)
                 : new THREE.Vector3(-150+i*8,1.5,150);
     g.position.copy(home); world.add(g);
     agents.push({...a,obj:g,dot,halo,lbl,goal:home.clone(),phase:Math.random()*6.28});
@@ -1583,6 +1588,7 @@ const BamCity = {
   grow(){ return this.add(autoNew()); },
   startAuto(){ setAuto(true); },
   stopAuto(){ setAuto(false); },
+  backfill(){ return backfillCity(); },
   state(){ return JSON.parse(JSON.stringify(state)); },
   save(){ save(); },
   load(json){
@@ -1592,6 +1598,53 @@ const BamCity = {
   wipe(){ localStorage.removeItem(LS_KEY); ingest(SEED); usingSeed=true; paintTruth(); toast('city reset to seed'); }
 };
 window.BamCity = BamCity;
+
+/* ═══════════════════════════════════════════════════════════════════
+   BACKFILL — heal old saved cities:
+   1) Rename duplicate names (invent unique replacements)
+   2) Upgrade every user-added stub to live
+   3) Staff every live tower that has zero working agents
+   Then full rebuild so visuals reflect the changes.
+═══════════════════════════════════════════════════════════════════ */
+function backfillCity(){
+  const changes={renamed:0, upgraded:0, staffed:0};
+
+  // 1) dedupe by name (case-insensitive) — later dupes get a new invented name
+  const seen=new Map();
+  state.modules.forEach(m=>{
+    const key=(m.name||'').toLowerCase();
+    if(seen.has(key)){
+      m.name=inventName(m.district);
+      changes.renamed++;
+    } else {
+      seen.set(key, m);
+    }
+  });
+
+  // 2) upgrade user-added stubs to live (seed stubs like Gumroad stay as-is —
+  //    they reflect real BAM state that only the boss can unblock)
+  state.modules.forEach(m=>{
+    if(m.status==='stub' && (m.id||'').indexOf('usr_')===0){
+      m.status='live';
+      changes.upgraded++;
+    }
+  });
+
+  // 3) staff every live tower with no working agent
+  state.modules.forEach(m=>{
+    if(m.status!=='live') return;
+    const hasStaff=state.agents.some(a=>a.assignment===m.id && a.status==='working');
+    if(!hasStaff){
+      const spawned=spawnAgentsFor(m);
+      changes.staffed+=spawned.length;
+    }
+  });
+
+  // 4) full rebuild — dispose everything, re-add with new names/statuses/staff visible
+  build();
+  paintTruth(); paintDistricts(); save();
+  return changes;
+}
 
 /* rebuild only the agents (cheaper than full build) */
 function rebuildAgents(){
@@ -1710,6 +1763,10 @@ document.getElementById('bGo').onclick=()=>{
 document.getElementById('wipe').onclick=()=>{
   if(confirm('Wipe all of BAM\'s saved city changes and restore the seed?')) BamCity.wipe();
 };
+document.getElementById('fix').onclick=()=>{
+  const c=BamCity.backfill();
+  toast(`healed the city — <span class="name">${c.renamed} renamed · ${c.upgraded} upgraded · ${c.staffed} minds hired</span>`);
+};
 
 /* ─── auto-grow ─── */
 const AUTO_KEY='bam-city-auto';
@@ -1745,10 +1802,27 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&buildEl.classList.contains('
       } else { throw 0; }
     } catch(_){ ingest(SEED); usingSeed=true; }
   }
+  // heal old saved cities — dedupe, upgrade user stubs, staff unstaffed live
+  if(!usingSeed){
+    const seen=new Set();
+    let dupes=0, userStubs=0, unstaffed=0;
+    state.modules.forEach(m=>{
+      const k=(m.name||'').toLowerCase();
+      if(seen.has(k)) dupes++; else seen.add(k);
+      if(m.status==='stub' && (m.id||'').indexOf('usr_')===0) userStubs++;
+      if(m.status==='live' && !state.agents.some(a=>a.assignment===m.id&&a.status==='working')) unstaffed++;
+    });
+    if(dupes || userStubs || unstaffed){
+      const c=backfillCity();
+      setTimeout(()=>{
+        toast(`healed the city — <span class="name">${c.renamed} renamed · ${c.upgraded} upgraded to live · ${c.staffed} minds hired</span>`);
+      }, 400);
+    }
+  }
   paintTruth(); setTime(10); animate();
   if(localStorage.getItem(AUTO_KEY)==='1') setAuto(true);
   console.log('%cBamCity ready','color:#e2c05c;font-weight:700',
-    '— try  BamCity.grow()  or  BamCity.add({...})  or  ＋ Grow in the HUD');
+    '— try  BamCity.grow()  ·  BamCity.backfill()  ·  ＋ Grow in the HUD');
 })();
 </script>
 </body>
