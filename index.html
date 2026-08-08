@@ -1070,6 +1070,30 @@ strong{color:#e8d4b0}
 #bamcity{position:fixed;inset:0;z-index:444;background:radial-gradient(1000px 600px at 50% -10%,#160a12,#0a0508 60%,#040207);display:none;flex-direction:column}
 #bamcity.open{display:flex}
 #bamcity iframe{flex:1;width:100%;height:100%;border:0;background:#010008}
+/* Agent Map panel — the honest inventory */
+#agentmap{position:fixed;inset:0;z-index:445;background:radial-gradient(1000px 600px at 50% -10%,#12080a,#080306 60%,#030102);display:none;flex-direction:column}
+#agentmap.open{display:flex}
+#agentmap .am-body{flex:1;overflow-y:auto;padding:18px 22px 40px;color:#eedcd8;font-family:'Courier New',monospace}
+#agentmap .am-sec{margin:22px 0 8px;font-family:'Cinzel',serif;font-size:13px;letter-spacing:4px;color:#e2c05c;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid rgba(212,175,55,.2)}
+#agentmap .am-sec .n{color:rgba(212,175,55,.35);font-size:10px;margin-left:8px}
+#agentmap .am-note{color:rgba(230,200,200,.55);font-size:11px;line-height:1.6;margin:4px 0 12px}
+#agentmap .am-legend{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 14px;font-size:10px;color:rgba(230,200,200,.6);letter-spacing:1px}
+#agentmap .am-legend span{padding:3px 8px;border-radius:5px;border:1px solid rgba(255,255,255,.1)}
+#agentmap .am-legend .live{color:#8fd6a4;border-color:rgba(90,200,130,.4)}
+#agentmap .am-legend .vault{color:#e2c05c;border-color:rgba(212,175,55,.4)}
+#agentmap .am-legend .stub{color:#f0919b;border-color:rgba(200,80,90,.4)}
+#agentmap .am-row{display:flex;align-items:center;gap:12px;padding:10px 13px;margin-bottom:6px;border:1px solid rgba(212,175,55,.10);border-radius:8px;background:rgba(255,251,240,.02);border-left:3px solid transparent}
+#agentmap .am-row.live{border-left-color:rgba(90,200,130,.5)}
+#agentmap .am-row.vault{border-left-color:rgba(212,175,55,.5)}
+#agentmap .am-row.stub{border-left-color:rgba(200,80,90,.5)}
+#agentmap .am-name{flex:0 0 170px;font-size:12px;font-weight:700;color:#efe9db;letter-spacing:.4px}
+#agentmap .am-desc{flex:1;font-size:11px;line-height:1.5;color:rgba(230,220,210,.75)}
+#agentmap .am-badge{flex:0 0 auto;font-size:9.5px;letter-spacing:1.5px;font-weight:700;padding:4px 10px;border-radius:14px;text-transform:uppercase;white-space:nowrap}
+#agentmap .am-badge.live{color:#8fd6a4;background:rgba(60,140,90,.15);border:1px solid rgba(90,200,130,.35)}
+#agentmap .am-badge.vault{color:#e2c05c;background:rgba(120,80,20,.15);border:1px solid rgba(212,175,55,.35)}
+#agentmap .am-badge.stub{color:#f0919b;background:rgba(120,20,40,.15);border:1px solid rgba(200,80,90,.35)}
+#agentmap .am-summary{margin:8px 0 18px;padding:12px 14px;background:rgba(20,10,10,.5);border:1px solid rgba(212,175,55,.15);border-radius:8px;font-size:11px;color:rgba(230,220,210,.8);line-height:1.7}
+#agentmap .am-summary b{color:#e2c05c}
 .sn-row{display:flex;align-items:center;gap:10px;padding:12px 15px;margin-bottom:8px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,251,240,.02)}
 .sn-row b{flex:1;color:#efe9db;font-size:13px}
 .sn-ok{color:#8fd6a4;font-size:12px;font-weight:700}.sn-warn{color:#e2c05c;font-size:12px;font-weight:700}.sn-bad{color:#f0919b;font-size:12px;font-weight:700}
@@ -1832,6 +1856,17 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
   </div>
 </div>
 
+<!-- AGENT MAP — the honest inventory. Reads /Users/bam/Downloads/BAM_AGENT_MAP.md's structure but with live probes. -->
+<div id="agentmap">
+  <div class="biz-top">
+    <span class="biz-title">📋 AGENT MAP — WHAT ACTUALLY RUNS, WHAT DOESN'T</span>
+    <span style="flex:1"></span>
+    <button onclick="amRerun()" title="Re-run every probe" style="font-size:12px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(90,180,120,.5);border-radius:6px;color:#8fd6a4;background:rgba(5,25,15,.3);margin-right:6px;cursor:pointer;text-transform:uppercase">🔍 Re-probe</button>
+    <button onclick="closeAgentMap()">✕</button>
+  </div>
+  <div class="am-body" id="am-body"></div>
+</div>
+
 <!-- BAM CITY — every module + agent as a living 3D building. Iframe so the app keeps running behind it. -->
 <div id="bamcity">
   <div class="biz-top">
@@ -1916,6 +1951,7 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
         <button onclick="adGo(openNeuro)">🧠 <b>Neurolink</b><span>cortex · tools · agents</span></button>
         <button onclick="adGo(openPhys)">⚛ <b>Physics Lab</b><span>portal engineering</span></button>
         <div class="ad-sec">SHIP</div>
+        <button onclick="adGo(openAgentMap)">📋 <b>Agent Map</b><span>honest: what runs vs what doesn't</span></button>
         <button onclick="adGo(openBamCity)">🏙 <b>BAM City</b><span>every module as a living building</span></button>
         <button onclick="adGo(enter3D)" id="b3d-btn">🌐 <b>3D World</b><span>the holographic core</span></button>
         <button onclick="adGo(openDeck)" id="deck-btn">⌸ <b>Command Deck</b><span>every panel at once</span></button>
@@ -3736,6 +3772,155 @@ async function brMac(){
 }
 async function brMacDel(i){ var mb=window._macBrain||[]; mb.splice(i,1); try{ await dbAPI('brain',{brain:mb}); }catch(e){} brMac(); toast('forgotten on the Mac'); }
 
+// ═══ AGENT MAP — data-driven honest inventory. Each row has a probe that runs live. ═══
+// Probe values:
+//   true              — always live (client-side, always works)
+//   'vault'           — requires the Mac vault (BACKEND_UP === true)
+//   'stub'            — never live, purely decorative or blocked
+//   function()        — arbitrary probe
+const AGENT_MAP = [
+  { section:'THE LINEAGE — 11 background minds (require Mac vault to teach or answer)',
+    note:'The daemon rotates through them, one lesson per ~18 min. Only the local qwen2.5:3b student is scored — that\'s the number that improves.',
+    entries:[
+      { name:'SAGE',    desc:'money & digital-product strategy · gen1 · 6 lessons · 4 sub-agents', probe:'vault' },
+      { name:'SCOUT',   desc:'trend & web research · gen1 · 6 lessons · 3 sub-agents', probe:'vault' },
+      { name:'QUILL',   desc:'copywriting & video scripts · gen1 · 5 lessons · 3 sub-agents', probe:'vault' },
+      { name:'LEDGER',  desc:'markets & trading discipline · gen1 · 5 lessons · 3 sub-agents', probe:'vault' },
+      { name:'WARDEN',  desc:'security & operations · gen1 · 5 lessons · 0 sub-agents', probe:'vault' },
+      { name:'MUSE',    desc:'creative & visual ideas · gen2 · 9 lessons · 12 sub-agents (evolved)', probe:'vault' },
+      { name:'SOL',     desc:'coaching & morale · gen1 · 5 lessons · 4 sub-agents', probe:'vault' },
+      { name:'CORTEX',  desc:'code & tools · gen1 · 5 lessons · 1 sub-agent', probe:'vault' },
+      { name:'ECHO',    desc:'memory & summarizing · gen1 · 5 lessons · 2 sub-agents', probe:'vault' },
+      { name:'NOVA',    desc:'wildcard & general reasoning · gen1 · 5 lessons · 1 sub-agent', probe:'vault' },
+      { name:'INSPIRO', desc:'ideation & frontier — referenced in bam-city, may not be in roster.json yet', probe:'vault' },
+    ]},
+  { section:'NEUROLINK UI CARDS — decorative labels, not running agents',
+    note:'These are strings on cards. ATLAS / SCRIBE / HUNTER call /api/agent/dispatch when tapped. LEDGER / MUSE / SENTRY are client-side and always live.',
+    entries:[
+      { name:'ATLAS',        desc:'decorative label + dispatch call — "Load failed" when vault is down', probe:'vault' },
+      { name:'SCRIBE',       desc:'decorative label + dispatch call', probe:'vault' },
+      { name:'HUNTER',       desc:'decorative label + dispatch call', probe:'vault' },
+      { name:'LEDGER (card)', desc:'reads Gumroad API with your key (not the same as the mind called Ledger)', probe:()=>!!(typeof cfg!=='undefined' && cfg.gumKey) },
+      { name:'MUSE (card)',  desc:'client-side beat generator + WAV export (independent of the mind Muse)', probe:()=>!!(window.AudioContext||window.webkitAudioContext) },
+      { name:'SENTRY',       desc:'checks jv-cfg-enc — always live if you\'ve set a vault PIN', probe:()=>!!localStorage.getItem('jv-cfg-enc') },
+    ]},
+  { section:'DAEMON TICKS — real background jobs (require Mac vault)',
+    note:'One process, tick every ~5 min. If BACKEND_UP is false none of these are reachable from this device.',
+    entries:[
+      { name:'paperTick',       desc:'reads Polymarket whale tape, opens paper positions, marks-to-market, settles (now with extreme-price + delisted fallback)', probe:'vault' },
+      { name:'stratTick',       desc:'runs the 10-strategy tournament against the same whale tape', probe:'vault' },
+      { name:'maybeAcademy',    desc:'teaches one lineage mind per tick (needs ollama :11434 + Groq key)', probe:'vault' },
+      { name:'maybeTrendVideo', desc:'daily: YouTube research → 70B concept → make_video.py → pending.json awaits approval', probe:'vault' },
+      { name:'maybeVideoBatch', desc:'bulk trend videos batched w/ approval gates', probe:'vault' },
+      { name:'maybeSelfReview', desc:'weekly: reviews own lessons + failures → proposes ONE self-upgrade via BAM CODES', probe:'vault' },
+      { name:'maybeMailwork',   desc:'polls AgentMail inbox, auto-replies, runs drip on pitched leads', probe:'vault' },
+      { name:'researchTick',    desc:'runs open research missions from the Studio Research tab', probe:'vault' },
+      { name:'maybeBossVideo',  desc:'"make me a video" chat requests', probe:'vault' },
+      { name:'maybeBriefing',   desc:'first-open-per-day rundown', probe:'vault' },
+      { name:'watchdog',        desc:'restarts API, rotates tunnels (now health-checked), prunes video dirs', probe:'vault' },
+      { name:'gitSnap',         desc:'auto-commits ~/Downloads + ~/jarvis-api every tick', probe:'vault' },
+      { name:'maybeBackup',     desc:'nightly encrypted tar → ~/Backups/bam + iCloud', probe:'vault' },
+      { name:'telegramLoop',    desc:'long-poll Telegram; boss chat → /api/chat (needs tg_token in Keychain)', probe:'vault' },
+      { name:'discordLoop',     desc:'Discord gateway bot (needs dc_token)', probe:'vault' },
+      { name:'intrusionTripwire', desc:'honeypots + 8-fail rule → auto-lockdown', probe:'vault' },
+      { name:'selfHashAlarm',   desc:'md5 of core files, alerts on unapproved change', probe:'vault' },
+    ]},
+  { section:'CLIENT-SIDE FEATURES — LIVE without the Mac',
+    note:'These run in your browser. No vault, no API key beyond what\'s in Settings, no daemon required.',
+    entries:[
+      { name:'Chat via API key', desc:'streams from Groq/OpenAI/Anthropic depending on cfg', probe:()=>!!(typeof cfg!=='undefined' && (cfg.apikey||cfg.apiUrl)) },
+      { name:'Ventures board',   desc:'50 money plays w/ status chips; some actions delegate to backend', probe:true },
+      { name:'Powers board',     desc:'37 personal upgrades (same card machinery as Ventures)', probe:true },
+      { name:'1000 Ideas',       desc:'search + status chips in localStorage', probe:true },
+      { name:'Brain browser',    desc:'edit local jv-brain (Mac facts still require vault)', probe:true },
+      { name:'Doomscroll',       desc:'client-side content pool loop', probe:true },
+      { name:'Academy panel',    desc:'local coursework (mind-teaching is separate)', probe:true },
+      { name:'Physics Lab',      desc:'standalone WebGL portal', probe:true },
+      { name:'BAM Stage',        desc:'3D talking Bam w/ viseme lipsync', probe:true },
+      { name:'3D World',         desc:'client-side holographic core', probe:true },
+      { name:'BAM City',         desc:'6-district hex city w/ growth + auto-grow + probes', probe:true },
+      { name:'Beat engine',      desc:'WebAudio synth + WAV export', probe:()=>!!(window.AudioContext||window.webkitAudioContext) },
+      { name:'Speech synthesis', desc:'voice_out via SpeechSynthesis API', probe:()=>'speechSynthesis' in window },
+      { name:'Screen capture',   desc:'getDisplayMedia — see_screen / lookonce / watch', probe:()=>!!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) },
+      { name:'Wake word / hands-free', desc:'SpeechRecognition — Chrome/Edge only', probe:()=>!!(window.SpeechRecognition||window.webkitSpeechRecognition) },
+      { name:'Security Center',  desc:'now-honest 100-layer audit; count reflects real probes', probe:true },
+      { name:'Neurolink',        desc:'LIVE count now comes from probe functions', probe:true },
+      { name:'Web Push VAPID',   desc:'lock-screen alerts (iOS: needs Home Screen install)', probe:()=>('serviceWorker' in navigator) && ('PushManager' in window) },
+      { name:'Encrypted vault',  desc:'AES-GCM via WebCrypto; enabled once you set a PIN', probe:()=>!!localStorage.getItem('jv-cfg-enc') },
+    ]},
+  { section:'KNOWN BLOCKED / STUBBED',
+    note:'These are honest limits. Nothing here works until the block clears.',
+    entries:[
+      { name:'YouTube publish', desc:'OAuth in Testing mode kills refresh tokens every 7d. Fix: python3.11 yt_oauth.py + set app "In production"', probe:'stub' },
+      { name:'Gumroad payout',  desc:'bank account not attached — on you, not on code', probe:'stub' },
+      { name:'Live trading',    desc:'/api/trade/execute is a deliberate 403 until poly_privkey + LIVE_TRADING=on', probe:'stub' },
+      { name:'Named cloudflare tunnel', desc:'permanent hostname needs cloudflared tunnel login + a domain; today\'s tunnel is quick + fragile', probe:'stub' },
+      { name:'Composio bridge', desc:'code exists but 0 apps connected — OAuth each app at app.composio.dev', probe:()=>false /* until user connects */ },
+    ]},
+];
+
+function amStatus(probe){
+  if (probe === 'stub') return { cls:'stub',  label:'✕ STUB' };
+  if (probe === 'vault'){
+    const up = (typeof window.BACKEND_UP === 'boolean') ? window.BACKEND_UP : null;
+    if (up === true)  return { cls:'live',  label:'✓ LIVE' };
+    if (up === false) return { cls:'vault', label:'○ VAULT DOWN' };
+    return { cls:'vault', label:'○ NEEDS VAULT' };
+  }
+  if (probe === true) return { cls:'live', label:'✓ LIVE' };
+  if (typeof probe === 'function') {
+    let ok = false; try { ok = !!probe(); } catch(e){}
+    return ok ? { cls:'live', label:'✓ LIVE' } : { cls:'stub', label:'✕ OFF' };
+  }
+  return { cls:'stub', label:'✕ ?' };
+}
+
+function amRender(){
+  const body = document.getElementById('am-body');
+  if (!body) return;
+  let totalLive=0, totalVault=0, totalStub=0, total=0;
+  const secs = AGENT_MAP.map(sec=>{
+    let lc=0, vc=0, sc=0;
+    const rows = sec.entries.map(e=>{
+      const st = amStatus(e.probe);
+      if (st.cls==='live') lc++;
+      else if (st.cls==='vault') vc++;
+      else sc++;
+      return '<div class="am-row '+st.cls+'">'
+        + '<span class="am-name">'+doomEsc(e.name)+'</span>'
+        + '<span class="am-desc">'+doomEsc(e.desc)+'</span>'
+        + '<span class="am-badge '+st.cls+'">'+st.label+'</span>'
+        + '</div>';
+    }).join('');
+    totalLive+=lc; totalVault+=vc; totalStub+=sc; total+=sec.entries.length;
+    return '<div class="am-sec">'+doomEsc(sec.section)+' <span class="n">'+sec.entries.length+' entries · '+lc+' live · '+vc+' vault · '+sc+' off</span></div>'
+      + (sec.note ? '<div class="am-note">'+doomEsc(sec.note)+'</div>' : '')
+      + rows;
+  }).join('');
+  const banner = (window.BACKEND_UP === false)
+    ? '⚠ vault is currently DOWN — everything marked "needs vault" is offline right now.'
+    : (window.BACKEND_UP === true)
+    ? '✓ vault is UP — "needs vault" rows are live.'
+    : '(vault status unknown — nothing has been called yet)';
+  const summary =
+    '<div class="am-summary">'
+    + '<b>'+total+'</b> tracked · '
+    + '<b>'+totalLive+'</b> live · '
+    + '<b>'+totalVault+'</b> need vault · '
+    + '<b>'+totalStub+'</b> off/stub<br>'
+    + banner
+    + '</div>'
+    + '<div class="am-legend">'
+    + '<span class="live">✓ LIVE — real code, verified reachable right now</span>'
+    + '<span class="vault">○ NEEDS VAULT — real code, but requires your Mac API</span>'
+    + '<span class="stub">✕ STUB / OFF — no code or deliberately blocked</span>'
+    + '</div>';
+  body.innerHTML = summary + secs;
+}
+function openAgentMap(){ document.getElementById('agentmap').classList.add('open'); amRender(); }
+function closeAgentMap(){ document.getElementById('agentmap').classList.remove('open'); }
+function amRerun(){ amRender(); }
+
 // ═══ BAM CITY — every module + agent as a 3D building; loaded lazily in an iframe ═══
 function openBamCity(){
   var el=document.getElementById('bamcity');
@@ -3809,7 +3994,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1786224964';
+var BAM_BUILD='1786226377';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
