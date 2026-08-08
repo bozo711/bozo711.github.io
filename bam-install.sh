@@ -9,8 +9,16 @@ command -v node >/dev/null 2>&1 || { echo "✕ BAM needs Node.js — install it 
 
 echo "→ installing BAM terminal…"
 mkdir -p "$HOME/.bam"
-curl -fsSL "$SITE/jarvis.js"      -o "$HOME/.bam/jarvis.js"
-curl -fsSL "$SITE/jarvis-core.js" -o "$HOME/.bam/jarvis-core.js"
+curl -fsSL "$SITE/jarvis.js"          -o "$HOME/.bam/jarvis.js"
+curl -fsSL "$SITE/jarvis-core.js"     -o "$HOME/.bam/jarvis-core.js"
+# Video/audio helpers so /video, /batch, /pick, /yes aren't dead on arrival.
+# These are optional — /help works either way; if a file 404s the command just
+# prints a helpful "install python + edge-tts" line instead of a crash.
+for py in make_video.py get_broll.py gen_visuals.py upload_youtube.py; do
+  if curl -fsSL "$SITE/$py" -o "$HOME/.bam/$py" 2>/dev/null; then :; else
+    echo "  ○ $py not on the live site yet — /video will report it as unavailable"
+  fi
+done
 chmod +x "$HOME/.bam/jarvis.js"
 
 BIN="/usr/local/bin"
