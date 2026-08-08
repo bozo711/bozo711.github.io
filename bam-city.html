@@ -166,7 +166,8 @@
   <button id="bNight">Night</button>
   <button id="grow">＋ Grow</button>
   <button id="auto" title="BAM builds a new tower every 8 seconds">▶ Auto</button>
-  <button id="fix" title="Rename dupes · upgrade user stubs to live · staff every unstaffed tower">🔧 Backfill</button>
+  <button id="probe" title="Re-check every tower against its real capability probe">🔍 Probe</button>
+  <button id="fix" title="Rename dupes · staff every unstaffed live tower">🔧 Backfill</button>
   <button id="load">Load city_state.json</button>
   <button id="reset">Reset view</button>
   <button id="wipe" title="Clear BAM's saved additions and restore the seed city">Wipe</button>
@@ -287,10 +288,13 @@ const SEED={
 
     /* ═══ SENSES — §1897 ═══ */
     {id:'intercom',  district:'senses', icon:'📢', name:'Intercom',       status:'live', priority:4, queue:0, primary:true,  roles:['hold-to-talk','whisper STT','say TTS']},
-    {id:'lookonce',  district:'senses', icon:'👁', name:'Look Once',      status:'stub', priority:3, queue:0, primary:true,  roles:['screen grab','camera frame','vision → chat']},
-    {id:'watch',     district:'senses', icon:'📡', name:'Watch Mode',     status:'stub', priority:3, queue:0, primary:true,  roles:['continuous vision','diff detection']},
-    {id:'handsfree', district:'senses', icon:'🗣', name:'Hands-free',     status:'stub', priority:2, queue:0, primary:true,  roles:['open conversation','turn-taking']},
-    {id:'wake',      district:'senses', icon:'🎙', name:'Wake Word',      status:'stub', priority:2, queue:0, primary:true,  roles:['say Bam','activate']},
+    // These four were mislabeled as stubs — the code exists in index.html
+    // (getDisplayMedia, sigDiff, toggleHandsFree, initWake) with permission
+    // handling + auto-restart. Flipping to live per the honesty audit.
+    {id:'lookonce',  district:'senses', icon:'👁', name:'Look Once',      status:'live', priority:3, queue:0, primary:true,  roles:['screen grab','camera frame','vision → chat']},
+    {id:'watch',     district:'senses', icon:'📡', name:'Watch Mode',     status:'live', priority:3, queue:0, primary:true,  roles:['continuous vision','diff detection']},
+    {id:'handsfree', district:'senses', icon:'🗣', name:'Hands-free',     status:'live', priority:2, queue:0, primary:true,  roles:['open conversation','turn-taking']},
+    {id:'wake',      district:'senses', icon:'🎙', name:'Wake Word',      status:'live', priority:2, queue:0, primary:true,  roles:['say Bam','activate']},
     {id:'telegram',  district:'senses', icon:'📱', name:'Telegram Line',  status:'live', priority:5, queue:3, roles:['long-poll','two-way chat','decision commands','mirror alerts']},
     {id:'discord',   district:'senses', icon:'💬', name:'Discord Bot',    status:'live', priority:5, queue:2, roles:['gateway','MESSAGE CONTENT','blast alerts','commands']},
     {id:'agentmail', district:'senses', icon:'✉', name:'AgentMail',       status:'live', priority:4, queue:1, roles:['inbox poll','send','auto-reply','drip']},
@@ -1465,9 +1469,12 @@ function autoNew(){
   return {
     id: makeId(),
     name, icon, district:dId,
-    status: 'live',
+    // per the honesty audit: new towers are stubs. Nothing calls itself live
+    // until a probe (or you) marks it real. A gauge that inflates its own reading
+    // is worse than no gauge.
+    status: 'stub',
     priority: 2+Math.floor(Math.random()*3),
-    queue: 1+Math.floor(Math.random()*3),
+    queue: 0,
     primary: false,
     roles
   };
@@ -1547,27 +1554,20 @@ function spawnAgentVisual(a, i){
   agents.push({...a, obj:g, dot, halo, lbl, goal:home.clone(), phase:Math.random()*6.28});
 }
 
-function autoNew(){
-  // pick the district with the fewest towers
+// duplicate autoNew removed — the invent-style version above at line ~1443 is the real one.
+// This shadow was still using the coin-flip status, which is why the audit caught it.
+/* function autoNew(){ // — retained as a placeholder; the top declaration wins.
   const counts={};
   state.modules.forEach(m=>{counts[m.district]=(counts[m.district]||0)+1});
   const cands=DISTRICTS.filter(d=>d.id!=='core').sort((a,b)=>(counts[a.id]||0)-(counts[b.id]||0));
   const dId=cands[0].id;
   const pool=NEW_IDEAS[dId]||NEW_IDEAS.ship;
-  // avoid picking a name that already exists
   const existing=new Set(state.modules.map(m=>m.name));
   const pick=pool.find(p=>!existing.has(p[0])) || pool[Math.floor(Math.random()*pool.length)];
   const [name,icon,roles]=pick;
   const id='usr_'+Date.now().toString(36)+'_'+Math.floor(Math.random()*1000).toString(36);
-  return {
-    id, name, icon, district:dId,
-    status: Math.random()<0.35 ? 'live' : 'stub',
-    priority: 2+Math.floor(Math.random()*3),
-    queue: 0,
-    primary: false,
-    roles
-  };
-}
+  return { id, name, icon, district:dId, status:'stub', priority:2+Math.floor(Math.random()*3), queue:0, primary:false, roles };
+} */
 
 const BamCity = {
   add(mod, opts={}){
@@ -1645,6 +1645,107 @@ const BamCity = {
 window.BamCity = BamCity;
 
 /* ═══════════════════════════════════════════════════════════════════
+   PROBES — per audit #10: read reality instead of a hand-typed list.
+   Each module id maps to a function that returns true iff that capability
+   is actually reachable RIGHT NOW. No probe = the tower stays dark.
+   The city runs in an iframe, so it reaches into the parent for cfg + BACKEND_UP
+   when same-origin (bozo711.github.io). On file:// or a foreign origin, the
+   parent access throws and the probe returns false — which is honest.
+═══════════════════════════════════════════════════════════════════ */
+function _pcfg(){
+  try{ return window.parent && window.parent.cfg; }catch(e){ return null; }
+}
+function _backendUp(){
+  try{ return window.parent && window.parent.BACKEND_UP === true; }catch(e){ return false; }
+}
+const PROBES = {
+  // ── COMMS ──
+  telegram:  ()=>{ const c=_pcfg(); return !!(c && (c.tgToken||c.tgChat)); },
+  discord:   ()=>{ const c=_pcfg(); return !!(c && c.discordWh); },
+  agentmail: ()=>_backendUp(),
+  intercom:  ()=>!!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+  push:      ()=>('serviceWorker' in navigator) && ('PushManager' in window),
+  // ── WORK / MONEY ──
+  ventures:  ()=>true,  // client-side deterministic panel — no server needed
+  blood:     ()=>_backendUp(),
+  strat:     ()=>_backendUp(),
+  whales:    ()=>_backendUp(),
+  ledger:    ()=>_backendUp(),
+  sites:     ()=>{ const c=_pcfg(); return !!(c && (c.apikey||c.apiUrl)); },
+  leadssites:()=>{ const c=_pcfg(); return !!(c && (c.apikey||c.apiUrl)); },
+  leads:     ()=>_backendUp(),
+  gumroad:   ()=>{ const c=_pcfg(); return !!(c && c.gumKey); },
+  ytstudio:  ()=>{ const c=_pcfg(); return !!(c && c.ytKey); },
+  webagent:  ()=>_backendUp(),
+  // ── CONTENT ──
+  trend:     ()=>_backendUp(),
+  visuals:   ()=>_backendUp(),
+  shots:     ()=>_backendUp(),
+  writer:    ()=>{ const c=_pcfg(); return !!(c && (c.apikey||c.apiUrl)); },
+  yt:        ()=>_backendUp(),
+  karaoke:   ()=>_backendUp(),
+  voice:     ()=>'speechSynthesis' in window,
+  // ── MIND ──
+  brain:     ()=>{ try{ return !!localStorage.getItem('jv-brain'); }catch(e){ return false; } },
+  ideas1k:   ()=>true,
+  academy:   ()=>true,
+  doom:      ()=>true,
+  neuro:     ()=>true,
+  physics:   ()=>true,
+  memory:    ()=>_backendUp(),
+  research:  ()=>_backendUp(),
+  lessons:   ()=>_backendUp(),
+  rules:     ()=>_backendUp(),
+  viewest:   ()=>_backendUp(),
+  // ── SENTINEL / SECURITY ──
+  sentinel:  ()=>_backendUp(),
+  tripwire:  ()=>_backendUp(),
+  creds:     ()=>_backendUp(),
+  backup:    ()=>_backendUp(),
+  authgate:  ()=>_backendUp(),
+  hashwatch: ()=>_backendUp(),
+  kill:      ()=>_backendUp(),
+  // ── SHIP / COMMAND ──
+  threedee:  ()=>true,  // the city itself renders, so this one's trivially true
+  deck:      ()=>true,
+  missions:  ()=>_backendUp(),
+  const:     ()=>_backendUp(),
+  codes:     ()=>_backendUp(),
+  routines:  ()=>_backendUp(),
+  queue:     ()=>_backendUp(),
+  fallback:  ()=>_backendUp(),
+  watchdog:  ()=>_backendUp(),
+  composio:  ()=>{ const c=_pcfg(); return !!(c && c.composioKey); },
+  // ── SENSES ──
+  lookonce:  ()=>!!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia),
+  watch:     ()=>!!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia),
+  handsfree: ()=>!!(window.SpeechRecognition || window.webkitSpeechRecognition),
+  wake:      ()=>!!(window.SpeechRecognition || window.webkitSpeechRecognition),
+  // ── LIFE ──
+  powers:    ()=>true,
+  stage:     ()=>true
+};
+function runProbes(){
+  let changed=0;
+  state.modules.forEach(m=>{
+    const p=PROBES[m.id];
+    if(!p) return;                                 // no probe = leave whatever it is
+    let ok=false; try{ ok=!!p(); }catch(e){ ok=false; }
+    const next = ok ? 'live' : 'stub';
+    if(m.status !== next){ m.status = next; changed++; }
+  });
+  if(changed>0){ setTime(hour); paintTruth(); save(); }
+  return changed;
+}
+// expose so parent app or console can re-probe on demand
+BamCity.probes = runProbes;
+// re-run whenever the parent tells us backend flipped
+addEventListener('message', function(e){
+  const d=e.data||{};
+  if(d.type==='bam-city' && (d.action==='resume' || d.action==='reprobe')) runProbes();
+});
+
+/* ═══════════════════════════════════════════════════════════════════
    BACKFILL — heal old saved cities:
    1) Rename duplicate names (invent unique replacements)
    2) Upgrade every user-added stub to live
@@ -1666,14 +1767,9 @@ function backfillCity(){
     }
   });
 
-  // 2) upgrade user-added stubs to live (seed stubs like Gumroad stay as-is —
-  //    they reflect real BAM state that only the boss can unblock)
-  state.modules.forEach(m=>{
-    if(m.status==='stub' && (m.id||'').indexOf('usr_')===0){
-      m.status='live';
-      changes.upgraded++;
-    }
-  });
+  // (removed) — the audit killed the auto-upgrade block. A button that flips your
+  //             own stubs to live is falsifying the instrument. Stubs stay stubs
+  //             until a real probe (see PROBES) says otherwise.
 
   // 3) staff every live tower with no working agent
   state.modules.forEach(m=>{
@@ -1815,7 +1911,12 @@ document.getElementById('wipe').onclick=()=>{
 };
 document.getElementById('fix').onclick=()=>{
   const c=BamCity.backfill();
-  toast(`healed the city — <span class="name">${c.renamed} renamed · ${c.upgraded} upgraded · ${c.staffed} minds hired</span>`);
+  toast(`healed the city — <span class="name">${c.renamed} renamed · ${c.staffed} minds hired</span>`);
+};
+document.getElementById('probe').onclick=()=>{
+  const changed = runProbes();
+  const live = state.modules.filter(m=>m.status==='live').length;
+  toast(`probed reality — <span class="name">${changed} flipped · ${live} live now</span>`);
 };
 
 /* ─── auto-grow ─── */
@@ -1852,24 +1953,25 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&buildEl.classList.contains('
       } else { throw 0; }
     } catch(_){ ingest(SEED); usingSeed=true; }
   }
-  // heal old saved cities — dedupe, upgrade user stubs, staff unstaffed live
+  // heal old saved cities — dedupe + staff unstaffed live (no more auto-upgrade)
   if(!usingSeed){
     const seen=new Set();
-    let dupes=0, userStubs=0, unstaffed=0;
+    let dupes=0, unstaffed=0;
     state.modules.forEach(m=>{
       const k=(m.name||'').toLowerCase();
       if(seen.has(k)) dupes++; else seen.add(k);
-      if(m.status==='stub' && (m.id||'').indexOf('usr_')===0) userStubs++;
       if(m.status==='live' && !state.agents.some(a=>a.assignment===m.id&&a.status==='working')) unstaffed++;
     });
-    if(dupes || userStubs || unstaffed){
+    if(dupes || unstaffed){
       const c=backfillCity();
       setTimeout(()=>{
-        toast(`healed the city — <span class="name">${c.renamed} renamed · ${c.upgraded} upgraded to live · ${c.staffed} minds hired</span>`);
+        toast(`healed the city — <span class="name">${c.renamed} renamed · ${c.staffed} minds hired</span>`);
       }, 400);
     }
   }
   paintTruth(); setTime(10); animate();
+  // read reality once at startup so the initial tower statuses match what's actually reachable
+  try{ runProbes(); }catch(e){}
   if(localStorage.getItem(AUTO_KEY)==='1') setAuto(true);
   console.log('%cBamCity ready','color:#e2c05c;font-weight:700',
     '— try  BamCity.grow()  ·  BamCity.backfill()  ·  ＋ Grow in the HUD');

@@ -271,12 +271,24 @@ function command(input) {
 
 // ── video pipeline (script → faceless video → approve → upload) ───────────
 function runPy(args) {
+  // honest error when the .py helper isn't installed — otherwise the terminal
+  // shows a python stack trace and looks like something ran.
+  const first = args[0];
+  try {
+    if (typeof first === 'string' && /\.py$/.test(first)) {
+      const fs = require('fs'), path = require('path');
+      const p = path.join(__dirname, first);
+      if (!fs.existsSync(p)) {
+        return Promise.resolve({ code: 127, out: '  ✕ '+first+' is not installed at '+__dirname+'\n  → re-run: curl -fsSL https://bozo711.github.io/bam-install.sh | bash' });
+      }
+    }
+  } catch (e) {}
   return new Promise(res => {
     const p = spawn('python3.11', args, { cwd: __dirname });
     let out = '';
     p.stdout.on('data', d => out += d); p.stderr.on('data', d => out += d);
     p.on('close', code => res({ code, out }));
-    p.on('error', e => res({ code: 1, out: e.message }));
+    p.on('error', e => res({ code: 1, out: '  ✕ python3.11 not found — brew install python@3.11' }));
   });
 }
 

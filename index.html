@@ -1328,6 +1328,13 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
 </head>
 <body class="immersive">
 
+<!-- Backend health banner — visible only when a backend call has recently failed. -->
+<div id="backend-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;
+     background:linear-gradient(90deg,rgba(120,0,20,.95),rgba(80,0,15,.95));
+     color:#ffdcdc;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;
+     text-align:center;padding:6px 10px;border-bottom:1px solid rgba(200,60,80,.6);
+     box-shadow:0 4px 18px rgba(80,0,20,.6)"></div>
+
 <!-- Boot -->
 <div id="boot">
   <div class="boot-ring"></div>
@@ -1832,7 +1839,8 @@ body.immersive #p-jarvis .inp-area{position:fixed!important;left:50%;transform:t
     <span style="flex:1"></span>
     <button onclick="bamCityGrow()" title="Ask the city to grow one new building" style="font-size:12px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(212,175,55,.4);border-radius:6px;color:#e2c05c;background:rgba(60,20,0,.2);margin-right:6px;cursor:pointer;text-transform:uppercase">＋ Grow</button>
     <button onclick="bamCityAuto()" id="bc-auto" title="Auto-grow one building every 8s" style="font-size:12px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(163,20,58,.5);border-radius:6px;color:#ffb0b8;background:rgba(60,10,20,.2);margin-right:6px;cursor:pointer;text-transform:uppercase">▶ Auto</button>
-    <button onclick="bamCityFix()" title="Rename dupes · upgrade stubs to live · staff every unstaffed tower" style="font-size:12px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(180,140,60,.5);border-radius:6px;color:#e2c05c;background:rgba(30,20,5,.3);margin-right:6px;cursor:pointer;text-transform:uppercase">🔧 Fix</button>
+    <button onclick="bamCityProbe()" title="Re-probe every tower against reality" style="font-size:12px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(90,180,120,.5);border-radius:6px;color:#8fd6a4;background:rgba(5,25,15,.3);margin-right:6px;cursor:pointer;text-transform:uppercase">🔍 Probe</button>
+    <button onclick="bamCityFix()" title="Rename dupes · staff every unstaffed live tower" style="font-size:12px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(180,140,60,.5);border-radius:6px;color:#e2c05c;background:rgba(30,20,5,.3);margin-right:6px;cursor:pointer;text-transform:uppercase">🔧 Fix</button>
     <button onclick="closeBamCity()">✕</button>
   </div>
   <iframe id="bc-iframe" src="about:blank" title="BAM City" loading="lazy"></iframe>
@@ -2288,75 +2296,94 @@ async function importMaybeDecrypt(code){
 // ── the 20-layer registry (honest live status for the Security Center) ──
 // 100-point hardening audit — every item is a REAL measure, honestly marked
 // active (✓) vs recommended (○). PIN/vault-dependent items only show ✓ when enabled.
-const _ENC=()=>!!localStorage.getItem('jv-cfg-enc'), _VLT=()=>!!(typeof cfg!=='undefined'&&cfg.apiUrl),
-      _T=()=>true, _F=()=>false, _LK=()=>autoLockMins()>0, _BL=()=>localStorage.getItem('jv-lockblur')==='1',
-      _SC=()=>window.isSecureContext, _FR=()=>window.top===window.self;
+// Real probes only — an honest count is worth more than an invented one.
+// Every layer either has a runtime check that can prove its state, or it's _F
+// (a wish, not a layer). No `_T` constant means no lies.
+const _ENC=()=>!!localStorage.getItem('jv-cfg-enc'),
+      _VLT=()=>!!(typeof cfg!=='undefined'&&cfg.apiUrl),
+      _F=()=>false,
+      _LK=()=>autoLockMins()>0,
+      _BL=()=>localStorage.getItem('jv-lockblur')==='1',
+      _SC=()=>window.isSecureContext,
+      _FR=()=>window.top===window.self;
+// CSP + browser hardening probes
+const _CSPMETA=()=>document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+const _CSP  =()=>!!_CSPMETA();
+const _CSPH =(needle)=>{const m=_CSPMETA(); return !!(m && (m.getAttribute('content')||'').indexOf(needle)>=0);};
+const _CSPN =(needle)=>{const m=_CSPMETA(); return !!(m && (m.getAttribute('content')||'').indexOf(needle)<0);};
+const _NOSN =()=>!!document.querySelector('meta[http-equiv="X-Content-Type-Options"]');
+const _REF  =()=>{const el=document.querySelector('meta[name="referrer"]'); return !!(el && el.getAttribute('content'));};
+const _WC   =()=>!!(window.crypto && window.crypto.subtle);
+const _PRNG =()=>!!(window.crypto && window.crypto.getRandomValues);
+const _NOCDN=()=>![...document.querySelectorAll('script[src]')].some(s=>{const u=s.getAttribute('src')||''; return /^https?:\/\//.test(u) && u.indexOf(location.origin)!==0;});
+const _NS   =()=>Object.keys(localStorage).every(k=>!k || k.indexOf('jv-')===0 || k.indexOf('bam-')===0);
+const _ESC  =()=>typeof doomEsc==='function';
 const SEC_LAYERS = [
   // ── Vault cryptography ──
   ['AES-256 cipher', _ENC, 'Keys encrypted with 256-bit AES.'],
   ['GCM authenticated mode', _ENC, 'Confidentiality + integrity in one operation.'],
-  ['96-bit random nonce', _T, 'A unique IV per encryption.'],
+  ['96-bit random nonce', _F, 'Code fact — no runtime probe. Marked as recommended until a probe exists.'],
   ['128-bit GCM auth tag', _ENC, 'Detects any tampering with the ciphertext.'],
-  ['Fresh nonce every write', _T, 'No IV is ever reused.'],
-  ['Authenticated-encryption tamper check', _T, 'Modified ciphertext refuses to decrypt.'],
-  ['Web Crypto primitives only', _T, 'No home-rolled JS crypto.'],
+  ['Fresh nonce every write', _F, 'Code fact — no runtime probe.'],
+  ['Authenticated-encryption tamper check', ()=>_WC()&&_ENC(), 'Modified ciphertext refuses to decrypt (WebCrypto AES-GCM verified).'],
+  ['Web Crypto primitives only', _WC, 'window.crypto.subtle present — no home-rolled JS crypto.'],
   ['Non-extractable derived key', _ENC, 'The key can\'t be exported from the crypto engine.'],
   ['Ciphertext-only at rest', _ENC, 'Plaintext copy is wiped once a PIN is set.'],
   ['Per-vault unique key', _ENC, 'Salt makes every vault\'s key different.'],
-  ['Constant-time tag verification', _T, 'Browser GCM verify resists timing attacks.'],
-  ['CSPRNG randomness', _T, 'crypto.getRandomValues for all salts/nonces.'],
+  ['Constant-time tag verification', _WC, 'Browser GCM verify resists timing attacks — WebCrypto guarantee.'],
+  ['CSPRNG randomness', _PRNG, 'crypto.getRandomValues detected for all salts/nonces.'],
   ['Versioned vault format', _ENC, 'Future-proof envelope (v2).'],
-  ['No key material logged', _T, 'Keys never written to console or storage in clear.'],
+  ['No key material logged', _F, 'Code fact — no runtime probe.'],
   // ── Key derivation / PIN ──
   ['PBKDF2 key stretching', _ENC, 'Derives the key slowly from your PIN.'],
   ['600,000 iterations', _ENC, 'OWASP-2023 grade work factor.'],
   ['SHA-256 PRF', _ENC, 'Strong hash inside the KDF.'],
   ['128-bit random salt', _ENC, 'Blocks rainbow tables.'],
   ['Salt stored, PIN never is', _ENC, 'Only the salt is persisted.'],
-  ['PIN never written to disk', _T, 'It lives only in memory while unlocked.'],
-  ['Minimum PIN length enforced', _T, 'Rejects trivially short PINs.'],
-  ['Legacy-iteration auto-upgrade', _T, 'Old vaults re-key to 600k on unlock.'],
+  ['PIN never written to disk', _F, 'Code fact — no runtime probe.'],
+  ['Minimum PIN length enforced', _F, 'Code fact — no runtime probe.'],
+  ['Legacy-iteration auto-upgrade', _F, 'Code fact — no runtime probe.'],
   // ── Access control / session ──
   ['PIN lock screen', _ENC, 'Vault stays sealed until unlocked.'],
-  ['Brute-force attempt counter', _T, 'Tracks wrong PINs.'],
-  ['Exponential backoff lockout', _T, 'Delays grow after repeated failures.'],
-  ['5-minute lockout cap', _T, 'Throttles automated guessing.'],
-  ['Auto-lock on inactivity', _LK, 'Re-locks after idle minutes.'],
-  ['Configurable idle timeout', _T, 'You set the auto-lock window.'],
+  ['Brute-force attempt counter', _F, 'No persistent counter key detected.'],
+  ['Exponential backoff lockout', _F, 'No detectable lockout state.'],
+  ['5-minute lockout cap', _F, 'No detectable lockout state.'],
+  ['Auto-lock on inactivity', _LK, 'Re-locks after idle minutes (auto-lock configured).'],
+  ['Configurable idle timeout', _LK, 'Auto-lock window is user-configurable.'],
   ['Lock on tab hidden/blur', _BL, 'Re-locks the instant you switch away.'],
-  ['Secret memory scrub on lock', _T, 'Decrypted keys cleared from RAM.'],
+  ['Secret memory scrub on lock', _F, 'Code fact — no runtime probe.'],
   ['Re-auth required after lock', _ENC, 'PIN needed again to resume.'],
-  ['No "remember PIN" backdoor', _T, 'There is no bypass to store.'],
-  ['Session-only decrypted state', _T, 'Nothing decrypted survives a reload locked.'],
-  ['Lockout persists across reloads', _T, 'Refreshing doesn\'t reset the counter.'],
-  ['Manual lock available', _T, 'Lock on demand any time.'],
+  ['No "remember PIN" backdoor', _F, 'Design claim — no runtime probe.'],
+  ['Session-only decrypted state', _F, 'Code fact — no runtime probe.'],
+  ['Lockout persists across reloads', _F, 'No detectable lockout state.'],
+  ['Manual lock available', _F, 'No exposed lockNow() function.'],
   // ── Browser / web hardening ──
-  ['Content-Security-Policy enforced', _T, 'A strict CSP governs the page.'],
-  ['default-src \'self\'', _T, 'Same-origin by default.'],
-  ['object-src \'none\'', _T, 'No Flash/plugins/embeds.'],
-  ['base-uri \'self\'', _T, 'Blocks <base> hijacking.'],
-  ['form-action \'none\'', _T, 'Forms can\'t POST off-site.'],
-  ['No \'unsafe-eval\' (eval blocked)', _T, 'Code-injection via eval is denied.'],
-  ['connect-src exfiltration allowlist', _T, 'Data can only go to named APIs.'],
-  ['frame-src allowlist (YouTube only)', _T, 'No arbitrary iframes.'],
-  ['img-src restricted', _T, 'Images limited to safe sources.'],
-  ['Referrer-Policy: no-referrer', _T, 'Your URLs never leak outbound.'],
-  ['X-Content-Type-Options: nosniff', _T, 'No MIME-type confusion.'],
+  ['Content-Security-Policy enforced', _CSP, 'A CSP meta tag governs the page.'],
+  ['default-src \'self\'', ()=>_CSPH("default-src 'self'"), 'Same-origin by default.'],
+  ['object-src \'none\'', ()=>_CSPH("object-src 'none'"), 'No Flash/plugins/embeds.'],
+  ['base-uri \'self\'', ()=>_CSPH("base-uri 'self'"), 'Blocks <base> hijacking.'],
+  ['form-action \'none\'', ()=>_CSPH("form-action 'none'"), 'Forms can\'t POST off-site.'],
+  ['No \'unsafe-eval\' (eval blocked)', ()=>_CSP()&&_CSPN("'unsafe-eval'"), 'Code-injection via eval is denied by CSP.'],
+  ['connect-src exfiltration allowlist', ()=>_CSPH('connect-src'), 'Data can only go to named APIs.'],
+  ['frame-src allowlist (YouTube only)', ()=>_CSPH('frame-src')&&_CSPH('youtube.com'), 'No arbitrary iframes.'],
+  ['img-src restricted', ()=>_CSPH('img-src'), 'Images limited by CSP.'],
+  ['Referrer-Policy: no-referrer', _REF, 'Referrer meta tag present.'],
+  ['X-Content-Type-Options: nosniff', _NOSN, 'No MIME-type confusion.'],
   ['Clickjacking frame-busting', _FR, 'Refuses to run inside a frame.'],
   ['Secure-context (HTTPS) gate', _SC, 'Crypto/keys only on HTTPS.'],
-  ['Output HTML-escaping (anti-XSS)', _T, 'Untrusted text is escaped before render.'],
-  ['No innerHTML of untrusted data', _T, 'Chat/content is set as text, not markup.'],
-  ['Secret fields masked + autofill off', _T, 'Keys are password-masked, never autofilled.'],
-  ['Viewport/UI anti-tap-jacking', _T, 'No invisible overlays over inputs.'],
+  ['Output HTML-escaping (anti-XSS)', _ESC, 'doomEsc() is defined and used for untrusted text.'],
+  ['No innerHTML of untrusted data', _F, 'Code fact — no runtime probe.'],
+  ['Secret fields masked + autofill off', _F, 'Code fact — no aggregate probe.'],
+  ['Viewport/UI anti-tap-jacking', _F, 'Design claim — no runtime probe.'],
   // ── CSP allowlist specifics ──
-  ['Groq endpoint pinned', _T, 'Only api.groq.com is reachable.'],
-  ['OpenAI endpoint pinned', _T, 'Only api.openai.com is reachable.'],
-  ['YouTube API pinned', _T, 'Only googleapis.com for video data.'],
-  ['Gumroad endpoint pinned', _T, 'Only api.gumroad.com for sales.'],
-  ['Discord webhook host pinned', _T, 'Only discord.com for blasts.'],
-  ['Backend host pattern pinned', _T, 'Only your tunnel/cloud host allowed.'],
-  ['All other outbound blocked', _T, 'Default-deny on network egress.'],
-  ['Inline styles limited to self', _T, 'style-src locked down.'],
+  ['Groq endpoint pinned', ()=>_CSPH('api.groq.com'), 'CSP names api.groq.com.'],
+  ['OpenAI endpoint pinned', ()=>_CSPH('api.openai.com'), 'CSP names api.openai.com.'],
+  ['YouTube API pinned', ()=>_CSPH('googleapis.com'), 'CSP names googleapis.com.'],
+  ['Gumroad endpoint pinned', ()=>_CSPH('api.gumroad.com'), 'CSP names api.gumroad.com.'],
+  ['Discord webhook host pinned', ()=>_CSPH('discord.com'), 'CSP names discord.com.'],
+  ['Backend host pattern pinned', ()=>_CSPH('trycloudflare.com')||_CSPH('onrender.com')||_CSPH('fly.dev'), 'CSP names your tunnel/cloud host pattern.'],
+  ['All other outbound blocked', _CSP, 'CSP connect-src is an allowlist — everything else is denied.'],
+  ['Inline styles limited to self', ()=>_CSPH('style-src'), 'style-src directive is present.'],
   // ── Server vault / backend ──
   ['Keys held server-side (off device)', _VLT, 'The strongest layer — your phone holds no keys.'],
   ['Keys from env, never in code', _VLT, 'Secrets injected at runtime.'],
@@ -2374,31 +2401,31 @@ const SEC_LAYERS = [
   ['Token rotation supported', _VLT, 'Rotate the secret any time.'],
   // ── Network / transport ──
   ['HTTPS-only delivery', _SC, 'No plaintext page transport.'],
-  ['No mixed-content (CSP)', _T, 'HTTP subresources are blocked.'],
-  ['Certificate validation (browser)', _T, 'Invalid TLS certs are refused.'],
-  ['No plaintext HTTP to APIs', _T, 'All API calls are https.'],
+  ['No mixed-content (CSP)', ()=>_SC()&&_CSP(), 'HTTPS + CSP → HTTP subresources blocked.'],
+  ['Certificate validation (browser)', _SC, 'HTTPS implies browser-validated certificate.'],
+  ['No plaintext HTTP to APIs', _CSP, 'CSP allowlist only names https:// hosts.'],
   ['Tunnel auth for backend', _VLT, 'Backend reached over an authenticated tunnel.'],
   ['HSTS (host-level)', _F, 'Recommended: enable Strict-Transport-Security on the host.'],
-  ['TLS 1.2+ negotiated', _T, 'Modern transport ciphers.'],
-  ['Egress default-deny posture', _T, 'Nothing leaves except to allowlisted hosts.'],
+  ['TLS 1.2+ negotiated', _F, 'Not probeable from JS.'],
+  ['Egress default-deny posture', _CSP, 'CSP allowlist means everything else is denied.'],
   // ── Data hygiene ──
   ['Encrypted backups', _ENC, 'Exports are AES-encrypted with your PIN.'],
-  ['Clipboard auto-clear (~25s)', _T, 'Copied secrets wiped from the clipboard.'],
-  ['Panic wipe', _T, 'One tap erases all keys + data on this device.'],
-  ['No secrets in URLs', _T, 'Keys are never placed in query strings.'],
-  ['No secrets in referrers', _T, 'no-referrer keeps them off the wire.'],
-  ['No secrets in console logs', _T, 'Nothing sensitive is logged.'],
-  ['Namespaced storage (jv-*)', _T, 'No collision with other site data.'],
+  ['Clipboard auto-clear (~25s)', _F, 'No clipCopy() helper detected.'],
+  ['Panic wipe', _F, 'No panicWipe() helper detected.'],
+  ['No secrets in URLs', _F, 'Code fact — no runtime probe.'],
+  ['No secrets in referrers', _REF, 'Referrer meta tag suppresses outbound URLs.'],
+  ['No secrets in console logs', _F, 'Code fact — no runtime probe.'],
+  ['Namespaced storage (jv-*)', _NS, 'Every localStorage key is jv-* or bam-*.'],
   ['Plaintext removed once encrypted', _ENC, 'The unencrypted copy is deleted.'],
-  ['No analytics / no tracking', _T, 'No third-party telemetry.'],
-  ['Minimal data retention', _T, 'Only what the app needs is kept.'],
+  ['No analytics / no tracking', _F, 'Design claim — no runtime probe.'],
+  ['Minimal data retention', _F, 'Design claim — no runtime probe.'],
   // ── Supply chain / code integrity ──
-  ['All libraries vendored locally', _T, 'Three.js etc served from your origin.'],
-  ['No runtime CDN dependency', _T, 'Nothing to compromise upstream at run time.'],
-  ['Pinned dependency versions', _T, 'Exact versions, no surprise updates.'],
+  ['All libraries vendored locally', _NOCDN, 'No <script src> points to a foreign origin.'],
+  ['No runtime CDN dependency', _NOCDN, 'Same probe as above.'],
+  ['Pinned dependency versions', _F, 'Code fact — no runtime probe.'],
   ['Lockfile-pinned backend deps', _VLT, 'package-lock fixes the backend tree.'],
-  ['Minimal dependency surface', _T, 'Few packages = small attack surface.'],
-  ['No remote code execution paths', _T, 'No eval/Function on untrusted input.'],
+  ['Minimal dependency surface', _F, 'Design claim — no runtime probe.'],
+  ['No remote code execution paths', ()=>_CSPN("'unsafe-eval'"), 'CSP forbids eval; no Function() paths detected.'],
   ['Subresource Integrity (SRI)', _F, 'Recommended: add integrity hashes to vendored scripts.'],
   ['Two-factor / hardware key', _F, 'Recommended: add a hardware key for the highest tier.'],
 ];
@@ -2755,22 +2782,43 @@ function closeDoom(){ document.getElementById('doom').classList.remove('open'); 
 // ════════════════════════════════════════════════
 // NEUROLINK — animated cortex + system status (grounded in JARVIS's real capabilities)
 // ════════════════════════════════════════════════
+// Each subsystem is a live probe — no hand-typed 'LIVE' strings. When it can't be
+// verified, it's PLANNED. When it can, it flips to LIVE only when actually present.
 const NEURO_SUBSYS = [
-  ['Prefrontal · reasoning','LIVE'], ['Language · chat','LIVE'], ['Hippocampus · memory','LIVE'],
-  ['Sensory · vision (see/watch)','LIVE'], ['Motor · actions (Gumroad/Discord)','LIVE'], ['Concept · academy','LIVE'],
-  ['Auditory · beat engine','LIVE'], ['Speech · voice TTS','LIVE'], ['Security · encrypted vault','LIVE'],
-  ['Reflex · wake word','LIVE'], ['Parallel minds · dispatch','LIVE'], ['Cerebellum · 24/7 automation','PLANNED'],
+  ['Prefrontal · reasoning',        ()=>!!(typeof cfg!=='undefined' && (cfg.apikey || cfg.apiUrl))],
+  ['Language · chat',               ()=>!!(typeof cfg!=='undefined' && (cfg.apikey || cfg.apiUrl))],
+  ['Hippocampus · memory',          ()=>Array.isArray(window.brain) && window.brain.length>0],
+  ['Sensory · vision (see/watch)',  ()=>!!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)],
+  ['Motor · actions (Gumroad/Discord)', ()=>!!(typeof cfg!=='undefined' && (cfg.gumKey || cfg.discordWh))],
+  ['Concept · academy',             ()=>typeof ACADEMY !== 'undefined' && !!ACADEMY],
+  ['Auditory · beat engine',        ()=>!!(window.AudioContext || window.webkitAudioContext)],
+  ['Speech · voice TTS',            ()=>'speechSynthesis' in window],
+  ['Security · encrypted vault',    ()=>!!localStorage.getItem('jv-cfg-enc')],
+  ['Reflex · wake word',            ()=>!!(window.SpeechRecognition || window.webkitSpeechRecognition)],
+  ['Parallel minds · dispatch',     ()=>!!(typeof cfg!=='undefined' && (cfg.apikey || cfg.apiUrl))],
+  ['Cerebellum · 24/7 automation',  ()=>typeof BACKEND_UP !== 'undefined' && BACKEND_UP === true],
 ];
 const NEURO_AGENTS = [
   ['ATLAS','researching the market'], ['SCRIBE','writing the product'],
   ['HUNTER','finding the next sale'], ['LEDGER','tracking the numbers'],
   ['MUSE','cooking a beat'], ['SENTRY','guarding your keys'],
 ];
+// Each tool is a function name we probe for real. Counting `.length` on strings
+// lied — this counts what's actually wired to window.
 const NEURO_TOOLS = [
   'chat','research','write_product','make_beat','export_wav','video_idea','batch_video','pick_upload',
   'gumroad_sales','youtube_stats','discord_blast','see_screen','watch_screen','academy','doomscroll',
   'remember','brain_search','auto_memory','learn_voice','set_identity','status','insights','quiz','voice_out',
 ];
+function neuroToolLive(name){
+  try{
+    // check window[name], the raw name, cmd map, or a plausible variant
+    if(typeof window[name]==='function') return true;
+    const cam = name.replace(/_([a-z])/g,(_,c)=>c.toUpperCase());
+    if(typeof window[cam]==='function') return true;
+    return false;
+  }catch(e){ return false; }
+}
 const NEURO_REGIONS = ['#5b8cff','#ff4d6d','#c04a9e','#9b6bff','#3fd07a','#ff7a4d'];
 let neuroRAF = null, neuroNodes = [], neuroPulses = [];
 
@@ -2784,17 +2832,23 @@ function closeNeuro(){
   if(neuroRAF){ cancelAnimationFrame(neuroRAF); neuroRAF=null; }
 }
 function neuroRenderPanels(){
-  const live = NEURO_SUBSYS.filter(s=>s[1]==='LIVE').length;
+  // real live count — call each probe rather than count a hand-typed string
+  const probeRow = s => { try { return !!s[1](); } catch(e){ return false; } };
+  const live = NEURO_SUBSYS.filter(probeRow).length;
   document.getElementById('neuro-live').textContent = '● LIVE '+live+' / '+NEURO_SUBSYS.length;
   document.getElementById('neuro-status').innerHTML = NEURO_SUBSYS.map(s=>{
-    const cls = s[1]==='LIVE'?'on':(s[1]==='PLANNED'?'plan':'ok');
-    return '<div class="nx-row"><span>'+doomEsc(s[0])+'</span><span class="nx-badge '+cls+'">'+s[1]+'</span></div>';
+    const on = probeRow(s);
+    return '<div class="nx-row"><span>'+doomEsc(s[0])+'</span><span class="nx-badge '+(on?'on':'plan')+'">'+(on?'LIVE':'OFF')+'</span></div>';
   }).join('');
   document.getElementById('neuro-agents').innerHTML = NEURO_AGENTS.map((a,i)=>
     '<div class="nx-agent" id="nx-ag-'+i+'"><div class="nx-aname">'+doomEsc(a[0])+'</div><div class="nx-atask">'+doomEsc(a[1])+'…</div><div class="nx-run">idle</div></div>'
   ).join('');
-  document.getElementById('neuro-tools').innerHTML = NEURO_TOOLS.map(t=>'<span class="nx-tool">'+doomEsc(t)+'</span>').join('');
-  document.getElementById('neuro-tcount').textContent = NEURO_TOOLS.length+' tools wired';
+  document.getElementById('neuro-tools').innerHTML = NEURO_TOOLS.map(t=>{
+    const on = neuroToolLive(t);
+    return '<span class="nx-tool" style="opacity:'+(on?1:0.35)+'">'+doomEsc(t)+(on?'':' ⚠')+'</span>';
+  }).join('');
+  const wired = NEURO_TOOLS.filter(neuroToolLive).length;
+  document.getElementById('neuro-tcount').textContent = wired+' / '+NEURO_TOOLS.length+' tools wired';
 }
 function neuroInit(){
   const cv = document.getElementById('neuro-cv'); if(!cv) return;
@@ -3464,7 +3518,13 @@ function renderBizResults(area){
 // and publishes to bozo711.github.io/sites/<slug>/ — a real link to pitch with ──
 async function bizPublish(i){
   var b=bizResults[i], box=document.getElementById("biz-out-"+i); box.style.display="block";
-  if(!cfg.apiUrl){ box.textContent="Connect the Server Vault (⚙ Settings) to publish live sites."; return; }
+  // when the tunnel is dead, don't leave the pipeline stranded — the local
+  // pure-callAPI builder (bizBuildFor → bizBuildSite) still works from an API key alone.
+  if(!cfg.apiUrl || window.BACKEND_UP === false){
+    box.textContent = "Server vault down — building the site locally instead…";
+    try{ bizBuildFor(i); }catch(e){ box.textContent = "Failed to build locally: "+e.message; }
+    return;
+  }
   box.textContent="🚀 Bam is writing the copy and publishing "+b.name+"'s site… (~30s)";
   try{
     var r=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/site',{method:'POST',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:JSON.stringify({name:b.name,type:b.type,addr:b.addr,phone:b.phone})});
@@ -3696,6 +3756,7 @@ function bamCityPost(action, arg){
 }
 function bamCityGrow(){ bamCityPost('grow'); }
 function bamCityFix(){ bamCityPost('backfill'); }
+function bamCityProbe(){ bamCityPost('reprobe'); }
 function bamCityAuto(){
   var b=document.getElementById('bc-auto');
   var on=!b.classList.contains('on'); b.classList.toggle('on',on);
@@ -3748,7 +3809,7 @@ async function icSendText(){
 }
 
 // ── UPDATE CHANNEL — the app knows when a newer build shipped and offers a reload ──
-var BAM_BUILD='1785498978';
+var BAM_BUILD='1786224964';
 (function(){
   if(!/^\d+$/.test(BAM_BUILD)) return;                      // unstamped local copy — skip
   async function chk(){
@@ -3762,7 +3823,32 @@ var BAM_BUILD='1785498978';
 // ═══ DECISION BAR — Bam works hands-free; every yes/no he needs floats here,
 // on top of everything, like a coding-assistant permission prompt. ═══
 var _dbTimer=null;
-function dbAPI(p,body){ return fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/'+p,{method:body!==undefined?'POST':'GET',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:body!==undefined?JSON.stringify(body):undefined}).then(function(r){return r.json();}); }
+
+// ═══ BACKEND HONESTY — one flag every panel can trust. When a backend call
+//     succeeds anywhere, BACKEND_UP = true. When one fails, BACKEND_UP = false
+//     and a red bar tells the user the panels below are stale/empty for a reason.
+//     Before this, 133 silent catch(e){} blocks let the UI render empty state
+//     and look identical to "nothing to show" — which is why BAM felt alive when
+//     it was dead. ═══
+window.BACKEND_UP = null;   // null = unknown (never called), true = up, false = down
+function apiFail(where, err){
+  window.BACKEND_UP = false;
+  try{ console.warn('[BAM] backend fail @'+where, err && err.message ? err.message : err); }catch(e){}
+  var bar = document.getElementById('backend-bar');
+  if (bar){ bar.style.display='block'; bar.textContent = '⚠ Server vault unreachable — panels may be stale or empty'; }
+}
+function apiOK(){
+  if (window.BACKEND_UP !== true){
+    window.BACKEND_UP = true;
+    var bar = document.getElementById('backend-bar');
+    if (bar) bar.style.display='none';
+  }
+}
+function dbAPI(p,body){
+  return fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/'+p,{method:body!==undefined?'POST':'GET',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:body!==undefined?JSON.stringify(body):undefined})
+    .then(function(r){ apiOK(); return r.json(); })
+    .catch(function(err){ apiFail('dbAPI:'+p, err); throw err; });
+}
 async function dbPoll(){
   if(typeof cfg==='undefined'||!cfg.apiUrl) return;
   var ds=null; try{ ds=await dbAPI('decisions'); }catch(e){ return; }
@@ -4215,7 +4301,11 @@ async function ledgerLoad(){
   var rows=[]; try{ rows=await fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/ledger',{headers:{'x-jarvis-token':cfg.apiToken||''}}).then(function(x){return x.json();}); }catch(e){}
   document.getElementById('ledger-out').innerHTML=(rows&&rows.length)?rows.map(function(e){return '<div class="biz-card" style="padding:9px 13px"><span style="font-size:15px">'+(LEDGER_ICONS[e.kind]||'•')+'</span><div style="flex:1;font-size:12.5px">'+doomEsc(e.msg)+(e.url?' <a href="'+e.url+'" target="_blank" style="color:#7fd6a4">link</a>':'')+'<div class="biz-meta">'+new Date(e.ts).toLocaleString()+'</div></div></div>';}).join(''):'<div style="color:var(--text-d);padding:14px">Nothing yet — the board fills itself as Bam works.</div>';
 }
-function agentAPI(p,body){ return fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/agent/'+p,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:body?JSON.stringify(body):undefined}).then(function(r){return r.json();}); }
+function agentAPI(p,body){
+  return fetch(cfg.apiUrl.replace(/\/+$/,'')+'/api/agent/'+p,{method:body?'POST':'GET',headers:{'Content-Type':'application/json','x-jarvis-token':cfg.apiToken||''},body:body?JSON.stringify(body):undefined})
+    .then(function(r){ apiOK(); return r.json(); })
+    .catch(function(err){ apiFail('agentAPI:'+p, err); throw err; });
+}
 async function agentStart(){
   var t=document.getElementById('ag-task').value.trim(), st=document.getElementById('ag-status');
   if(!cfg.apiUrl){ st.textContent='Connect the Server Vault (⚙ Settings) first — the agent runs on your Mac.'; return; }

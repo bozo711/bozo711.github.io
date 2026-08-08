@@ -221,7 +221,10 @@ Commands: "status" · "list" · "add product X" · "set income X" · "[name] mod
 
   function _norm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim(); }
 
-  // merge new facts into the brain (newest first), skipping duplicates/near-dupes
+  // merge new facts into the brain (newest first), skipping duplicates/near-dupes.
+  // PER AUDIT #9: substring dedup used to keep the older, thinner fact — so every
+  // elaboration (e.g. "Bam works two jobs" → "Bam works two jobs, nights, ends in March")
+  // was silently discarded. Now: exact match = skip; new is richer = replace; old is richer = skip.
   function mergeFacts(brain, newFacts) {
     brain = (brain || []).slice();
     const added = [];
@@ -230,7 +233,17 @@ Commands: "status" · "list" · "add product X" · "set income X" · "[name] mod
       if (!fact) continue;
       const key = _norm(fact);
       if (!key) continue;
-      if (brain.some(b => { const k = _norm(b.fact); return k === key || k.includes(key) || key.includes(k); })) continue;
+      const hit = brain.findIndex(b => {
+        const k = _norm(b.fact);
+        return k === key || k.includes(key) || key.includes(k);
+      });
+      if (hit >= 0) {
+        const oldKey = _norm(brain[hit].fact);
+        // if the stored fact is at least as rich as the incoming one, keep it
+        if (oldKey.length >= key.length) continue;
+        // incoming fact contains + elaborates on the stored one — replace, don't skip
+        brain.splice(hit, 1);
+      }
       brain.unshift({ category: String(f.category || 'fact').toLowerCase(), fact, date: new Date().toISOString(), auto: !!f.auto });
       added.push(fact);
     }
